@@ -1,0 +1,175 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ news.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+
+  {# Cabeçalho #}
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ url_for('news.index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900 flex-1 min-w-0 truncate">{{ news.title }}</h1>
+    {% if news.is_published %}
+      <span class="shrink-0 inline-flex px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">
+        Publicado
+      </span>
+    {% else %}
+      <span class="shrink-0 inline-flex px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">
+        Rascunho
+      </span>
+    {% endif %}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    {# Conteúdo principal #}
+    <div class="lg:col-span-2 space-y-4">
+
+      {% if news.featured_image %}
+        <img src="{{ news.featured_image }}" alt="{{ news.title }}"
+             class="w-full rounded-lg object-cover max-h-64">
+      {% endif %}
+
+      <div class="bg-white rounded-lg border border-gray-200 p-5">
+        {% if news.summary %}
+          <p class="text-gray-500 italic mb-4 pb-4 border-b border-gray-100">{{ news.summary }}</p>
+        {% endif %}
+        <div class="prose prose-sm max-w-none text-gray-800" id="content-preview"></div>
+      </div>
+
+    </div>
+
+    {# Sidebar de detalhes + ações #}
+    <div class="space-y-4">
+
+      {# Ações #}
+      <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100 text-sm">
+        <a href="{{ url_for('news.edit', news_id=news.id) }}"
+           class="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-gray-700">
+          Editar
+        </a>
+        <form method="POST" action="{{ url_for('news.publish', news_id=news.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  class="w-full flex items-center gap-2 px-4 py-3 text-left
+                         {{ 'hover:bg-red-50 text-red-600' if news.is_published else 'hover:bg-green-50 text-green-600' }}">
+            {{ 'Despublicar' if news.is_published else 'Publicar' }}
+          </button>
+        </form>
+        <a href="{{ url_for('news.view', slug=news.slug) }}" target="_blank"
+           class="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-gray-700">
+          Ver no portal ↗
+        </a>
+        <form method="POST" action="{{ url_for('news.delete', news_id=news.id) }}"
+              onsubmit="return confirm('Excluir permanentemente esta notícia?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  class="w-full flex items-center gap-2 px-4 py-3
+                         hover:bg-red-50 text-red-600 text-left">
+            Excluir
+          </button>
+        </form>
+      </div>
+
+      {# Metadados #}
+      <div class="bg-white rounded-lg border border-gray-200 p-5 text-sm">
+        <h2 class="font-semibold text-gray-700 mb-3">Informações</h2>
+        <dl class="space-y-2">
+          <div class="flex justify-between">
+            <dt class="text-gray-400">Autor</dt>
+            <dd class="font-medium">{{ news.author.name if news.author else '—' }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-gray-400">Criado em</dt>
+            <dd class="font-medium">{{ news.created_at.strftime('%d/%m/%Y') }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-gray-400">Publicado em</dt>
+            <dd class="font-medium">
+              {{ news.published_at.strftime('%d/%m/%Y %H:%M') if news.published_at else '—' }}
+            </dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-gray-400">Visualizações</dt>
+            <dd class="font-medium">{{ news.views_count }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-gray-400">Slug</dt>
+            <dd class="font-mono text-xs text-gray-500 truncate max-w-[140px]">{{ news.slug }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      {# Categorias e Tags #}
+      {% if news.categories or news.tags %}
+      <div class="bg-white rounded-lg border border-gray-200 p-5 text-sm">
+        {% if news.categories %}
+          <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Categorias</p>
+          <div class="flex flex-wrap gap-1 mb-3">
+            {% for cat in news.categories %}
+              <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs">{{ cat.name }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if news.tags %}
+          <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Tags</p>
+          <div class="flex flex-wrap gap-1">
+            {% for tag in news.tags %}
+              <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs">#{{ tag.name }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Renderiza o JSON do Tiptap como HTML simples para preview
+(function () {
+  const raw = {{ news.content_json | tojson }};
+  const container = document.getElementById('content-preview');
+  if (!container || !raw) return;
+
+  function renderNode(node) {
+    if (!node) return '';
+    if (node.type === 'doc') return (node.content || []).map(renderNode).join('');
+    if (node.type === 'paragraph') {
+      const inner = (node.content || []).map(renderNode).join('') || '<br>';
+      return `<p>${inner}</p>`;
+    }
+    if (node.type === 'text') {
+      let t = node.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      (node.marks || []).forEach(m => {
+        if (m.type === 'bold')   t = `<strong>${t}</strong>`;
+        if (m.type === 'italic') t = `<em>${t}</em>`;
+        if (m.type === 'strike') t = `<s>${t}</s>`;
+        if (m.type === 'code')   t = `<code>${t}</code>`;
+      });
+      return t;
+    }
+    if (node.type === 'heading') {
+      const l = node.attrs?.level || 2;
+      return `<h${l}>${(node.content||[]).map(renderNode).join('')}</h${l}>`;
+    }
+    if (node.type === 'bulletList')  return `<ul>${(node.content||[]).map(renderNode).join('')}</ul>`;
+    if (node.type === 'orderedList') return `<ol>${(node.content||[]).map(renderNode).join('')}</ol>`;
+    if (node.type === 'listItem')    return `<li>${(node.content||[]).map(renderNode).join('')}</li>`;
+    if (node.type === 'blockquote')  return `<blockquote>${(node.content||[]).map(renderNode).join('')}</blockquote>`;
+    if (node.type === 'codeBlock')   return `<pre><code>${(node.content||[]).map(renderNode).join('')}</code></pre>`;
+    if (node.type === 'horizontalRule') return '<hr>';
+    if (node.type === 'hardBreak')   return '<br>';
+    return (node.content || []).map(renderNode).join('');
+  }
+
+  container.innerHTML = renderNode(raw);
+})();
+</script>
+{% endblock %}

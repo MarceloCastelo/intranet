@@ -1,0 +1,107 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ news.title }}{% endblock %}
+
+{% block content %}
+<article class="max-w-3xl mx-auto">
+
+  {# Imagem de destaque #}
+  {% if news.featured_image %}
+    <img src="{{ news.featured_image }}" alt="{{ news.title }}"
+         class="w-full rounded-lg object-cover max-h-80 mb-6">
+  {% endif %}
+
+  {# Categorias #}
+  {% if news.categories %}
+  <div class="flex flex-wrap gap-2 mb-3">
+    {% for cat in news.categories %}
+      <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
+        {{ cat.name }}
+      </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <h1 class="text-3xl font-bold text-gray-900 leading-tight mb-3">{{ news.title }}</h1>
+
+  {% if news.summary %}
+    <p class="text-lg text-gray-500 mb-4">{{ news.summary }}</p>
+  {% endif %}
+
+  <div class="flex items-center gap-3 text-sm text-gray-400 mb-8 pb-6 border-b border-gray-200">
+    {% if news.author %}
+      {% if news.author.profile_picture %}
+        <img src="{{ news.author.profile_picture }}" alt=""
+             class="w-7 h-7 rounded-full object-cover">
+      {% else %}
+        <span class="w-7 h-7 rounded-full bg-primary-100 text-primary-700 text-xs font-bold
+                     flex items-center justify-center">
+          {{ news.author.name[0].upper() }}
+        </span>
+      {% endif %}
+      <span class="font-medium text-gray-600">{{ news.author.name }}</span>
+      <span>&middot;</span>
+    {% endif %}
+    <span>
+      {{ news.published_at.strftime('%d de %B de %Y') if news.published_at else '' }}
+    </span>
+    <span>&middot;</span>
+    <span>{{ news.views_count }} visualização{{ 'ões' if news.views_count != 1 else '' }}</span>
+  </div>
+
+  {# Conteúdo #}
+  <div class="prose prose-lg max-w-none text-gray-800" id="article-content"></div>
+
+  {# Tags #}
+  {% if news.tags %}
+  <div class="mt-10 pt-6 border-t border-gray-200 flex flex-wrap gap-2">
+    {% for tag in news.tags %}
+      <span class="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-600">#{{ tag.name }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const raw = {{ news.content_json | tojson }};
+  const container = document.getElementById('article-content');
+  if (!container || !raw) return;
+
+  function renderNode(node) {
+    if (!node) return '';
+    if (node.type === 'doc') return (node.content || []).map(renderNode).join('');
+    if (node.type === 'paragraph') {
+      const inner = (node.content || []).map(renderNode).join('') || '<br>';
+      return `<p>${inner}</p>`;
+    }
+    if (node.type === 'text') {
+      let t = node.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      (node.marks || []).forEach(m => {
+        if (m.type === 'bold')   t = `<strong>${t}</strong>`;
+        if (m.type === 'italic') t = `<em>${t}</em>`;
+        if (m.type === 'strike') t = `<s>${t}</s>`;
+        if (m.type === 'code')   t = `<code>${t}</code>`;
+      });
+      return t;
+    }
+    if (node.type === 'heading') {
+      const l = node.attrs?.level || 2;
+      return `<h${l}>${(node.content||[]).map(renderNode).join('')}</h${l}>`;
+    }
+    if (node.type === 'bulletList')  return `<ul>${(node.content||[]).map(renderNode).join('')}</ul>`;
+    if (node.type === 'orderedList') return `<ol>${(node.content||[]).map(renderNode).join('')}</ol>`;
+    if (node.type === 'listItem')    return `<li>${(node.content||[]).map(renderNode).join('')}</li>`;
+    if (node.type === 'blockquote')  return `<blockquote>${(node.content||[]).map(renderNode).join('')}</blockquote>`;
+    if (node.type === 'codeBlock')   return `<pre><code>${(node.content||[]).map(renderNode).join('')}</code></pre>`;
+    if (node.type === 'horizontalRule') return '<hr>';
+    if (node.type === 'hardBreak')   return '<br>';
+    return (node.content || []).map(renderNode).join('');
+  }
+
+  container.innerHTML = renderNode(raw);
+})();
+</script>
+{% endblock %}

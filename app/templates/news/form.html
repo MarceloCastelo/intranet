@@ -1,0 +1,249 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block head %}
+{# Editor Tiptap via CDN (UMD build) #}
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/core@2/dist/tiptap-core.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2/dist/tiptap-starter-kit.umd.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ url_for('news.index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" novalidate id="news-form">
+    {{ form.hidden_tag() }}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      {# Coluna principal #}
+      <div class="lg:col-span-2 space-y-5">
+
+        {# Título #}
+        <div class="bg-white rounded-lg border border-gray-200 p-5">
+          {{ form.title.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.title(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 text-lg font-medium",
+              id="input-title") }}
+          {% for e in form.title.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+
+          <div class="mt-3">
+            {{ form.slug.label(class="block text-xs font-medium text-gray-500") }}
+            {{ form.slug(class="mt-1 block w-full rounded-md border-gray-200 shadow-sm
+                text-sm text-gray-500 focus:ring-primary-500 focus:border-primary-500",
+                id="input-slug") }}
+          </div>
+        </div>
+
+        {# Editor de conteúdo #}
+        <div class="bg-white rounded-lg border border-gray-200 p-5">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Conteúdo</label>
+
+          {# Toolbar #}
+          <div class="flex flex-wrap gap-1 mb-2 p-2 bg-gray-50 rounded border border-gray-200"
+               id="toolbar">
+            {% for cmd, label in [
+                ('bold','N'), ('italic','I'), ('strike','S'),
+                ('heading-1','H1'), ('heading-2','H2'), ('heading-3','H3'),
+                ('bulletList','• Lista'), ('orderedList','1. Lista'),
+                ('blockquote','❝'), ('codeBlock','</>'), ('horizontalRule','—')
+            ] %}
+            <button type="button" data-cmd="{{ cmd }}"
+                    class="px-2 py-1 text-xs rounded border border-gray-300 bg-white
+                           hover:bg-primary-50 hover:border-primary-300 transition-colors toolbar-btn">
+              {{ label }}
+            </button>
+            {% endfor %}
+          </div>
+
+          {# Área visível do editor #}
+          <div id="editor"
+               class="min-h-64 rounded-md border border-gray-300 p-3 text-sm
+                      focus-within:ring-2 focus-within:ring-primary-500
+                      focus-within:border-primary-500 prose prose-sm max-w-none">
+          </div>
+
+          {# Hidden que envia o JSON #}
+          {{ form.content_json(class="hidden", id="content-json") }}
+          {% for e in form.content_json.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        {# Resumo #}
+        <div class="bg-white rounded-lg border border-gray-200 p-5">
+          {{ form.summary.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.summary(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 text-sm", rows=3) }}
+          <p class="mt-1 text-xs text-gray-400">Máx. 500 caracteres. Exibido na listagem.</p>
+          {% for e in form.summary.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+        </div>
+
+      </div>
+
+      {# Sidebar do formulário #}
+      <div class="space-y-5">
+
+        {# Publicar #}
+        <div class="bg-white rounded-lg border border-gray-200 p-5">
+          <h3 class="text-sm font-semibold text-gray-700 mb-4">Publicação</h3>
+
+          <label class="flex items-center gap-2 cursor-pointer">
+            {{ form.is_published(class="rounded border-gray-300 text-primary-600
+                focus:ring-primary-500") }}
+            <span class="text-sm text-gray-700">Publicar imediatamente</span>
+          </label>
+
+          <div class="mt-4 flex gap-2">
+            <a href="{{ url_for('news.index') }}"
+               class="flex-1 text-center px-3 py-2 text-sm rounded-md border
+                      border-gray-300 text-gray-700 hover:bg-gray-50">
+              Cancelar
+            </a>
+            <button type="submit"
+                    class="flex-1 px-3 py-2 text-sm rounded-md bg-primary-600
+                           text-white hover:bg-primary-700">
+              Salvar
+            </button>
+          </div>
+        </div>
+
+        {# Imagem de destaque #}
+        <div class="bg-white rounded-lg border border-gray-200 p-5">
+          <h3 class="text-sm font-semibold text-gray-700 mb-3">Imagem de destaque</h3>
+          {% if news and news.featured_image %}
+            <img src="{{ news.featured_image }}" alt=""
+                 class="w-full h-32 object-cover rounded mb-3">
+          {% endif %}
+          {{ form.featured_image(class="block w-full text-xs text-gray-500
+              file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0
+              file:text-xs file:font-medium file:bg-primary-50 file:text-primary-700
+              hover:file:bg-primary-100") }}
+          {% for e in form.featured_image.errors %}
+            <p class="mt-1 text-xs text-red-600">{{ e }}</p>
+          {% endfor %}
+        </div>
+
+        {# Categorias #}
+        <div class="bg-white rounded-lg border border-gray-200 p-5">
+          <h3 class="text-sm font-semibold text-gray-700 mb-3">Categorias</h3>
+          <div class="space-y-1 max-h-40 overflow-y-auto">
+            {% for subfield in form.categories %}
+            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+              {{ subfield(class="rounded border-gray-300 text-primary-600 focus:ring-primary-500") }}
+              {{ subfield.label.text }}
+            </label>
+            {% else %}
+            <p class="text-xs text-gray-400">
+              Nenhuma categoria.
+              <a href="{{ url_for('news.categories') }}"
+                 class="text-primary-600 hover:underline">Criar</a>
+            </p>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# Tags #}
+        <div class="bg-white rounded-lg border border-gray-200 p-5">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">Tags</h3>
+          {{ form.tags_input(class="block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 text-sm",
+              placeholder="tecnologia, rh, evento") }}
+          <p class="mt-1 text-xs text-gray-400">{{ form.tags_input.description }}</p>
+        </div>
+
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  // ── Slug auto-gerado a partir do título ───────────────────
+  const titleInput = document.getElementById('input-title');
+  const slugInput  = document.getElementById('input-slug');
+
+  function slugify(t) {
+    return t.toLowerCase()
+      .replace(/[àáâãä]/g,'a').replace(/[èéêë]/g,'e')
+      .replace(/[ìíîï]/g,'i').replace(/[òóôõö]/g,'o')
+      .replace(/[ùúûü]/g,'u').replace(/ç/g,'c')
+      .replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').trim();
+  }
+
+  if (titleInput && !slugInput.value) {
+    titleInput.addEventListener('input', () => {
+      slugInput.value = slugify(titleInput.value);
+    });
+  }
+
+  // ── Editor Tiptap ─────────────────────────────────────────
+  const { Editor } = window.tiptap || {};
+  const { StarterKit } = window.tiptapStarterKit || {};
+
+  if (!Editor || !StarterKit) {
+    // Fallback: textarea simples se os scripts CDN não carregaram
+    const editorDiv   = document.getElementById('editor');
+    const contentJson = document.getElementById('content-json');
+    const ta = document.createElement('textarea');
+    ta.className = 'w-full h-64 text-sm outline-none resize-none';
+    ta.placeholder = 'Escreva o conteúdo aqui...';
+    try {
+      const parsed = JSON.parse(contentJson.value || '{}');
+      ta.value = parsed?.content?.[0]?.content?.[0]?.text || '';
+    } catch(e) { ta.value = ''; }
+    editorDiv.appendChild(ta);
+    document.getElementById('news-form').addEventListener('submit', () => {
+      contentJson.value = JSON.stringify({
+        type:'doc', content:[{type:'paragraph',
+          content:[{type:'text', text: ta.value}]}]
+      });
+    });
+    return;
+  }
+
+  const contentJson = document.getElementById('content-json');
+  let initialContent = { type: 'doc', content: [{ type: 'paragraph' }] };
+  try { if (contentJson.value) initialContent = JSON.parse(contentJson.value); } catch(e) {}
+
+  const editor = new Editor({
+    element: document.getElementById('editor'),
+    extensions: [StarterKit],
+    content: initialContent,
+  });
+
+  // Sync para o hidden antes de submeter
+  document.getElementById('news-form').addEventListener('submit', () => {
+    contentJson.value = JSON.stringify(editor.getJSON());
+  });
+
+  // Toolbar
+  document.getElementById('toolbar').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-cmd]');
+    if (!btn) return;
+    const cmd = btn.dataset.cmd;
+    const chain = editor.chain().focus();
+    if (cmd === 'bold')          chain.toggleBold().run();
+    else if (cmd === 'italic')   chain.toggleItalic().run();
+    else if (cmd === 'strike')   chain.toggleStrike().run();
+    else if (cmd === 'heading-1') chain.toggleHeading({ level: 1 }).run();
+    else if (cmd === 'heading-2') chain.toggleHeading({ level: 2 }).run();
+    else if (cmd === 'heading-3') chain.toggleHeading({ level: 3 }).run();
+    else if (cmd === 'bulletList')   chain.toggleBulletList().run();
+    else if (cmd === 'orderedList')  chain.toggleOrderedList().run();
+    else if (cmd === 'blockquote')   chain.toggleBlockquote().run();
+    else if (cmd === 'codeBlock')    chain.toggleCodeBlock().run();
+    else if (cmd === 'horizontalRule') chain.setHorizontalRule().run();
+  });
+})();
+</script>
+{% endblock %}
