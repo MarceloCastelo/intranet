@@ -46,9 +46,13 @@ def create():
     form = UserForm(departments=departments)
 
     if form.validate_on_submit():
-        user = user_service.create_user(form, current_user.id)
-        flash(f'Usuário {user.name} criado com sucesso.', 'success')
-        return redirect(url_for('users.detail', user_id=user.id))
+        email = form.email.data.strip().lower()
+        if User.query.filter_by(email=email).first():
+            form.email.errors.append('Este e-mail já está cadastrado.')
+        else:
+            user = user_service.create_user(form, current_user.id)
+            flash(f'Usuário {user.name} criado com sucesso.', 'success')
+            return redirect(url_for('users.detail', user_id=user.id))
 
     return render_template('users/form.html', form=form, title='Novo usuário')
 
@@ -63,9 +67,12 @@ def invite():
     form = InviteUserForm(departments=departments)
 
     if form.validate_on_submit():
-        user = user_service.invite_user(form, current_user.id)
-        flash(f'Convite enviado para {user.email}.', 'success')
-        return redirect(url_for('users.index'))
+        try:
+            user = user_service.invite_user(form, current_user.id)
+            flash(f'Convite enviado para {user.email}.', 'success')
+            return redirect(url_for('users.index'))
+        except ValueError as exc:
+            form.email.errors.append(str(exc))
 
     return render_template('users/invite.html', form=form)
 
@@ -95,9 +102,12 @@ def edit(user_id: int):
         form.department_id.data = user.department_id or 0
 
     if form.validate_on_submit():
-        user_service.update_user(user, form, current_user.id)
-        flash('Usuário atualizado com sucesso.', 'success')
-        return redirect(url_for('users.detail', user_id=user.id))
+        try:
+            user_service.update_user(user, form, current_user.id)
+            flash('Usuário atualizado com sucesso.', 'success')
+            return redirect(url_for('users.detail', user_id=user.id))
+        except ValueError as exc:
+            form.email.errors.append(str(exc))
 
     return render_template('users/form.html', form=form,
                            title=f'Editar — {user.name}', user=user)

@@ -69,7 +69,6 @@ def login():
 @login_required
 def logout():
     logout_user()
-    session.clear()
     flash('Você saiu com sucesso.', 'success')
     return redirect(url_for('auth.login'))
 

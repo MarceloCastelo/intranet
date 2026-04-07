@@ -73,9 +73,14 @@ def list_users(search: str = '', role: str = '', status: str = '',
 def create_user(form, actor_id: int) -> User:
     dept_id = form.department_id.data or None
 
+    # Verifica duplicidade antes de inserir
+    email = form.email.data.strip().lower()
+    if User.query.filter_by(email=email).first():
+        raise ValueError('e-mail já cadastrado')
+
     user = User(
         name                 = form.name.data.strip(),
-        email                = form.email.data.strip().lower(),
+        email                = email,
         role                 = form.role.data,
         status               = form.status.data,
         department_id        = dept_id,
@@ -89,12 +94,15 @@ def create_user(form, actor_id: int) -> User:
     if form.profile_picture.data:
         user.profile_picture = _save_profile_picture(form.profile_picture.data)
 
-    db.session.add(user)
-    db.session.flush()   # obtém user.id antes do commit
-
-    _audit(actor_id, 'create', user.id,
-           new={'name': user.name, 'email': user.email, 'role': user.role})
-    db.session.commit()
+    try:
+        db.session.add(user)
+        db.session.flush()   # obtém user.id antes do commit
+        _audit(actor_id, 'create', user.id,
+               new={'name': user.name, 'email': user.email, 'role': user.role})
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
     return user
 
 
@@ -102,8 +110,16 @@ def update_user(user: User, form, actor_id: int) -> User:
     old = {'name': user.name, 'email': user.email,
            'role': user.role, 'status': user.status}
 
+    new_email = form.email.data.strip().lower()
+    if new_email != user.email:
+        conflict = User.query.filter(
+            User.email == new_email, User.id != user.id
+        ).first()
+        if conflict:
+            raise ValueError('e-mail já cadastrado')
+
     user.name                 = form.name.data.strip()
-    user.email                = form.email.data.strip().lower()
+    user.email                = new_email
     user.role                 = form.role.data
     user.status               = form.status.data
     user.department_id        = form.department_id.data or None
@@ -129,9 +145,14 @@ def invite_user(form, actor_id: int) -> User:
     from flask import url_for
 
     dept_id = form.department_id.data or None
+    email   = form.email.data.strip().lower()
+
+    if User.query.filter_by(email=email).first():
+        raise ValueError('e-mail já cadastrado')
+
     user = User(
         name          = form.name.data.strip(),
-        email         = form.email.data.strip().lower(),
+        email         = email,
         role          = form.role.data,
         status        = 'active',
         department_id = dept_id,
