@@ -49,6 +49,8 @@ def create_app():
     from app.routes.events import events_bp
     from app.routes.faq import faq_bp
     from app.routes.links import links_bp
+    from app.routes.polls import polls_bp
+    from app.routes.gallery import gallery_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(users_bp)
@@ -57,5 +59,7 @@ def create_app():
     app.register_blueprint(events_bp)
     app.register_blueprint(faq_bp)
     app.register_blueprint(links_bp)
+    app.register_blueprint(polls_bp)
+    app.register_blueprint(gallery_bp)
 
     return app

@@ -1,0 +1,100 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="max-w-2xl" x-data="{
+  options: {{ (poll.options | map(attribute='option_text') | list | tojson) if poll else '[\"\",\"\"]' }},
+  addOption()  { this.options.push('') },
+  removeOption(i) { if (this.options.length > 2) this.options.splice(i, 1) }
+}">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ url_for('polls.index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
+  </div>
+
+  <div class="bg-white rounded-lg border border-gray-200 p-6">
+    <form method="POST" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="space-y-5">
+
+        <div>
+          {{ form.question.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.question(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+          {% for e in form.question.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+        </div>
+
+        <div>
+          {{ form.description.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.description(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm", rows=2) }}
+        </div>
+
+        {# Opções dinâmicas via Alpine #}
+        <div>
+          <p class="block text-sm font-medium text-gray-700 mb-2">Opções *</p>
+          <div class="space-y-2">
+            <template x-for="(opt, i) in options" :key="i">
+              <div class="flex gap-2">
+                <input type="text"
+                       :name="`options-${i}-option_text`"
+                       x-model="options[i]"
+                       :placeholder="`Opção ${i + 1}`"
+                       class="flex-1 rounded-md border-gray-300 shadow-sm text-sm
+                              focus:ring-primary-500 focus:border-primary-500">
+                <input type="hidden" :name="`options-${i}-order_position`" :value="i">
+                <button type="button"
+                        @click="removeOption(i)"
+                        x-show="options.length > 2"
+                        class="text-red-400 hover:text-red-600 px-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            </template>
+          </div>
+          <button type="button" @click="addOption"
+                  class="mt-2 text-sm text-primary-600 hover:text-primary-800 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            Adicionar opção
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            {{ form.expires_at.label(class="block text-sm font-medium text-gray-700") }}
+            {{ form.expires_at(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+          </div>
+        </div>
+
+        <div class="flex gap-6">
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            {{ form.is_multiple(class="rounded border-gray-300 text-primary-600 focus:ring-primary-500") }}
+            Múltipla escolha
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            {{ form.is_active(class="rounded border-gray-300 text-primary-600 focus:ring-primary-500") }}
+            Ativa
+          </label>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <a href="{{ url_for('polls.index') }}"
+             class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+            Cancelar
+          </a>
+          {{ form.submit(class="px-4 py-2 text-sm rounded-md bg-primary-600 text-white hover:bg-primary-700 cursor-pointer") }}
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
