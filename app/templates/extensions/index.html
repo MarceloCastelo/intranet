@@ -1,0 +1,115 @@
+{% extends "layouts/app.html" %}
+{% block title %}Ramais{% endblock %}
+{% block content %}
+
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Ramais</h1>
+  <div class="flex gap-2">
+    {# busca #}
+    <form method="GET" class="flex gap-2">
+      <input type="text" name="q" value="{{ search }}"
+             placeholder="Buscar nome ou ramal…"
+             class="rounded-md border-gray-300 shadow-sm text-sm
+                    focus:ring-primary-500 focus:border-primary-500 w-52">
+      <button type="submit"
+              class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md
+                     text-gray-600 hover:bg-gray-50">
+        Buscar
+      </button>
+    </form>
+    {% if current_user.role == 'admin' %}
+    <a href="{{ url_for('extensions.create') }}"
+       class="px-4 py-2 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
+      + Novo ramal
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+{% if grouped %}
+  {% for dept_name, exts in grouped.items() | sort %}
+  <div class="mb-6">
+    <h2 class="flex items-center gap-2 text-xs font-semibold text-gray-500
+               uppercase tracking-wider mb-2 px-1">
+      <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
+           stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5
+                 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125
+                 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
+      </svg>
+      {{ dept_name }}
+      <span class="font-normal normal-case text-gray-400">({{ exts | length }})</span>
+    </h2>
+
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <tbody class="divide-y divide-gray-100">
+          {% for ext in exts %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 w-8">
+              {% if ext.user and ext.user.profile_picture %}
+              <img src="{{ ext.user.profile_picture }}" alt=""
+                   class="w-7 h-7 rounded-full object-cover">
+              {% else %}
+              <div class="w-7 h-7 rounded-full bg-primary-100 text-primary-700
+                          flex items-center justify-center text-xs font-semibold">
+                {{ ext.name[0].upper() }}
+              </div>
+              {% endif %}
+            </td>
+            <td class="px-3 py-3 font-medium text-gray-900">
+              {{ ext.name }}
+              {% if ext.notes %}
+              <span class="ml-1.5 text-xs text-gray-400 font-normal">{{ ext.notes }}</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3">
+              <a href="tel:{{ ext.extension }}"
+                 class="inline-flex items-center gap-1.5 text-primary-700 font-mono
+                        font-semibold text-sm hover:text-primary-900">
+                <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor"
+                     stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"/>
+                </svg>
+                {{ ext.extension }}
+              </a>
+            </td>
+            <td class="px-5 py-3 w-20">
+              {% if not ext.is_active %}
+              <span class="text-xs text-gray-400 italic">Inativo</span>
+              {% endif %}
+            </td>
+            {% if current_user.role == 'admin' %}
+            <td class="px-5 py-3 text-right flex items-center justify-end gap-3">
+              <a href="{{ url_for('extensions.edit', ext_id=ext.id) }}"
+                 class="text-primary-600 hover:text-primary-800 text-xs font-medium">Editar</a>
+              <form method="POST" action="{{ url_for('extensions.delete', ext_id=ext.id) }}"
+                    onsubmit="return confirm('Excluir este ramal?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Excluir</button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+
+  <p class="text-xs text-gray-400 text-right">{{ total }} ramal{{ 'is' if total != 1 }} encontrado{{ 's' if total != 1 }}</p>
+
+{% else %}
+<div class="bg-white rounded-lg border border-gray-200 p-14 text-center text-gray-400">
+  {% if search %}
+    Nenhum ramal encontrado para "<strong>{{ search }}</strong>".
+    <br><a href="{{ url_for('extensions.index') }}" class="mt-2 inline-block text-primary-600 hover:underline text-sm">Limpar busca</a>
+  {% else %}
+    Nenhum ramal cadastrado.
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

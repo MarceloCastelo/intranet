@@ -1,0 +1,83 @@
+{% extends "layouts/app.html" %}
+{% block title %}Gerenciar Serviços{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Gerenciar Serviços</h1>
+  <div class="flex gap-2">
+    <a href="{{ url_for('services.index') }}"
+       class="px-4 py-2 text-sm font-medium border border-gray-300 rounded-md
+              bg-white text-gray-700 hover:bg-gray-50">
+      Ver página
+    </a>
+    <a href="{{ url_for('services.create') }}"
+       class="px-4 py-2 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
+      + Novo serviço
+    </a>
+  </div>
+</div>
+
+{% if services %}
+<div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serviço</th>
+        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoria</th>
+        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">URL</th>
+        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ordem</th>
+        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+        <th class="px-5 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for svc in services %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-5 py-3 font-medium text-gray-900 flex items-center gap-2">
+          {# bolinha de cor #}
+          {% set COLOR_BG = {
+            'blue':'bg-blue-500','indigo':'bg-indigo-500','violet':'bg-violet-500',
+            'green':'bg-green-500','emerald':'bg-emerald-500','teal':'bg-teal-500',
+            'orange':'bg-orange-500','red':'bg-red-500','pink':'bg-pink-500',
+            'amber':'bg-amber-400','slate':'bg-slate-500'
+          } %}
+          <span class="inline-block w-2.5 h-2.5 rounded-full {{ COLOR_BG.get(svc.color, 'bg-blue-500') }}"></span>
+          {{ svc.title }}
+        </td>
+        <td class="px-5 py-3 text-gray-500">{{ svc.category or 'Geral' }}</td>
+        <td class="px-5 py-3">
+          <a href="{{ svc.url }}" target="_blank" rel="noopener"
+             class="text-primary-600 hover:underline truncate max-w-xs block">
+            {{ svc.url | truncate(50, True) }}
+          </a>
+        </td>
+        <td class="px-5 py-3 text-gray-500 text-center">{{ svc.order_position }}</td>
+        <td class="px-5 py-3">
+          {% if svc.is_active %}
+          <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full
+                       bg-green-100 text-green-700">Ativo</span>
+          {% else %}
+          <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full
+                       bg-gray-100 text-gray-500">Inativo</span>
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 text-right flex items-center justify-end gap-3">
+          <a href="{{ url_for('services.edit', svc_id=svc.id) }}"
+             class="text-primary-600 hover:text-primary-800 text-xs font-medium">Editar</a>
+          <form method="POST" action="{{ url_for('services.delete', svc_id=svc.id) }}"
+                onsubmit="return confirm('Excluir este serviço?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="bg-white rounded-lg border border-gray-200 p-14 text-center text-gray-400">
+  Nenhum serviço cadastrado.
+</div>
+{% endif %}
+{% endblock %}

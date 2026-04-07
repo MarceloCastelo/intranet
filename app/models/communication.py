@@ -3,6 +3,55 @@ from datetime import datetime
 from app import db
 
 
+class PhoneExtension(db.Model):
+    __tablename__ = 'phone_extensions'
+
+    id             = db.Column(db.Integer, primary_key=True)
+    name           = db.Column(db.String(150), nullable=False)   # pessoa ou setor
+    extension      = db.Column(db.String(20),  nullable=False)   # número do ramal
+    department_id  = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'))
+    user_id        = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
+    notes          = db.Column(db.String(255))
+    order_position = db.Column(db.Integer, default=0)
+    is_active      = db.Column(db.Boolean, default=True)
+    created_by     = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at     = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    department = db.relationship('Department', foreign_keys=[department_id])
+    user       = db.relationship('User', foreign_keys=[user_id])
+    creator    = db.relationship('User', foreign_keys=[created_by])
+
+    __table_args__ = (
+        db.Index('idx_extensions_active', 'is_active', 'order_position'),
+    )
+
+
+class Service(db.Model):
+    """Links de serviços/ferramentas da empresa (e-mail, TI, RH, etc.)."""
+    __tablename__ = 'services'
+
+    id             = db.Column(db.Integer, primary_key=True)
+    title          = db.Column(db.String(150), nullable=False)
+    url            = db.Column(db.String(500), nullable=False)
+    description    = db.Column(db.String(255))
+    category       = db.Column(db.String(100), default='Geral')   # agrupamento
+    color          = db.Column(db.String(30),  default='blue')    # paleta de cores
+    icon_url       = db.Column(db.String(500))                     # logo/ícone opcional
+    target_blank   = db.Column(db.Boolean, default=True)
+    order_position = db.Column(db.Integer, default=0)
+    is_active      = db.Column(db.Boolean, default=True)
+    created_by     = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at     = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    creator = db.relationship('User', foreign_keys=[created_by])
+
+    __table_args__ = (
+        db.Index('idx_services_active', 'is_active', 'category', 'order_position'),
+    )
+
+
 class Link(db.Model):
     __tablename__ = 'links'
 

@@ -14,7 +14,7 @@ from app.models.content import (
 )
 from app.models.event import Event
 from app.models.communication import (
-    Link, File,
+    PhoneExtension, Service, Link, File,
     Subscriber, Newsletter, NewsletterLog, EmailLog,
 )
 from app.models.audit import (

@@ -51,6 +51,8 @@ def create_app():
     from app.routes.links import links_bp
     from app.routes.polls import polls_bp
     from app.routes.gallery import gallery_bp
+    from app.routes.extensions import extensions_bp
+    from app.routes.services import services_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(users_bp)
@@ -61,5 +63,7 @@ def create_app():
     app.register_blueprint(links_bp)
     app.register_blueprint(polls_bp)
     app.register_blueprint(gallery_bp)
+    app.register_blueprint(extensions_bp)
+    app.register_blueprint(services_bp)
 
     return app
