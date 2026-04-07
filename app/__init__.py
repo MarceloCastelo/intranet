@@ -30,6 +30,16 @@ def create_app():
     login_manager.login_message = "Faça login para acessar esta página."
     login_manager.login_message_category = "warning"
 
+    # Registrar models (necessário para Flask-Migrate descobrir todas as tabelas)
+    from app import models  # noqa: F401
+
+    # user_loader para Flask-Login
+    from app.models.user import User
+
+    @login_manager.user_loader
+    def load_user(user_id: str):
+        return db.session.get(User, int(user_id))
+
     # Blueprints (serão registrados conforme implementados)
     # from app.routes.auth import auth_bp
     # app.register_blueprint(auth_bp)
