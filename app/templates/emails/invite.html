@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<body style="font-family:Arial,sans-serif;background:#f9fafb;padding:32px;">
+  <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:8px;padding:32px;border:1px solid #e5e7eb;">
+    <h2 style="color:#1d4ed8;margin-top:0;">Bem-vindo ao {{ app_name }}!</h2>
+    <p>Olá, <strong>{{ user.name }}</strong>!</p>
+    <p>Sua conta foi criada. Clique no botão abaixo para definir sua senha e acessar o portal:</p>
+    <div style="text-align:center;margin:24px 0;">
+      <a href="{{ set_password_url }}"
+         style="background:#1d4ed8;color:#fff;padding:12px 24px;border-radius:6px;
+                text-decoration:none;font-weight:bold;display:inline-block;">
+        Acessar o portal
+      </a>
+    </div>
+    <p style="color:#6b7280;font-size:14px;">
+      Este link expira em <strong>48 horas</strong>.<br>
+      Se você tiver dúvidas, entre em contato com o RH.
+    </p>
+    <p style="word-break:break-all;color:#9ca3af;font-size:12px;">{{ set_password_url }}</p>
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+    <p style="color:#9ca3af;font-size:12px;text-align:center;">{{ app_name }}</p>
+  </div>
+</body>
+</html>

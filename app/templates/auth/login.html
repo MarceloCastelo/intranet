@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Entrar{% endblock %}
+
+{% block body %}
+<div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+
+  <div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <h1 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+      {{ config.APP_NAME }}
+    </h1>
+    <p class="mt-2 text-center text-sm text-gray-500">Acesso restrito a colaboradores</p>
+  </div>
+
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+
+      {# Alertas flash #}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="mb-4 rounded-md p-4
+            {% if category == 'danger' %}bg-red-50 text-red-700
+            {% elif category == 'success' %}bg-green-50 text-green-700
+            {% else %}bg-blue-50 text-blue-700{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="space-y-5">
+          <div>
+            {{ form.email.label(class="block text-sm font-medium text-gray-700") }}
+            {{ form.email(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                focus:border-primary-500 focus:ring-primary-500 sm:text-sm
+                " + ("border-red-500" if form.email.errors else "")) }}
+            {% for e in form.email.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div>
+            {{ form.password.label(class="block text-sm font-medium text-gray-700") }}
+            {{ form.password(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                focus:border-primary-500 focus:ring-primary-500 sm:text-sm
+                " + ("border-red-500" if form.password.errors else "")) }}
+            {% for e in form.password.errors %}
+              <p class="mt-1 text-xs text-red-600">{{ e }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              {{ form.remember(class="rounded border-gray-300 text-primary-600") }}
+              {{ form.remember.label.text }}
+            </label>
+            <a href="{{ url_for('auth.forgot_password') }}"
+               class="text-sm text-primary-600 hover:text-primary-500">
+              Esqueci minha senha
+            </a>
+          </div>
+
+          {{ form.submit(class="w-full flex justify-center py-2 px-4 border border-transparent
+              rounded-md shadow-sm text-sm font-medium text-white bg-primary-600
+              hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2
+              focus:ring-primary-500 cursor-pointer") }}
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

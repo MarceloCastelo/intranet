@@ -40,8 +40,10 @@ def create_app():
     def load_user(user_id: str):
         return db.session.get(User, int(user_id))
 
-    # Blueprints (serão registrados conforme implementados)
-    # from app.routes.auth import auth_bp
-    # app.register_blueprint(auth_bp)
+    # Blueprints
+    from app.routes.auth import auth_bp
+    from app.routes.main import main_bp
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(main_bp)
 
     return app
