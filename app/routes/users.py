@@ -3,7 +3,7 @@ from flask import (Blueprint, abort, flash, redirect,
 from flask_login import current_user, login_required
 
 from app import db
-from app.forms.user import BlockedIpForm, InviteUserForm, UserForm
+from app.forms.user import AdminSetPasswordForm, BlockedIpForm, InviteUserForm, UserForm
 from app.models.user import User
 from app.services import user_service
 from app.utils.decorators import admin_required
@@ -151,6 +151,27 @@ def reset_password(user_id: int):
     user_service.reset_password_admin(user, current_user.id)
     flash(f'E-mail de redefinição de senha enviado para {user.email}.', 'info')
     return redirect(url_for('users.detail', user_id=user.id))
+
+
+@users_bp.route('/<int:user_id>/definir-senha', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def set_password(user_id: int):
+    user = db.session.get(User, user_id) or abort(404)
+    if user.id == current_user.id:
+        flash('Use a tela de perfil para alterar sua própria senha.', 'warning')
+        return redirect(url_for('users.detail', user_id=user.id))
+
+    form = AdminSetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        if form.force_change.data:
+            user.first_login = True
+        db.session.commit()
+        flash(f'Senha de {user.name} atualizada com sucesso.', 'success')
+        return redirect(url_for('users.detail', user_id=user.id))
+
+    return render_template('users/set_password.html', form=form, user=user)
 
 
 # ─── Departamentos ────────────────────────────────────────────────────────────

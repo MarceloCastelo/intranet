@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField
-from wtforms import (BooleanField, DateField, SelectField,
+from wtforms import (BooleanField, DateField, PasswordField, SelectField,
                      StringField, SubmitField)
-from wtforms.validators import (DataRequired, Email, Length,
+from wtforms.validators import (DataRequired, Email, EqualTo, Length,
                                 Optional, ValidationError)
 
 from app.models.user import User
@@ -76,3 +76,13 @@ class BlockedIpForm(FlaskForm):
     ip_address = StringField('Endereço IP', validators=[DataRequired(), Length(max=45)])
     reason     = StringField('Motivo', validators=[Optional(), Length(max=255)])
     submit     = SubmitField('Bloquear IP')
+
+
+class AdminSetPasswordForm(FlaskForm):
+    password  = PasswordField('Nova senha *',
+                              validators=[DataRequired(), Length(min=8, max=128)])
+    password2 = PasswordField('Confirmar senha *',
+                              validators=[DataRequired(),
+                                          EqualTo('password', message='As senhas não conferem.')])
+    force_change = BooleanField('Exigir troca no próximo login', default=True)
+    submit    = SubmitField('Salvar senha')

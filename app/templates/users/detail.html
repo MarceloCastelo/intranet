@@ -51,12 +51,18 @@
         </a>
 
         {% if user.id != current_user.id %}
-          {# Resetar senha #}
+          {# Definir senha diretamente #}
+          <a href="{{ url_for('users.set_password', user_id=user.id) }}"
+             class="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-gray-700">
+            Definir nova senha
+          </a>
+
+          {# Resetar senha por e-mail #}
           <form method="POST" action="{{ url_for('users.reset_password', user_id=user.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit"
                     class="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-gray-700 text-left">
-              Enviar reset de senha
+              Enviar reset de senha por e-mail
             </button>
           </form>
 
