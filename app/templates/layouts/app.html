@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-gray-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{% endblock %} — {{ config.APP_NAME }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body class="h-full">
+
+<div class="flex h-full">
+
+  {# ── Sidebar ─────────────────────────────────────────────── #}
+  <aside id="sidebar"
+         class="flex flex-col w-64 bg-primary-900 text-white shrink-0
+                translate-x-0 transition-transform duration-200
+                fixed inset-y-0 z-30 lg:static lg:translate-x-0">
+
+    {# Logo #}
+    <div class="flex items-center h-16 px-6 border-b border-primary-800">
+      <span class="text-lg font-bold tracking-wide truncate">
+        {{ config.APP_NAME }}
+      </span>
+    </div>
+
+    {# Nav #}
+    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 text-sm">
+
+      <a href="{{ url_for('main.index') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-md
+                {{ 'bg-primary-700' if request.endpoint == 'main.index' else 'hover:bg-primary-800' }}">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="m2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+        </svg>
+        Início
+      </a>
+
+      {% if current_user.role == 'admin' %}
+      <div class="pt-4 pb-1 px-3 text-xs font-semibold text-primary-400 uppercase tracking-wider">
+        Administração
+      </div>
+
+      <a href="{{ url_for('users.index') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-md
+                {{ 'bg-primary-700' if 'users.' in (request.endpoint or '') else 'hover:bg-primary-800' }}">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+        </svg>
+        Usuários
+      </a>
+
+      <a href="{{ url_for('users.blocked_ips') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-primary-800">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+        </svg>
+        IPs Bloqueados
+      </a>
+      {% endif %}
+
+    </nav>
+
+    {# Rodapé do sidebar: perfil #}
+    <div class="border-t border-primary-800 p-4">
+      <div class="flex items-center gap-3">
+        {% if current_user.profile_picture %}
+          <img src="{{ current_user.profile_picture }}" alt=""
+               class="w-8 h-8 rounded-full object-cover shrink-0">
+        {% else %}
+          <span class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center
+                       text-sm font-bold shrink-0">
+            {{ current_user.name[0].upper() }}
+          </span>
+        {% endif %}
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium truncate">{{ current_user.name }}</p>
+          <p class="text-xs text-primary-400 capitalize">{{ current_user.role }}</p>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" title="Sair"
+           class="text-primary-400 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  {# ── Conteúdo principal ──────────────────────────────────── #}
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    {# Topbar mobile #}
+    <header class="lg:hidden flex items-center h-14 px-4 bg-white border-b shadow-sm">
+      <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')"
+              class="text-gray-500 hover:text-gray-700">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+        </svg>
+      </button>
+      <span class="ml-4 font-semibold text-gray-800">{{ config.APP_NAME }}</span>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6">
+
+      {# Flash messages #}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="mb-4 rounded-md px-4 py-3 text-sm flex items-start gap-2
+            {% if category == 'danger' %}bg-red-50 text-red-700 border border-red-200
+            {% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200
+            {% elif category == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200
+            {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+
+    </main>
+  </div>
+
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

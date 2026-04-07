@@ -1,0 +1,94 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ url_for('users.index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
+  </div>
+
+  <div class="bg-white rounded-lg border border-gray-200 p-6">
+    <form method="POST" enctype="multipart/form-data" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        {# Nome #}
+        <div class="sm:col-span-2">
+          {{ form.name.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.name(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+          {% for e in form.name.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+        </div>
+
+        {# E-mail #}
+        <div class="sm:col-span-2">
+          {{ form.email.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.email(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+          {% for e in form.email.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+        </div>
+
+        {# Perfil #}
+        <div>
+          {{ form.role.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.role(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+        </div>
+
+        {# Status #}
+        <div>
+          {{ form.status.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.status(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+        </div>
+
+        {# Departamento #}
+        <div>
+          {{ form.department_id.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.department_id(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+        </div>
+
+        {# Data de nascimento #}
+        <div>
+          {{ form.birth_date.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.birth_date(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+        </div>
+
+        {# 2FA #}
+        <div class="sm:col-span-2 flex items-center gap-3">
+          {{ form.two_factor_mandatory(class="rounded border-gray-300 text-primary-600 focus:ring-primary-500") }}
+          {{ form.two_factor_mandatory.label(class="text-sm font-medium text-gray-700") }}
+        </div>
+
+        {# Foto #}
+        <div class="sm:col-span-2">
+          {{ form.profile_picture.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.profile_picture(class="mt-1 block w-full text-sm text-gray-500
+              file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0
+              file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700
+              hover:file:bg-primary-100") }}
+          {% for e in form.profile_picture.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+        </div>
+
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <a href="{{ url_for('users.index') }}"
+           class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+          Cancelar
+        </a>
+        {{ form.submit(class="px-4 py-2 text-sm rounded-md bg-primary-600 text-white
+            hover:bg-primary-700 cursor-pointer") }}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
