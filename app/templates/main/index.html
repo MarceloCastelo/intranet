@@ -1,6 +1,181 @@
 {% extends "layouts/app.html" %}
 {% block title %}Início{% endblock %}
+
 {% block content %}
-<h1 class="text-2xl font-bold text-gray-900">Bem-vindo, {{ current_user.name }}!</h1>
-<p class="mt-2 text-gray-500">Dashboard em construção.</p>
+
+{# ── Saudação ─────────────────────────────────────────────── #}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">
+    Olá, {{ current_user.name.split()[0] }}!
+  </h1>
+  <p class="text-sm text-gray-500 mt-1">
+    {{ today.strftime('%A, %d de %B de %Y') }}
+  </p>
+</div>
+
+{# ── Cards de estatísticas ────────────────────────────────── #}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+  <div class="bg-white rounded-lg border border-gray-200 p-5">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Colaboradores</p>
+    <p class="mt-2 text-3xl font-bold text-gray-900">{{ stats.total_users }}</p>
+    {% if stats.new_users %}
+    <p class="mt-1 text-xs text-green-600">+{{ stats.new_users }} este mês</p>
+    {% endif %}
+  </div>
+
+  <div class="bg-white rounded-lg border border-gray-200 p-5">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Notícias publicadas</p>
+    <p class="mt-2 text-3xl font-bold text-gray-900">{{ stats.total_news }}</p>
+  </div>
+
+  <div class="bg-white rounded-lg border border-gray-200 p-5">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Próximos eventos</p>
+    <p class="mt-2 text-3xl font-bold text-gray-900">{{ stats.total_events }}</p>
+  </div>
+
+  <div class="bg-white rounded-lg border border-gray-200 p-5">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Aniversariantes</p>
+    <p class="mt-2 text-3xl font-bold text-gray-900">{{ stats.birthday_count }}</p>
+    <p class="mt-1 text-xs text-gray-400">Este mês</p>
+  </div>
+
+</div>
+
+{# ── Conteúdo principal ───────────────────────────────────── #}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  {# Últimas notícias #}
+  <div class="lg:col-span-2">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm">Últimas notícias</h2>
+      </div>
+
+      {% if recent_news %}
+        <ul class="divide-y divide-gray-100">
+          {% for item in recent_news %}
+          <li class="px-5 py-4 hover:bg-gray-50 transition-colors">
+            <div class="flex gap-4">
+              {% if item.featured_image %}
+                <img src="{{ item.featured_image }}" alt=""
+                     class="w-16 h-12 rounded object-cover shrink-0">
+              {% else %}
+                <div class="w-16 h-12 rounded bg-primary-100 shrink-0 flex items-center justify-center">
+                  <svg class="w-6 h-6 text-primary-400" fill="none" stroke="currentColor"
+                       stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0
+                             1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5
+                             7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504
+                             -1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25
+                             2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"/>
+                  </svg>
+                </div>
+              {% endif %}
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900 leading-snug line-clamp-2">
+                  {{ item.title }}
+                </p>
+                <p class="mt-1 text-xs text-gray-400">
+                  {{ item.author.name if item.author else 'Redação' }}
+                  &middot;
+                  {{ item.published_at.strftime('%d/%m/%Y') if item.published_at else '' }}
+                </p>
+              </div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="px-5 py-8 text-center text-sm text-gray-400">Nenhuma notícia publicada.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Coluna lateral #}
+  <div class="space-y-6">
+
+    {# Próximos eventos #}
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm">Próximos eventos</h2>
+      </div>
+
+      {% if upcoming_events %}
+        <ul class="divide-y divide-gray-100">
+          {% for ev in upcoming_events %}
+          <li class="px-5 py-3 flex items-start gap-3">
+            <div class="shrink-0 w-10 text-center">
+              <p class="text-lg font-bold text-primary-600 leading-none">
+                {{ ev.event_date.strftime('%d') }}
+              </p>
+              <p class="text-xs text-gray-400 uppercase">
+                {{ ev.event_date.strftime('%b') }}
+              </p>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 leading-snug">{{ ev.title }}</p>
+              {% if ev.location %}
+                <p class="text-xs text-gray-400 truncate">{{ ev.location }}</p>
+              {% endif %}
+              <span class="inline-flex mt-1 px-1.5 py-0.5 rounded text-xs
+                {% if ev.event_type == 'birthday' %}bg-pink-100 text-pink-700
+                {% elif ev.event_type == 'meeting' %}bg-blue-100 text-blue-700
+                {% elif ev.event_type == 'training' %}bg-yellow-100 text-yellow-700
+                {% elif ev.event_type == 'holiday' %}bg-green-100 text-green-700
+                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                {% if ev.event_type == 'birthday' %}Aniversário
+                {% elif ev.event_type == 'meeting' %}Reunião
+                {% elif ev.event_type == 'training' %}Treinamento
+                {% elif ev.event_type == 'holiday' %}Feriado
+                {% else %}Geral{% endif %}
+              </span>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="px-5 py-6 text-center text-sm text-gray-400">Nenhum evento próximo.</p>
+      {% endif %}
+    </div>
+
+    {# Aniversariantes do mês #}
+    {% if birthdays %}
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100">
+        <h2 class="font-semibold text-gray-800 text-sm">
+          🎂 Aniversariantes de {{ today.strftime('%B') }}
+        </h2>
+      </div>
+      <ul class="divide-y divide-gray-100">
+        {% for u in birthdays %}
+        <li class="px-5 py-3 flex items-center gap-3">
+          {% if u.profile_picture %}
+            <img src="{{ u.profile_picture }}" alt=""
+                 class="w-8 h-8 rounded-full object-cover shrink-0">
+          {% else %}
+            <span class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 font-bold text-sm
+                         flex items-center justify-center shrink-0">
+              {{ u.name[0].upper() }}
+            </span>
+          {% endif %}
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 truncate">{{ u.name }}</p>
+            <p class="text-xs text-gray-400">
+              {{ u.birth_date.strftime('%d/%m') }}
+              {% if u.birth_date.month == today.month and u.birth_date.day == today.day %}
+                <span class="ml-1 text-pink-500 font-semibold">Hoje! 🎉</span>
+              {% endif %}
+            </p>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
 {% endblock %}
