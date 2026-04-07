@@ -1,0 +1,70 @@
+{% extends "layouts/app.html" %}
+{% block title %}Categorias FAQ{% endblock %}
+{% block content %}
+<div class="max-w-2xl">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ url_for('faq.index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900">Categorias de FAQ</h1>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg border border-gray-200 p-5">
+      <h2 class="text-sm font-semibold text-gray-700 mb-4">Nova categoria</h2>
+      <form method="POST" action="{{ url_for('faq.create_category') }}" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="space-y-4">
+          <div>
+            {{ form.name.label(class="block text-sm font-medium text-gray-700") }}
+            {{ form.name(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+            {% for e in form.name.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+          </div>
+          <div>
+            {{ form.order_position.label(class="block text-sm font-medium text-gray-700") }}
+            {{ form.order_position(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+                focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+          </div>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            {{ form.is_active(class="rounded border-gray-300 text-primary-600 focus:ring-primary-500") }}
+            Ativa
+          </label>
+          {{ form.submit(class="w-full mt-2 px-4 py-2 text-sm rounded-md bg-primary-600
+              text-white hover:bg-primary-700 cursor-pointer") }}
+        </div>
+      </form>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 text-sm font-semibold text-gray-700">
+        Categorias
+      </div>
+      <ul class="divide-y divide-gray-100">
+        {% for cat in categories %}
+        <li class="px-5 py-3 flex items-center justify-between text-sm">
+          <div>
+            <p class="font-medium text-gray-900">{{ cat.name }}</p>
+            <p class="text-xs text-gray-400">Ordem: {{ cat.order_position }}</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs {{ 'text-green-600' if cat.is_active else 'text-gray-400' }}">
+              {{ 'Ativa' if cat.is_active else 'Inativa' }}
+            </span>
+            <a href="{{ url_for('faq.edit_category', cat_id=cat.id) }}"
+               class="text-primary-600 hover:text-primary-800 text-xs">Editar</a>
+            <form method="POST" action="{{ url_for('faq.delete_category', cat_id=cat.id) }}"
+                  onsubmit="return confirm('Excluir categoria?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Excluir</button>
+            </form>
+          </div>
+        </li>
+        {% else %}
+        <li class="px-5 py-6 text-center text-sm text-gray-400">Nenhuma categoria.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

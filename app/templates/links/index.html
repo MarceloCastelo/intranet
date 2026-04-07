@@ -1,0 +1,53 @@
+{% extends "layouts/app.html" %}
+{% block title %}Links úteis{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Links úteis</h1>
+  <a href="{{ url_for('links.create') }}"
+     class="px-4 py-2 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
+    + Novo link
+  </a>
+</div>
+
+<div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      <tr>
+        <th class="px-5 py-3 text-left">Título</th>
+        <th class="px-5 py-3 text-left">URL</th>
+        <th class="px-5 py-3 text-left">Status</th>
+        <th class="px-5 py-3 text-left">Ordem</th>
+        <th class="px-5 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for link in links %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-5 py-3 font-medium text-gray-900">{{ link.title }}</td>
+        <td class="px-5 py-3 text-xs text-primary-600 truncate max-w-xs">
+          <a href="{{ link.url }}" target="_blank" class="hover:underline">{{ link.url }}</a>
+        </td>
+        <td class="px-5 py-3">
+          <span class="inline-flex px-2 py-0.5 rounded text-xs
+            {{ 'bg-green-100 text-green-700' if link.is_active else 'bg-gray-100 text-gray-500' }}">
+            {{ 'Ativo' if link.is_active else 'Inativo' }}
+          </span>
+        </td>
+        <td class="px-5 py-3 text-gray-500">{{ link.order_position }}</td>
+        <td class="px-5 py-3 text-right flex items-center justify-end gap-3">
+          <a href="{{ url_for('links.edit', link_id=link.id) }}"
+             class="text-primary-600 hover:text-primary-800 text-xs font-medium">Editar</a>
+          <form method="POST" action="{{ url_for('links.delete', link_id=link.id) }}"
+                onsubmit="return confirm('Excluir este link?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-5 py-10 text-center text-gray-400">Nenhum link cadastrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

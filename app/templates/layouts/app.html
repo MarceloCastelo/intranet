@@ -54,6 +54,31 @@
         </svg>
         Notícias
       </a>
+
+      <a href="{{ url_for('events.index') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-md
+                {{ 'bg-primary-700' if 'events.' in (request.endpoint or '') else 'hover:bg-primary-800' }}">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25
+                   2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0
+                   21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21
+                   11.25v7.5"/>
+        </svg>
+        Eventos
+      </a>
+
+      <a href="{{ url_for('faq.index') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-md
+                {{ 'bg-primary-700' if 'faq.' in (request.endpoint or '') else 'hover:bg-primary-800' }}">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0
+                   3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9
+                   0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/>
+        </svg>
+        FAQ
+      </a>
       {% endif %}
 
       {% if current_user.role == 'admin' %}
@@ -69,6 +94,32 @@
                 d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
         </svg>
         Usuários
+      </a>
+
+      <a href="{{ url_for('banners.index') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-md
+                {{ 'bg-primary-700' if 'banners.' in (request.endpoint or '') else 'hover:bg-primary-800' }}">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5
+                   1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5
+                   0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5
+                   1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1
+                   1-.75 0 .375.375 0 0 1 .75 0Z"/>
+        </svg>
+        Banners
+      </a>
+
+      <a href="{{ url_for('links.index') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-md
+                {{ 'bg-primary-700' if 'links.' in (request.endpoint or '') else 'hover:bg-primary-800' }}">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364
+                   l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5
+                   4.5 0 0 0 1.242 7.244"/>
+        </svg>
+        Links úteis
       </a>
 
       <a href="{{ url_for('users.blocked_ips') }}"

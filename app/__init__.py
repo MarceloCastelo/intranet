@@ -45,9 +45,17 @@ def create_app():
     from app.routes.main import main_bp
     from app.routes.users import users_bp
     from app.routes.news import news_bp
+    from app.routes.banners import banners_bp
+    from app.routes.events import events_bp
+    from app.routes.faq import faq_bp
+    from app.routes.links import links_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(news_bp)
+    app.register_blueprint(banners_bp)
+    app.register_blueprint(events_bp)
+    app.register_blueprint(faq_bp)
+    app.register_blueprint(links_bp)
 
     return app

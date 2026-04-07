@@ -1,0 +1,64 @@
+{% extends "layouts/app.html" %}
+{% block title %}Banners{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Banners</h1>
+  <a href="{{ url_for('banners.create') }}"
+     class="px-4 py-2 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
+    + Novo banner
+  </a>
+</div>
+
+<div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+      <tr>
+        <th class="px-5 py-3 text-left">Imagem</th>
+        <th class="px-5 py-3 text-left">Título</th>
+        <th class="px-5 py-3 text-left">Status</th>
+        <th class="px-5 py-3 text-left">Período</th>
+        <th class="px-5 py-3 text-left">Ordem</th>
+        <th class="px-5 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for b in banners %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-5 py-3">
+          <img src="{{ b.image_path }}" alt=""
+               class="w-20 h-12 object-cover rounded">
+        </td>
+        <td class="px-5 py-3 font-medium text-gray-900">{{ b.title or '—' }}</td>
+        <td class="px-5 py-3">
+          <span class="inline-flex px-2 py-0.5 rounded text-xs
+            {{ 'bg-green-100 text-green-700' if b.is_active else 'bg-gray-100 text-gray-500' }}">
+            {{ 'Ativo' if b.is_active else 'Inativo' }}
+          </span>
+        </td>
+        <td class="px-5 py-3 text-xs text-gray-400">
+          {% if b.start_date or b.end_date %}
+            {{ b.start_date.strftime('%d/%m/%Y') if b.start_date else '∞' }}
+            →
+            {{ b.end_date.strftime('%d/%m/%Y') if b.end_date else '∞' }}
+          {% else %}
+            Sempre
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 text-gray-500">{{ b.order_position }}</td>
+        <td class="px-5 py-3 text-right flex items-center justify-end gap-3">
+          <a href="{{ url_for('banners.edit', banner_id=b.id) }}"
+             class="text-primary-600 hover:text-primary-800 text-xs font-medium">Editar</a>
+          <form method="POST" action="{{ url_for('banners.delete', banner_id=b.id) }}"
+                onsubmit="return confirm('Excluir este banner?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Excluir</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="px-5 py-10 text-center text-gray-400">Nenhum banner cadastrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

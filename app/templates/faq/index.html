@@ -1,0 +1,58 @@
+{% extends "layouts/app.html" %}
+{% block title %}FAQ{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">FAQ</h1>
+  <div class="flex gap-2">
+    <a href="{{ url_for('faq.categories') }}"
+       class="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+      Categorias
+    </a>
+    <a href="{{ url_for('faq.create') }}"
+       class="px-4 py-2 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
+      + Nova pergunta
+    </a>
+  </div>
+</div>
+
+{% if categories %}
+  {% for cat in categories %}
+  <div class="mb-6">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">
+      {{ cat.name }}
+      <span class="ml-1 font-normal normal-case text-gray-400">({{ cat.faqs | length }})</span>
+    </h2>
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <tbody class="divide-y divide-gray-100">
+          {% for faq in cat.faqs | sort(attribute='order_position') %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-5 py-3 font-medium text-gray-900">{{ faq.question }}</td>
+            <td class="px-5 py-3 w-24">
+              <span class="inline-flex px-2 py-0.5 rounded text-xs
+                {{ 'bg-green-100 text-green-700' if faq.is_active else 'bg-gray-100 text-gray-500' }}">
+                {{ 'Ativo' if faq.is_active else 'Inativo' }}
+              </span>
+            </td>
+            <td class="px-5 py-3 text-right flex items-center justify-end gap-3">
+              <a href="{{ url_for('faq.edit', faq_id=faq.id) }}"
+                 class="text-primary-600 hover:text-primary-800 text-xs font-medium">Editar</a>
+              <form method="POST" action="{{ url_for('faq.delete', faq_id=faq.id) }}"
+                    onsubmit="return confirm('Excluir esta pergunta?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Excluir</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="bg-white rounded-lg border border-gray-200 p-10 text-center text-gray-400">
+    Nenhuma FAQ cadastrada.
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends "layouts/app.html" %}
+{% block title %}Calendário {{ year }}{% endblock %}
+
+{% block content %}
+<div x-data='calApp({{ events_by_date | tojson }})'>
+
+  {# ── Cabeçalho ────────────────────────────────────────────────────────── #}
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Calendário de Eventos</h1>
+
+    <div class="flex items-center gap-2">
+      {# navegação de ano #}
+      <a href="{{ url_for('events.calendar_view', year=year-1) }}"
+         class="p-1.5 rounded-md border border-gray-300 text-gray-500 hover:bg-gray-50">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+        </svg>
+      </a>
+      <span class="text-lg font-bold text-gray-800 w-14 text-center">{{ year }}</span>
+      <a href="{{ url_for('events.calendar_view', year=year+1) }}"
+         class="p-1.5 rounded-md border border-gray-300 text-gray-500 hover:bg-gray-50">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+        </svg>
+      </a>
+
+      {# hoje #}
+      {% if year != today.year %}
+      <a href="{{ url_for('events.calendar_view') }}"
+         class="ml-1 px-3 py-1.5 text-xs rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">
+        Hoje
+      </a>
+      {% endif %}
+
+      {# alternar para lista #}
+      <a href="{{ url_for('events.index') }}"
+         class="ml-2 px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm0 5.25h.007v.008H3.75V12Zm0 5.25h.007v.008H3.75v-.008Z"/>
+        </svg>
+        Lista
+      </a>
+
+      {% if current_user.role in ('admin', 'editor') %}
+      <a href="{{ url_for('events.create') }}"
+         class="px-3 py-1.5 text-xs font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
+        + Novo evento
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Grade de meses ────────────────────────────────────────────────────── #}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    {% for m in months_data %}
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+
+      {# cabeçalho do mês #}
+      <div class="{% if year == today.year and m.month == today.month %}bg-primary-700{% else %}bg-primary-600{% endif %}
+                  text-white text-center py-2.5 font-semibold text-sm tracking-wide">
+        {{ m.name }}
+      </div>
+
+      {# abreviações dos dias (domingo → sábado) #}
+      <div class="grid grid-cols-7 text-center text-xs font-medium text-gray-400
+                  bg-gray-50 border-b border-gray-100 px-1 py-1">
+        {% for abbr in ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'] %}
+        <div>{{ abbr[:1] }}</div>
+        {% endfor %}
+      </div>
+
+      {# semanas #}
+      <div class="p-1.5 space-y-0.5">
+        {% for week in m.weeks %}
+        <div class="grid grid-cols-7">
+          {% for day in week %}
+          {% if day == 0 %}
+            <div></div>
+          {% else %}
+            {% set key    = m.month|string + '_' + day|string %}
+            {% set devs   = events_by_date.get(key, []) %}
+            {% set is_today = (year == today.year and m.month == today.month and day == today.day) %}
+            <div class="flex flex-col items-center py-0.5
+                        {% if devs %}cursor-pointer rounded hover:bg-primary-50{% endif %}"
+                 {% if devs %}@click="open('{{ key }}', '{{ m.name }}', {{ day }})"{% endif %}>
+
+              {# número do dia #}
+              <span class="text-xs w-6 h-6 flex items-center justify-center rounded-full font-medium
+                           {% if is_today %}bg-primary-600 text-white
+                           {% elif devs %}text-gray-900
+                           {% else %}text-gray-400{% endif %}">
+                {{ day }}
+              </span>
+
+              {# pontos de eventos (max 3) #}
+              {% if devs %}
+              <div class="flex gap-0.5 mt-0.5">
+                {% for ev in devs[:3] %}
+                <span class="w-1.5 h-1.5 rounded-full {{ ev.color }}"></span>
+                {% endfor %}
+                {% if devs|length > 3 %}
+                <span class="text-gray-400" style="font-size:8px;line-height:6px">+</span>
+                {% endif %}
+              </div>
+              {% else %}
+              <div class="h-2"></div>
+              {% endif %}
+
+            </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ── Legenda ───────────────────────────────────────────────────────────── #}
+  <div class="mt-5 flex flex-wrap gap-4 text-xs text-gray-500">
+    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gray-400 inline-block"></span>Geral</span>
+    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>Reunião</span>
+    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>Treinamento</span>
+    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span>Feriado</span>
+    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block"></span>Aniversário</span>
+  </div>
+
+  {# ── Modal de eventos do dia ───────────────────────────────────────────── #}
+  <div x-show="modal"
+       x-transition:enter="transition ease-out duration-150"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-100"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+       @click.self="modal = false"
+       style="display:none">
+
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+         @click.stop>
+
+      {# cabeçalho do modal #}
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <h3 class="font-semibold text-gray-900" x-text="title"></h3>
+        <button @click="modal = false"
+                class="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      {# lista de eventos #}
+      <ul class="divide-y divide-gray-100 max-h-72 overflow-y-auto">
+        <template x-for="ev in dayEvents" :key="ev.id">
+          <li class="px-5 py-3 flex items-start gap-3">
+            <span class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  :class="ev.color"></span>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-gray-800 truncate" x-text="ev.title"></p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                <span x-show="ev.time" x-text="ev.time + ' · '"></span>
+                <span x-show="ev.location" x-text="ev.location"></span>
+                <span x-show="!ev.time && !ev.location" class="italic">Sem horário definido</span>
+              </p>
+            </div>
+            {% if current_user.role in ('admin', 'editor') %}
+            <a x-show="!ev.id.toString().startsWith('bday_')"
+               :href="`/eventos/admin/${ev.id}/editar`"
+               class="ml-auto text-xs text-primary-600 hover:text-primary-800 flex-shrink-0">
+              Editar
+            </a>
+            {% endif %}
+          </li>
+        </template>
+      </ul>
+
+      <div class="px-5 py-3 bg-gray-50 text-right border-t border-gray-100">
+        <button @click="modal = false"
+                class="px-4 py-1.5 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-white">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function calApp(data) {
+  return {
+    modal:     false,
+    title:     '',
+    dayEvents: [],
+    open(key, monthName, day) {
+      this.dayEvents = data[key] || [];
+      this.title     = `${day} de ${monthName} — ${this.dayEvents.length} evento${this.dayEvents.length > 1 ? 's' : ''}`;
+      this.modal     = true;
+    }
+  }
+}
+</script>
+{% endblock %}
