@@ -13,6 +13,19 @@ from app.utils.decorators import editor_or_admin_required
 events_bp = Blueprint('events', __name__, url_prefix='/eventos')
 
 
+@events_bp.route('/')
+@login_required
+def public_list():
+    from datetime import date as date_cls
+    from app.models.event import Event
+    events = (Event.query
+              .filter(Event.is_active == True,
+                      Event.event_date >= date_cls.today())
+              .order_by(Event.event_date, Event.event_time)
+              .limit(50).all())
+    return render_template('events/public_list.html', events=events)
+
+
 @events_bp.route('/admin')
 @login_required
 @editor_or_admin_required

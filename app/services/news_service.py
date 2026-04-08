@@ -133,7 +133,7 @@ def create_news(form, author_id: int) -> News:
         action='create',
         entity='news',
         entity_id=news.id,
-        details=f'Notícia criada: {news.title}',
+        new_values={'title': news.title},
     ))
     db.session.commit()
     return news
@@ -176,7 +176,7 @@ def update_news(news: News, form, actor_id: int) -> News:
         action='update',
         entity='news',
         entity_id=news.id,
-        details=f'Notícia editada: {news.title}',
+        new_values={'title': news.title},
     ))
     db.session.commit()
     return news
@@ -188,7 +188,7 @@ def delete_news(news: News, actor_id: int) -> None:
         action='delete',
         entity='news',
         entity_id=news.id,
-        details=f'Notícia excluída: {news.title}',
+        new_values={'title': news.title},
     ))
     db.session.delete(news)
     db.session.commit()
@@ -202,7 +202,7 @@ def toggle_publish(news: News, actor_id: int) -> News:
         action='publish' if news.is_published else 'unpublish',
         entity='news',
         entity_id=news.id,
-        details=f'Notícia {"publicada" if news.is_published else "despublicada"}: {news.title}',
+        new_values={'title': news.title, 'is_published': news.is_published},
     ))
     db.session.commit()
     return news

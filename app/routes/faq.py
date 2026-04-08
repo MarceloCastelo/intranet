@@ -66,6 +66,13 @@ def delete_category(cat_id):
 
 # ── FAQs ──────────────────────────────────────────────────────────────────────
 
+@faq_bp.route('/')
+@login_required
+def public_list():
+    cats = all_faq_categories()
+    return render_template('faq/public_list.html', categories=cats)
+
+
 @faq_bp.route('/admin')
 @login_required
 @editor_or_admin_required

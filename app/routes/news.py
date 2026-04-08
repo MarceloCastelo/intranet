@@ -132,6 +132,26 @@ def categories():
 
 # ── Leitura pública ───────────────────────────────────────────────────────────
 
+@news_bp.route('/')
+@login_required
+def public_list():
+    from app.models.news import News
+    search      = request.args.get('q', '').strip()
+    category_id = request.args.get('category_id', 0, type=int)
+    page        = request.args.get('page', 1, type=int)
+    q = News.query.filter_by(is_published=True)
+    if search:
+        like = f'%{search}%'
+        q = q.filter(News.title.ilike(like) | News.summary.ilike(like))
+    if category_id:
+        q = q.filter(News.categories.any(id=category_id))
+    pagination = q.order_by(News.published_at.desc()).paginate(page=page, per_page=12, error_out=False)
+    categories = all_categories()
+    return render_template('news/public_list.html',
+                           pagination=pagination, search=search,
+                           category_id=category_id, categories=categories)
+
+
 @news_bp.route('/<slug>')
 @login_required
 def view(slug):

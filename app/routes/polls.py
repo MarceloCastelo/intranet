@@ -13,6 +13,14 @@ polls_bp = Blueprint('polls', __name__, url_prefix='/enquetes')
 
 # ─── Admin ────────────────────────────────────────────────────────────────────
 
+@polls_bp.route('/')
+@login_required
+def public_list():
+    from app.services.poll_service import active_polls
+    polls = active_polls()
+    return render_template('polls/public_list.html', polls=polls)
+
+
 @polls_bp.route('/admin')
 @login_required
 @editor_or_admin_required

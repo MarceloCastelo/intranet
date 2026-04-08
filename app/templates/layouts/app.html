@@ -37,12 +37,11 @@
         Início
       </a>
 
-      {% if current_user.role in ('admin', 'editor') %}
       <div class="pt-4 pb-1 px-3 text-xs font-semibold text-primary-400 uppercase tracking-wider">
         Conteúdo
       </div>
 
-      <a href="{{ url_for('news.index') }}"
+      <a href="{{ url_for('news.public_list') }}"
          class="flex items-center gap-3 px-3 py-2 rounded-md
                 {{ 'bg-primary-700' if 'news.' in (request.endpoint or '') else 'hover:bg-primary-800' }}">
         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -55,7 +54,7 @@
         Notícias
       </a>
 
-      <a href="{{ url_for('events.index') }}"
+      <a href="{{ url_for('events.public_list') }}"
          class="flex items-center gap-3 px-3 py-2 rounded-md
                 {{ 'bg-primary-700' if 'events.' in (request.endpoint or '') else 'hover:bg-primary-800' }}">
         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -68,7 +67,7 @@
         Eventos
       </a>
 
-      <a href="{{ url_for('faq.index') }}"
+      <a href="{{ url_for('faq.public_list') }}"
          class="flex items-center gap-3 px-3 py-2 rounded-md
                 {{ 'bg-primary-700' if 'faq.' in (request.endpoint or '') else 'hover:bg-primary-800' }}">
         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -80,7 +79,7 @@
         FAQ
       </a>
 
-      <a href="{{ url_for('polls.index') }}"
+      <a href="{{ url_for('polls.public_list') }}"
          class="flex items-center gap-3 px-3 py-2 rounded-md
                 {{ 'bg-primary-700' if 'polls.' in (request.endpoint or '') else 'hover:bg-primary-800' }}">
         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -133,7 +132,6 @@
         </svg>
         Serviços
       </a>
-      {% endif %}
 
       {% if current_user.role == 'admin' %}
       <div class="pt-4 pb-1 px-3 text-xs font-semibold text-primary-400 uppercase tracking-wider">
@@ -266,5 +264,7 @@
 </div>
 
 {% block scripts %}{% endblock %}
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>

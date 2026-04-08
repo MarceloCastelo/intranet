@@ -1,0 +1,52 @@
+{% extends "layouts/app.html" %}
+{% block title %}FAQ{% endblock %}
+{% block content %}
+
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Perguntas Frequentes</h1>
+  {% if current_user.role in ('admin', 'editor') %}
+  <a href="{{ url_for('faq.index') }}"
+     class="text-sm text-primary-600 hover:text-primary-800 font-medium">
+    Gerenciar FAQ →
+  </a>
+  {% endif %}
+</div>
+
+{% if categories %}
+  {% for cat in categories %}
+  {% set active_faqs = cat.faqs | selectattr('is_active') | list %}
+  {% if active_faqs %}
+  <div class="mb-6" x-data="{ open: null }">
+    <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-0.5">
+      {{ cat.name }}
+    </h2>
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden divide-y divide-gray-100">
+      {% for faq in active_faqs | sort(attribute='order_position') %}
+      <div x-data="{ expanded: false }">
+        <button @click="expanded = !expanded"
+                class="w-full flex items-center justify-between px-5 py-4 text-left
+                       hover:bg-gray-50 focus:outline-none gap-3">
+          <span class="text-sm font-medium text-gray-900">{{ faq.question }}</span>
+          <svg class="w-4 h-4 text-gray-400 shrink-0 transition-transform duration-150"
+               :class="{ 'rotate-180': expanded }"
+               fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+          </svg>
+        </button>
+        <div x-show="expanded" x-collapse class="px-5 pb-4">
+          <div class="text-sm text-gray-600 leading-relaxed prose prose-sm max-w-none">
+            {{ faq.answer | safe }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+{% else %}
+<div class="bg-white rounded-lg border border-gray-200 p-14 text-center text-gray-400">
+  Nenhuma pergunta cadastrada ainda.
+</div>
+{% endif %}
+{% endblock %}
