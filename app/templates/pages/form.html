@@ -1,0 +1,221 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block head %}
+{# Editor TipTap via CDN (UMD build) #}
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/core@2/dist/tiptap-core.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2/dist/tiptap-starter-kit.umd.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ url_for('pages.index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" id="page-form">
+    {{ form.hidden_tag() }}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+      {# Coluna principal #}
+      <div class="lg:col-span-2 space-y-4">
+
+        {# Título #}
+        <div class="bg-white rounded-lg border border-gray-200 p-5 space-y-4">
+          <div>
+            {{ form.title.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+            {{ form.title(class="block w-full rounded-md border-gray-300 shadow-sm text-sm
+                                  focus:ring-primary-500 focus:border-primary-500",
+                          placeholder="Título exibido na página") }}
+            {% for e in form.title.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+          </div>
+
+          <div>
+            {{ form.name.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+            {{ form.name(class="block w-full rounded-md border-gray-300 shadow-sm text-sm
+                                 focus:ring-primary-500 focus:border-primary-500",
+                         placeholder="Ex: Sobre a empresa") }}
+            {% if form.name.description %}
+            <p class="text-xs text-gray-400 mt-1">{{ form.name.description }}</p>{% endif %}
+            {% for e in form.name.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+          </div>
+
+          <div>
+            {{ form.slug.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+            <div class="flex items-center">
+              <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300
+                           bg-gray-50 text-gray-400 text-xs">/paginas/</span>
+              {{ form.slug(class="flex-1 rounded-l-none rounded-r-md border-gray-300 shadow-sm text-sm
+                                   focus:ring-primary-500 focus:border-primary-500",
+                           id="slug-field") }}
+            </div>
+            {% for e in form.slug.errors %}
+            <p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+          </div>
+        </div>
+
+        {# Editor de conteúdo #}
+        <div class="bg-white rounded-lg border border-gray-200 p-5">
+          <label class="block text-sm font-medium text-gray-700 mb-3">Conteúdo</label>
+
+          {# Toolbar #}
+          <div class="flex flex-wrap gap-1 mb-2 p-2 bg-gray-50 rounded border border-gray-200"
+               id="toolbar">
+            {% for cmd, label in [
+                ('bold','N'), ('italic','I'), ('strike','S'),
+                ('heading-2','H2'), ('heading-3','H3'),
+                ('bulletList','• Lista'), ('orderedList','1. Lista'),
+                ('blockquote','❝'), ('horizontalRule','—')
+            ] %}
+            <button type="button" data-cmd="{{ cmd }}"
+                    class="px-2 py-1 text-xs rounded border border-gray-300 bg-white
+                           hover:bg-primary-50 hover:border-primary-300 transition-colors toolbar-btn">
+              {{ label }}
+            </button>
+            {% endfor %}
+          </div>
+
+          {# Área visível do editor #}
+          <div id="editor"
+               class="min-h-64 rounded-md border border-gray-300 p-3 text-sm
+                      focus-within:ring-2 focus-within:ring-primary-500
+                      focus-within:border-primary-500 prose prose-sm max-w-none"></div>
+
+          {# Hidden que envia o JSON #}
+          {{ form.content_json(class="hidden", id="content-json") }}
+        </div>
+
+      </div>
+
+      {# Coluna lateral #}
+      <div class="space-y-4">
+        <div class="bg-white rounded-lg border border-gray-200 p-5 space-y-3">
+          <h2 class="text-sm font-semibold text-gray-700">Publicação</h2>
+          <label class="flex items-center gap-2 text-sm text-gray-700">
+            {{ form.is_published(class="rounded border-gray-300 text-primary-600
+                                        focus:ring-primary-500") }}
+            Publicada
+          </label>
+          <div class="pt-2 border-t border-gray-100 flex flex-col gap-2">
+            {{ form.submit(class="w-full px-4 py-2 bg-primary-600 text-white text-sm
+                                   rounded-md hover:bg-primary-700 cursor-pointer") }}
+            {% if page %}
+            <a href="{{ url_for('pages.detail', page_id=page.id) }}"
+               class="w-full text-center px-4 py-2 text-sm rounded-md border
+                      border-gray-300 text-gray-700 hover:bg-gray-50">
+              Cancelar
+            </a>
+            {% else %}
+            <a href="{{ url_for('pages.index') }}"
+               class="w-full text-center px-4 py-2 text-sm rounded-md border
+                      border-gray-300 text-gray-700 hover:bg-gray-50">
+              Cancelar
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if page %}
+        <div class="bg-white rounded-lg border border-gray-200 p-5 text-xs text-gray-400 space-y-1">
+          <div>Criado por: {{ page.creator.name if page.creator else '—' }}</div>
+          <div>Em: {{ page.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+          {% if page.updater %}
+          <div>Atualizado por: {{ page.updater.name }}</div>
+          <div>Em: {{ page.updated_at.strftime('%d/%m/%Y %H:%M') }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  // ── Slug auto-gerado a partir do nome ─────────────────────
+  const nameField = document.querySelector('[name="name"]');
+  const slugField = document.getElementById('slug-field');
+
+  function slugify(t) {
+    return t.toLowerCase()
+      .replace(/[àáâãä]/g,'a').replace(/[èéêë]/g,'e')
+      .replace(/[ìíîï]/g,'i').replace(/[òóôõö]/g,'o')
+      .replace(/[ùúûü]/g,'u').replace(/ç/g,'c')
+      .replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').trim();
+  }
+
+  if (nameField && slugField && !slugField.value) {
+    nameField.addEventListener('input', () => {
+      slugField.value = slugify(nameField.value);
+    });
+  }
+
+  // ── Editor TipTap ─────────────────────────────────────────
+  const { Editor } = window.tiptap || {};
+  const { StarterKit } = window.tiptapStarterKit || {};
+
+  if (!Editor || !StarterKit) {
+    // Fallback: textarea simples se os scripts CDN não carregaram
+    const editorDiv   = document.getElementById('editor');
+    const contentJson = document.getElementById('content-json');
+    const ta = document.createElement('textarea');
+    ta.className = 'w-full h-64 text-sm outline-none resize-none';
+    ta.placeholder = 'Escreva o conteúdo aqui...';
+    try {
+      const parsed = JSON.parse(contentJson.value || '{}');
+      ta.value = parsed?.content?.[0]?.content?.[0]?.text || '';
+    } catch(e) { ta.value = ''; }
+    editorDiv.appendChild(ta);
+    document.getElementById('page-form').addEventListener('submit', () => {
+      contentJson.value = JSON.stringify({
+        type:'doc', content:[{type:'paragraph',
+          content:[{type:'text', text: ta.value}]}]
+      });
+    });
+    return;
+  }
+
+  const contentJson = document.getElementById('content-json');
+  let initialContent = { type: 'doc', content: [{ type: 'paragraph' }] };
+  try { if (contentJson.value) initialContent = JSON.parse(contentJson.value); } catch(e) {}
+
+  const editor = new Editor({
+    element: document.getElementById('editor'),
+    extensions: [StarterKit],
+    content: initialContent,
+  });
+
+  // Sync para o hidden antes de submeter
+  document.getElementById('page-form').addEventListener('submit', () => {
+    contentJson.value = JSON.stringify(editor.getJSON());
+  });
+
+  // Toolbar
+  document.getElementById('toolbar').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-cmd]');
+    if (!btn) return;
+    const cmd = btn.dataset.cmd;
+    const chain = editor.chain().focus();
+    if (cmd === 'bold')           chain.toggleBold().run();
+    else if (cmd === 'italic')    chain.toggleItalic().run();
+    else if (cmd === 'strike')    chain.toggleStrike().run();
+    else if (cmd === 'heading-2') chain.toggleHeading({ level: 2 }).run();
+    else if (cmd === 'heading-3') chain.toggleHeading({ level: 3 }).run();
+    else if (cmd === 'bulletList')    chain.toggleBulletList().run();
+    else if (cmd === 'orderedList')   chain.toggleOrderedList().run();
+    else if (cmd === 'blockquote')    chain.toggleBlockquote().run();
+    else if (cmd === 'horizontalRule') chain.setHorizontalRule().run();
+  });
+})();
+</script>
+{% endblock %}

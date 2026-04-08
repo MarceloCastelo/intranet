@@ -42,6 +42,10 @@ def _save_profile_picture(file_storage, old_path: str | None = None) -> str:
     return f'/uploads/avatars/{filename}'
 
 
+# Alias público
+save_profile_picture = _save_profile_picture
+
+
 def _audit(actor_id, action: str, entity_id: int, old=None, new=None) -> None:
     entry = AuditLog(
         user_id=actor_id, action=action,

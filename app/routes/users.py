@@ -3,7 +3,7 @@ from flask import (Blueprint, abort, flash, redirect,
 from flask_login import current_user, login_required
 
 from app import db
-from app.forms.user import AdminSetPasswordForm, BlockedIpForm, InviteUserForm, UserForm
+from app.forms.user import AdminSetPasswordForm, BlockedIpForm, InviteUserForm, ProfileForm, UserForm
 from app.models.user import User
 from app.services import user_service
 from app.utils.decorators import admin_required
@@ -11,7 +11,24 @@ from app.utils.decorators import admin_required
 users_bp = Blueprint('users', __name__, url_prefix='/admin/usuarios')
 
 
-# ─── Lista ────────────────────────────────────────────────────────────────────
+# ─── Perfil do usuário logado ─────────────────────────────────────────────────
+
+@users_bp.route('/perfil', methods=['GET', 'POST'])
+@login_required
+def profile():
+    form = ProfileForm(obj=current_user)
+    if form.validate_on_submit():
+        current_user.name       = form.name.data.strip()
+        current_user.birth_date = form.birth_date.data
+        if form.profile_picture.data and form.profile_picture.data.filename:
+            current_user.profile_picture = user_service.save_profile_picture(
+                form.profile_picture.data, current_user.profile_picture
+            )
+        from app import db
+        db.session.commit()
+        flash('Perfil atualizado com sucesso.', 'success')
+        return redirect(url_for('users.profile'))
+    return render_template('users/profile.html', form=form)
 
 @users_bp.route('/')
 @login_required

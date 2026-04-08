@@ -1,0 +1,92 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ page.name }}{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ url_for('pages.index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900">{{ page.name }}</h1>
+    {% if page.is_published %}
+    <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700">Publicada</span>
+    {% else %}
+    <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500">Rascunho</span>
+    {% endif %}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    {# Ações #}
+    <div class="space-y-3">
+      <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100 text-sm">
+        <a href="{{ url_for('pages.view', slug=page.slug) }}" target="_blank"
+           class="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-gray-700">
+          Ver página pública ↗
+        </a>
+        <a href="{{ url_for('pages.edit', page_id=page.id) }}"
+           class="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-gray-700">
+          Editar conteúdo
+        </a>
+        <form method="POST" action="{{ url_for('pages.toggle_publish', page_id=page.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  class="w-full flex items-center gap-2 px-4 py-3 text-left
+                         {{ 'hover:bg-red-50 text-red-600' if page.is_published else 'hover:bg-green-50 text-green-600' }}">
+            {{ 'Despublicar' if page.is_published else 'Publicar' }}
+          </button>
+        </form>
+        <form method="POST" action="{{ url_for('pages.delete', page_id=page.id) }}"
+              onsubmit="return confirm('Excluir a página {{ page.name }}?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  class="w-full flex items-center gap-2 px-4 py-3 hover:bg-red-50
+                         text-red-700 text-left">
+            Excluir permanentemente
+          </button>
+        </form>
+      </div>
+
+      <div class="bg-white rounded-lg border border-gray-200 p-4 text-xs text-gray-400 space-y-1.5">
+        <div><span class="text-gray-500">Slug:</span>
+          <span class="font-mono">/paginas/{{ page.slug }}</span></div>
+        <div><span class="text-gray-500">Criado por:</span>
+          {{ page.creator.name if page.creator else '—' }}</div>
+        <div><span class="text-gray-500">Criado em:</span>
+          {{ page.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+        {% if page.updater %}
+        <div><span class="text-gray-500">Atualizado por:</span> {{ page.updater.name }}</div>
+        <div><span class="text-gray-500">Atualizado em:</span>
+          {{ page.updated_at.strftime('%d/%m/%Y %H:%M') }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Preview #}
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">{{ page.title }}</h2>
+        <div class="prose prose-sm max-w-none text-gray-700 page-content">
+          {# conteúdo renderizado via JS abaixo #}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2/dist/tiptap-starter-kit.umd.min.js"></script>
+<script>
+  const content = {{ page.content_json | tojson }};
+  const editor = new tiptap.Editor({
+    element: document.querySelector('.page-content'),
+    extensions: [StarterKit],
+    content: content,
+    editable: false,
+  });
+</script>
+{% endblock %}

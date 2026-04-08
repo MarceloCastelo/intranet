@@ -86,3 +86,17 @@ class AdminSetPasswordForm(FlaskForm):
                                           EqualTo('password', message='As senhas não conferem.')])
     force_change = BooleanField('Exigir troca no próximo login', default=True)
     submit    = SubmitField('Salvar senha')
+
+
+class ProfileForm(FlaskForm):
+    """Formulário de perfil para o próprio usuário editar."""
+    name       = StringField('Nome completo *',
+                             validators=[DataRequired(), Length(max=150)])
+    birth_date = DateField('Data de nascimento', validators=[Optional()])
+    profile_picture = FileField('Foto de perfil',
+                                validators=[
+                                    Optional(),
+                                    FileAllowed(['png', 'jpg', 'jpeg', 'webp'],
+                                                'Apenas imagens PNG, JPG ou WEBP.'),
+                                ])
+    submit = SubmitField('Salvar perfil')

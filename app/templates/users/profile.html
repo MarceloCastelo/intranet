@@ -1,0 +1,132 @@
+{% extends "layouts/app.html" %}
+{% block title %}Meu Perfil{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Meu Perfil</h1>
+
+  <form method="POST" enctype="multipart/form-data" class="space-y-5">
+    {{ form.hidden_tag() }}
+
+    {# Foto + info #}
+    <div class="bg-white rounded-lg border border-gray-200 p-6 flex items-center gap-6">
+      <div class="relative shrink-0">
+        {% if current_user.profile_picture %}
+        <img src="{{ current_user.profile_picture }}" alt=""
+             id="avatar-preview"
+             class="w-20 h-20 rounded-full object-cover border-2 border-white shadow">
+        {% else %}
+        <span id="avatar-preview"
+              class="w-20 h-20 rounded-full bg-primary-100 text-primary-700 text-3xl font-bold
+                     flex items-center justify-center border-2 border-white shadow">
+          {{ current_user.name[0].upper() }}
+        </span>
+        {% endif %}
+        <label for="profile_picture_input"
+               class="absolute -bottom-1 -right-1 w-7 h-7 bg-white border border-gray-200
+                      rounded-full flex items-center justify-center shadow cursor-pointer
+                      hover:bg-gray-50">
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+               stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5
+                     4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863
+                     4.487Zm0 0L19.5 7.125"/>
+          </svg>
+        </label>
+      </div>
+
+      <div>
+        <p class="font-semibold text-gray-900">{{ current_user.name }}</p>
+        <p class="text-sm text-gray-400">{{ current_user.email }}</p>
+        <p class="text-xs text-gray-400 mt-0.5 capitalize">
+          {{ current_user.role }}
+          {% if current_user.department %} · {{ current_user.department.name }}{% endif %}
+        </p>
+      </div>
+    </div>
+
+    {# Campos #}
+    <div class="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+      <h2 class="text-sm font-semibold text-gray-700">Dados pessoais</h2>
+
+      {# Input de arquivo oculto #}
+      {{ form.profile_picture(id="profile_picture_input", class="hidden",
+                               accept="image/png,image/jpeg,image/webp") }}
+
+      <div>
+        {{ form.name.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+        {{ form.name(class="block w-full rounded-md border-gray-300 shadow-sm text-sm
+                             focus:ring-primary-500 focus:border-primary-500") }}
+        {% for e in form.name.errors %}
+        <p class="text-xs text-red-600 mt-1">{{ e }}</p>{% endfor %}
+      </div>
+
+      <div>
+        {{ form.birth_date.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+        {{ form.birth_date(class="block w-full rounded-md border-gray-300 shadow-sm text-sm
+                                   focus:ring-primary-500 focus:border-primary-500") }}
+      </div>
+
+      <div class="pt-1 text-xs text-gray-400">
+        E-mail, departamento e perfil de acesso somente podem ser alterados pelo administrador.
+      </div>
+    </div>
+
+    {# Segurança #}
+    <div class="bg-white rounded-lg border border-gray-200 p-6 space-y-3">
+      <h2 class="text-sm font-semibold text-gray-700">Segurança</h2>
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-gray-600">Senha</span>
+        <a href="{{ url_for('auth.change_password') }}"
+           class="text-primary-600 hover:text-primary-800 text-xs">Alterar senha</a>
+      </div>
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-gray-600">Autenticação em dois fatores</span>
+        <span class="text-xs text-gray-400">
+          {% if current_user.two_factor_enabled %}Ativado{% else %}Não ativado{% endif %}
+        </span>
+      </div>
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-gray-600">Último acesso</span>
+        <span class="text-xs text-gray-400">
+          {% if current_user.last_login_at %}
+            {{ current_user.last_login_at.strftime('%d/%m/%Y às %H:%M') }}
+            {% if current_user.last_login_ip %} · {{ current_user.last_login_ip }}{% endif %}
+          {% else %}Nunca{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      {{ form.submit(class="px-6 py-2 bg-primary-600 text-white text-sm rounded-md
+                             hover:bg-primary-700 cursor-pointer") }}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Preview da foto ao selecionar
+  document.getElementById('profile_picture_input').addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const preview = document.getElementById('avatar-preview');
+      if (preview.tagName === 'IMG') {
+        preview.src = e.target.result;
+      } else {
+        // Era o span de iniciais — substitui por img
+        const img = document.createElement('img');
+        img.id = 'avatar-preview';
+        img.src = e.target.result;
+        img.className = 'w-20 h-20 rounded-full object-cover border-2 border-white shadow';
+        preview.replaceWith(img);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+</script>
+{% endblock %}
