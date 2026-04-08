@@ -97,6 +97,16 @@
               </button>
             {% endif %}
           </form>
+
+          {# Excluir usuário #}
+          <form method="POST" action="{{ url_for('users.delete', user_id=user.id) }}"
+                onsubmit="return confirm('Tem certeza que deseja excluir permanentemente o usuário {{ user.name }}? Esta ação não pode ser desfeita.')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit"
+                    class="w-full flex items-center gap-2 px-4 py-3 hover:bg-red-50 text-red-700 text-left font-medium">
+              Excluir usuário permanentemente
+            </button>
+          </form>
         {% endif %}
       </div>
     </div>

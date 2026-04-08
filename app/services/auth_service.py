@@ -149,6 +149,9 @@ def verify_2fa_code(user: User, code: str) -> bool:
 # ─── Senhas ───────────────────────────────────────────────────────────────────
 
 def _password_in_history(user: User, new_password: str) -> bool:
+    # Verifica senha atual
+    if user.password_hash and check_password_hash(user.password_hash, new_password):
+        return True
     limit  = current_app.config.get('PASSWORD_HISTORY_LIMIT', 5)
     recent = (
         PasswordHistory.query

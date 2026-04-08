@@ -165,8 +165,7 @@ def set_password(user_id: int):
     form = AdminSetPasswordForm()
     if form.validate_on_submit():
         user.set_password(form.password.data)
-        if form.force_change.data:
-            user.first_login = True
+        user.first_login = bool(form.force_change.data)
         db.session.commit()
         flash(f'Senha de {user.name} atualizada com sucesso.', 'success')
         return redirect(url_for('users.detail', user_id=user.id))
@@ -175,6 +174,31 @@ def set_password(user_id: int):
 
 
 # ─── Departamentos ────────────────────────────────────────────────────────────
+
+@users_bp.route('/<int:user_id>/excluir', methods=['POST'])
+@login_required
+@admin_required
+def delete(user_id: int):
+    user = db.session.get(User, user_id) or abort(404)
+    if user.id == current_user.id:
+        flash('Você não pode excluir sua própria conta.', 'warning')
+        return redirect(url_for('users.detail', user_id=user.id))
+    name = user.name
+    db.session.delete(user)
+    db.session.commit()
+    flash(f'Usuário "{name}" excluído permanentemente.', 'success')
+    return redirect(url_for('users.index'))
+
+
+# ─── Departamentos ────────────────────────────────────────────────────────────
+
+@users_bp.route('/departamentos')
+@login_required
+@admin_required
+def departments():
+    depts = user_service.all_departments()
+    return render_template('users/departments.html', departments=depts)
+
 
 @users_bp.route('/departamentos/novo', methods=['POST'])
 @login_required
@@ -186,7 +210,39 @@ def create_department():
     else:
         dept = user_service.create_department(name, current_user.id)
         flash(f'Departamento "{dept.name}" criado.', 'success')
-    return redirect(request.referrer or url_for('users.index'))
+    return redirect(url_for('users.departments'))
+
+
+@users_bp.route('/departamentos/<int:dept_id>/editar', methods=['POST'])
+@login_required
+@admin_required
+def edit_department(dept_id: int):
+    from app.models.user import Department
+    dept = db.session.get(Department, dept_id) or abort(404)
+    name = request.form.get('name', '').strip()
+    if not name:
+        flash('Nome não pode ser vazio.', 'warning')
+    else:
+        dept.name = name
+        db.session.commit()
+        flash(f'Departamento renomeado para "{name}".', 'success')
+    return redirect(url_for('users.departments'))
+
+
+@users_bp.route('/departamentos/<int:dept_id>/excluir', methods=['POST'])
+@login_required
+@admin_required
+def delete_department(dept_id: int):
+    from app.models.user import Department
+    dept = db.session.get(Department, dept_id) or abort(404)
+    if dept.users.count() > 0:
+        flash(f'Não é possível excluir "{dept.name}": há usuários vinculados.', 'warning')
+        return redirect(url_for('users.departments'))
+    name = dept.name
+    db.session.delete(dept)
+    db.session.commit()
+    flash(f'Departamento "{name}" excluído.', 'success')
+    return redirect(url_for('users.departments'))
 
 
 # ─── IPs bloqueados ───────────────────────────────────────────────────────────

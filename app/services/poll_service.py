@@ -18,8 +18,8 @@ def list_polls(page: int = 1):
 def active_polls():
     now = datetime.utcnow()
     return (Poll.query
-            .filter(Poll.is_active == True,  # noqa: E712
-                    db.or_(Poll.expires_at == None, Poll.expires_at > now))  # noqa: E711
+            .filter(Poll.is_active.is_(True))
+            .filter(db.or_(Poll.expires_at.is_(None), Poll.expires_at > now))
             .order_by(Poll.created_at.desc())
             .all())
 
