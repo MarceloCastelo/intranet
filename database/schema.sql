@@ -445,6 +445,52 @@ CREATE TABLE events (
 );
 
 -- ========================================
+-- PHONE EXTENSIONS (RAMAIS)
+-- ========================================
+CREATE TABLE phone_extensions (
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    name           VARCHAR(150) NOT NULL,
+    extension      VARCHAR(20)  NOT NULL,
+    department_id  INT,
+    user_id        INT,
+    notes          VARCHAR(255),
+    order_position INT DEFAULT 0,
+    is_active      BOOLEAN DEFAULT TRUE,
+    created_by     INT,
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL,
+    FOREIGN KEY (user_id)       REFERENCES users(id)       ON DELETE SET NULL,
+    FOREIGN KEY (created_by)    REFERENCES users(id)       ON DELETE SET NULL,
+
+    INDEX idx_extensions_active (is_active, order_position)
+);
+
+-- ========================================
+-- SERVICES (SERVIÇOS / FERRAMENTAS)
+-- ========================================
+CREATE TABLE services (
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    title          VARCHAR(150) NOT NULL,
+    url            VARCHAR(500) NOT NULL,
+    description    VARCHAR(255),
+    category       VARCHAR(100) DEFAULT 'Geral',
+    color          VARCHAR(30)  DEFAULT 'blue',
+    icon_url       VARCHAR(500),
+    target_blank   BOOLEAN DEFAULT TRUE,
+    order_position INT DEFAULT 0,
+    is_active      BOOLEAN DEFAULT TRUE,
+    created_by     INT,
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+
+    INDEX idx_services_active (is_active, category, order_position)
+);
+
+-- ========================================
 -- LINKS (LINKS ÚTEIS - MENU DE SERVIÇOS)
 -- ========================================
 CREATE TABLE links (

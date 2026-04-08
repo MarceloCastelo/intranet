@@ -181,7 +181,13 @@ def invite_user(form, actor_id: int) -> User:
     db.session.commit()
 
     set_password_url = url_for('auth.reset_password', token=raw_token, _external=True)
-    send_invite(user, set_password_url)
+    if not send_invite(user, set_password_url):
+        # Reverte a criação do usuário se o e-mail não pôde ser enviado
+        db.session.delete(token)
+        db.session.delete(user)
+        db.session.commit()
+        raise RuntimeError('Não foi possível enviar o e-mail de convite. Verifique as configurações de SMTP.')
+
     return user
 
 

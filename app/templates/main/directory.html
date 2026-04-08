@@ -1,0 +1,98 @@
+{% extends "layouts/app.html" %}
+{% block title %}Colaboradores{% endblock %}
+{% block content %}
+
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <h1 class="text-2xl font-bold text-gray-900">Colaboradores</h1>
+  <span class="text-sm text-gray-500">{{ users|length }} encontrado{{ 's' if users|length != 1 }}</span>
+</div>
+
+{# Filtros #}
+<form method="GET" class="flex flex-wrap gap-3 mb-6">
+  <input type="text" name="q" value="{{ search }}"
+         placeholder="Buscar por nome ou e-mail…"
+         class="rounded-md border-gray-300 shadow-sm text-sm
+                focus:ring-primary-500 focus:border-primary-500 w-56">
+  <select name="department_id"
+          class="rounded-md border-gray-300 shadow-sm text-sm
+                 focus:ring-primary-500 focus:border-primary-500">
+    <option value="">Todos os departamentos</option>
+    {% for dep in departments %}
+    <option value="{{ dep.id }}" {{ 'selected' if dep.id == department_id }}>{{ dep.name }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit"
+          class="px-4 py-2 bg-primary-600 text-white text-sm rounded-md hover:bg-primary-700">
+    Filtrar
+  </button>
+  {% if search or department_id %}
+  <a href="{{ url_for('main.directory') }}"
+     class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50">
+    Limpar
+  </a>
+  {% endif %}
+</form>
+
+{% if users %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+  {% for user in users %}
+  <div class="bg-white rounded-xl border border-gray-200 p-5 flex flex-col items-center text-center gap-3
+              hover:shadow-md hover:border-gray-300 transition-all duration-150">
+
+    {# Foto de perfil #}
+    {% if user.profile_picture %}
+    <img src="{{ user.profile_picture }}" alt="{{ user.name }}"
+         class="w-20 h-20 rounded-full object-cover ring-2 ring-gray-100">
+    {% else %}
+    <div class="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center
+                ring-2 ring-gray-100">
+      <span class="text-2xl font-semibold text-primary-600">
+        {{ user.name[0].upper() }}
+      </span>
+    </div>
+    {% endif %}
+
+    {# Nome #}
+    <div>
+      <p class="font-semibold text-gray-900 text-sm leading-tight">{{ user.name }}</p>
+      {% if user.department %}
+      <p class="text-xs text-primary-600 mt-0.5">{{ user.department.name }}</p>
+      {% endif %}
+    </div>
+
+    {# E-mail #}
+    <a href="mailto:{{ user.email }}"
+       class="text-xs text-gray-500 hover:text-primary-600 transition-colors truncate max-w-full"
+       title="{{ user.email }}">
+      {{ user.email }}
+    </a>
+
+    {# Aniversário #}
+    {% if user.birth_date %}
+    <div class="flex items-center gap-1 text-xs text-gray-400">
+      <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75-1.5.75a3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0 3.354 3.354 0 0 0-3 0 3.354 3.354 0 0 1-3 0L3 16.5m15-3.379a48.474 48.474 0 0 0-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 0 1 3 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 0 1 6 13.12M12.265 3.11a.375.375 0 1 1-.53 0L12 2.845l.265.265Zm-3 0a.375.375 0 1 1-.53 0L9 2.845l.265.265Zm6 0a.375.375 0 1 1-.53 0L15 2.845l.265.265Z"/>
+      </svg>
+      {{ user.birth_date.strftime('%d/%m') }}
+    </div>
+    {% endif %}
+
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16 text-gray-400">
+  <svg class="w-10 h-10 mx-auto mb-3" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round"
+          d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0
+             0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318
+             12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0
+             1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25
+             2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+  </svg>
+  <p class="text-sm">Nenhum colaborador encontrado.</p>
+</div>
+{% endif %}
+
+{% endblock %}

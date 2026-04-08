@@ -90,6 +90,8 @@ def invite():
             return redirect(url_for('users.index'))
         except ValueError as exc:
             form.email.errors.append(str(exc))
+        except RuntimeError as exc:
+            flash(str(exc), 'danger')
 
     return render_template('users/invite.html', form=form)
 

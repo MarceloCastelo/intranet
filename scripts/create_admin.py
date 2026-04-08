@@ -1,7 +1,10 @@
 """
 Script de uso único para criar o primeiro usuário admin.
-Execute com: docker exec portal_app python scripts/create_admin.py
+Execute com: docker exec -e PYTHONPATH=/app portal_app python scripts/create_admin.py
 """
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app import create_app, db
 from app.models.user import Department, User
 

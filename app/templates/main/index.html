@@ -16,29 +16,33 @@
 {# ── Cards de estatísticas ────────────────────────────────── #}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
-  <div class="bg-white rounded-lg border border-gray-200 p-5">
+  <a href="{{ url_for('main.directory') }}"
+     class="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition-all duration-150 block">
     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Colaboradores</p>
     <p class="mt-2 text-3xl font-bold text-gray-900">{{ stats.total_users }}</p>
     {% if stats.new_users %}
     <p class="mt-1 text-xs text-green-600">+{{ stats.new_users }} este mês</p>
     {% endif %}
-  </div>
+  </a>
 
-  <div class="bg-white rounded-lg border border-gray-200 p-5">
+  <a href="{{ url_for('news.public_list') }}"
+     class="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition-all duration-150 block">
     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Notícias publicadas</p>
     <p class="mt-2 text-3xl font-bold text-gray-900">{{ stats.total_news }}</p>
-  </div>
+  </a>
 
-  <div class="bg-white rounded-lg border border-gray-200 p-5">
+  <a href="{{ url_for('events.public_list') }}"
+     class="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition-all duration-150 block">
     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Próximos eventos</p>
     <p class="mt-2 text-3xl font-bold text-gray-900">{{ stats.total_events }}</p>
-  </div>
+  </a>
 
-  <div class="bg-white rounded-lg border border-gray-200 p-5">
+  <a href="{{ url_for('main.directory') }}"
+     class="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md hover:border-primary-200 transition-all duration-150 block">
     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Aniversariantes</p>
     <p class="mt-2 text-3xl font-bold text-gray-900">{{ stats.birthday_count }}</p>
     <p class="mt-1 text-xs text-gray-400">Este mês</p>
-  </div>
+  </a>
 
 </div>
 
@@ -55,8 +59,8 @@
       {% if recent_news %}
         <ul class="divide-y divide-gray-100">
           {% for item in recent_news %}
-          <li class="px-5 py-4 hover:bg-gray-50 transition-colors">
-            <div class="flex gap-4">
+          <li>
+            <a href="{{ url_for('news.view', slug=item.slug) }}" class="flex gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
               {% if item.featured_image %}
                 <img src="{{ item.featured_image }}" alt=""
                      class="w-16 h-12 rounded object-cover shrink-0">
@@ -83,7 +87,7 @@
                   {{ item.published_at.strftime('%d/%m/%Y') if item.published_at else '' }}
                 </p>
               </div>
-            </div>
+            </a>
           </li>
           {% endfor %}
         </ul>
@@ -105,7 +109,8 @@
       {% if upcoming_events %}
         <ul class="divide-y divide-gray-100">
           {% for ev in upcoming_events %}
-          <li class="px-5 py-3 flex items-start gap-3">
+          <li>
+            <a href="{{ url_for('events.public_list') }}" class="px-5 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors">
             <div class="shrink-0 w-10 text-center">
               <p class="text-lg font-bold text-primary-600 leading-none">
                 {{ ev.event_date.strftime('%d') }}
@@ -132,6 +137,7 @@
                 {% else %}Geral{% endif %}
               </span>
             </div>
+            </a>
           </li>
           {% endfor %}
         </ul>

@@ -7,6 +7,15 @@ from wtforms.validators import (DataRequired, Email, EqualTo, Length,
 
 from app.models.user import User
 
+CORPORATE_DOMAIN = 'adtsa.com.br'
+
+
+def _validate_corporate_email(field):
+    """Garante que o e-mail pertence ao domínio corporativo."""
+    email = (field.data or '').strip().lower()
+    if not email.endswith(f'@{CORPORATE_DOMAIN}'):
+        raise ValidationError(f'Apenas e-mails @{CORPORATE_DOMAIN} são permitidos.')
+
 
 class UserForm(FlaskForm):
     """Formulário compartilhado entre criar e editar usuário."""
@@ -42,6 +51,7 @@ class UserForm(FlaskForm):
         self.department_id.choices = dept_choices
 
     def validate_email(self, field):
+        _validate_corporate_email(field)
         query = User.query.filter_by(email=field.data)
         if self._user_id:
             query = query.filter(User.id != self._user_id)
@@ -68,6 +78,7 @@ class InviteUserForm(FlaskForm):
         self.department_id.choices = dept_choices
 
     def validate_email(self, field):
+        _validate_corporate_email(field)
         if User.query.filter_by(email=field.data).first():
             raise ValidationError('Este e-mail já está cadastrado.')
 
