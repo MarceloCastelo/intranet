@@ -160,29 +160,6 @@ class GalleryItem(db.Model):
     )
 
 
-class Page(db.Model):
-    __tablename__ = 'pages'
-
-    id           = db.Column(db.Integer, primary_key=True)
-    name         = db.Column(db.String(100), nullable=False)
-    slug         = db.Column(db.String(100), nullable=False, unique=True)
-    title        = db.Column(db.String(200), nullable=False)
-    content_json = db.Column(db.JSON, nullable=False)
-    is_published = db.Column(db.Boolean, default=True)
-    created_by   = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
-    updated_by   = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
-    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at   = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    creator = db.relationship('User', foreign_keys=[created_by])
-    updater = db.relationship('User', foreign_keys=[updated_by])
-
-    __table_args__ = (
-        db.Index('idx_pages_slug',      'slug'),
-        db.Index('idx_pages_published', 'is_published'),
-    )
-
-
 class ContentVersion(db.Model):
     __tablename__ = 'content_versions'
 

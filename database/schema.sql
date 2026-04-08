@@ -514,33 +514,6 @@ CREATE TABLE links (
 );
 
 -- ========================================
--- PAGES (CONTEÚDO ESTÁTICO)
--- ========================================
-CREATE TABLE pages (
-    id           INT AUTO_INCREMENT PRIMARY KEY,
-    name         VARCHAR(100) NOT NULL,
-    slug         VARCHAR(100) NOT NULL UNIQUE,
-    title        VARCHAR(200) NOT NULL,
-    content_json JSON NOT NULL,
-    is_published BOOLEAN DEFAULT TRUE,
-    created_by   INT,
-    updated_by   INT,
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (created_by)
-        REFERENCES users(id)
-        ON DELETE SET NULL,
-
-    FOREIGN KEY (updated_by)
-        REFERENCES users(id)
-        ON DELETE SET NULL,
-    
-    INDEX idx_pages_slug (slug),
-    INDEX idx_pages_published (is_published)
-);
-
--- ========================================
 -- FILES (UPLOADS)
 -- ========================================
 CREATE TABLE files (

@@ -10,7 +10,7 @@ from app.models.content import (
     Banner, FaqCategory, Faq,
     Poll, PollOption, PollVote,
     Gallery, GalleryItem,
-    Page, ContentVersion,
+    ContentVersion,
 )
 from app.models.event import Event
 from app.models.communication import (
@@ -32,7 +32,7 @@ __all__ = [
     'Banner', 'FaqCategory', 'Faq',
     'Poll', 'PollOption', 'PollVote',
     'Gallery', 'GalleryItem',
-    'Page', 'ContentVersion',
+    'ContentVersion',
     # event
     'Event',
     # communication
