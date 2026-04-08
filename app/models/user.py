@@ -99,23 +99,6 @@ class PasswordHistory(db.Model):
     )
 
 
-class BlockedIp(db.Model):
-    __tablename__ = 'blocked_ips'
-
-    id         = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(45), nullable=False, unique=True)
-    reason     = db.Column(db.String(255))
-    blocked_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
-    blocked_at = db.Column(db.DateTime, default=datetime.utcnow)
-    expires_at = db.Column(db.DateTime)
-
-    blocker = db.relationship('User', foreign_keys=[blocked_by])
-
-    __table_args__ = (
-        db.Index('idx_blocked_ips_ip', 'ip_address'),
-    )
-
-
 class UserToken(db.Model):
     __tablename__ = 'user_tokens'
 

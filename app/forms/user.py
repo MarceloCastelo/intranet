@@ -83,12 +83,6 @@ class InviteUserForm(FlaskForm):
             raise ValidationError('Este e-mail já está cadastrado.')
 
 
-class BlockedIpForm(FlaskForm):
-    ip_address = StringField('Endereço IP', validators=[DataRequired(), Length(max=45)])
-    reason     = StringField('Motivo', validators=[Optional(), Length(max=255)])
-    submit     = SubmitField('Bloquear IP')
-
-
 class AdminSetPasswordForm(FlaskForm):
     password  = PasswordField('Nova senha *',
                               validators=[DataRequired(), Length(min=8, max=128)])

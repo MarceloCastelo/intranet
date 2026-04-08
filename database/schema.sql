@@ -65,21 +65,6 @@ CREATE TABLE password_history (
 );
 
 -- ========================================
--- BLOCKED IPS (Segurança)
--- ========================================
-CREATE TABLE blocked_ips (
-    id          INT AUTO_INCREMENT PRIMARY KEY,
-    ip_address  VARCHAR(45) NOT NULL UNIQUE,
-    reason      VARCHAR(255),
-    blocked_by  INT,
-    blocked_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at  DATETIME NULL,
-    
-    FOREIGN KEY (blocked_by) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_blocked_ips_ip (ip_address)
-);
-
--- ========================================
 -- USER TOKENS (senha / convite / 2FA e-mail)
 -- ========================================
 CREATE TABLE user_tokens (

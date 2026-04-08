@@ -3,7 +3,7 @@ from flask import (Blueprint, abort, flash, redirect,
 from flask_login import current_user, login_required
 
 from app import db
-from app.forms.user import AdminSetPasswordForm, BlockedIpForm, InviteUserForm, ProfileForm, UserForm
+from app.forms.user import AdminSetPasswordForm, InviteUserForm, ProfileForm, UserForm
 from app.models.user import User
 from app.services import user_service
 from app.utils.decorators import admin_required
@@ -264,33 +264,3 @@ def delete_department(dept_id: int):
     return redirect(url_for('users.departments'))
 
 
-# ─── IPs bloqueados ───────────────────────────────────────────────────────────
-
-@users_bp.route('/ips-bloqueados')
-@login_required
-@admin_required
-def blocked_ips():
-    ips  = user_service.list_blocked_ips()
-    form = BlockedIpForm()
-    return render_template('users/blocked_ips.html', ips=ips, form=form)
-
-
-@users_bp.route('/ips-bloqueados/bloquear', methods=['POST'])
-@login_required
-@admin_required
-def block_ip():
-    form = BlockedIpForm()
-    if form.validate_on_submit():
-        user_service.block_ip(form.ip_address.data.strip(),
-                              form.reason.data or '', current_user.id)
-        flash(f'IP {form.ip_address.data} bloqueado.', 'success')
-    return redirect(url_for('users.blocked_ips'))
-
-
-@users_bp.route('/ips-bloqueados/<int:ip_id>/desbloquear', methods=['POST'])
-@login_required
-@admin_required
-def unblock_ip(ip_id: int):
-    user_service.unblock_ip(ip_id, current_user.id)
-    flash('IP desbloqueado.', 'success')
-    return redirect(url_for('users.blocked_ips'))

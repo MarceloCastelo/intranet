@@ -1,6 +1,6 @@
 from app.models.user import (
     Department, User, Permission, PasswordHistory,
-    BlockedIp, UserToken, TwoFactorLog, Session,
+    UserToken, TwoFactorLog, Session,
 )
 from app.models.news import (
     News, Category, Tag, news_categories, news_tags,
@@ -24,7 +24,7 @@ from app.models.audit import (
 __all__ = [
     # user
     'Department', 'User', 'Permission', 'PasswordHistory',
-    'BlockedIp', 'UserToken', 'TwoFactorLog', 'Session',
+    'UserToken', 'TwoFactorLog', 'Session',
     # news
     'News', 'Category', 'Tag', 'news_categories', 'news_tags',
     'NewsView', 'Comment', 'Reaction',

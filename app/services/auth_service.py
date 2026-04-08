@@ -12,7 +12,7 @@ from werkzeug.security import check_password_hash
 
 from app import db
 from app.models.audit import AuditLog
-from app.models.user import BlockedIp, PasswordHistory, TwoFactorLog, User, UserToken
+from app.models.user import PasswordHistory, TwoFactorLog, User, UserToken
 from app.services.email_service import send_2fa_code, send_password_reset
 
 logger = logging.getLogger(__name__)
@@ -34,19 +34,6 @@ def _log_audit(user_id, action: str, entity: str, entity_id: int,
     db.session.add(entry)
 
 
-# ─── Verificação de IP bloqueado ─────────────────────────────────────────────
-
-def is_ip_blocked() -> bool:
-    ip = _client_ip()
-    record = BlockedIp.query.filter_by(ip_address=ip).first()
-    if not record:
-        return False
-    if record.expires_at and record.expires_at < datetime.utcnow():
-        db.session.delete(record)
-        db.session.commit()
-        return False
-    return True
-
 
 # ─── Login ───────────────────────────────────────────────────────────────────
 
@@ -59,9 +46,6 @@ def attempt_login(email: str, password: str):
         user      — objeto User em caso de sucesso, None caso contrário
         error_key — chave de erro string ou None
     """
-    if is_ip_blocked():
-        return None, 'ip_blocked'
-
     user = User.query.filter_by(email=email).first()
 
     if not user:

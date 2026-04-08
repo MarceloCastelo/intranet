@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 
 from app import db
 from app.models.audit import AuditLog, Notification
-from app.models.user import BlockedIp, Department, User, UserToken
+from app.models.user import Department, User, UserToken
 from app.services.email_service import send_invite
 
 logger = logging.getLogger(__name__)
@@ -234,24 +234,3 @@ def create_department(name: str, actor_id: int) -> Department:
     return dept
 
 
-# ─── IPs bloqueados ───────────────────────────────────────────────────────────
-
-def list_blocked_ips():
-    return BlockedIp.query.order_by(BlockedIp.blocked_at.desc()).all()
-
-
-def block_ip(ip: str, reason: str, actor_id: int) -> BlockedIp:
-    existing = BlockedIp.query.filter_by(ip_address=ip).first()
-    if existing:
-        return existing
-    record = BlockedIp(ip_address=ip, reason=reason, blocked_by=actor_id)
-    db.session.add(record)
-    db.session.commit()
-    return record
-
-
-def unblock_ip(ip_id: int, actor_id: int) -> None:
-    record = db.session.get(BlockedIp, ip_id)
-    if record:
-        db.session.delete(record)
-        db.session.commit()
