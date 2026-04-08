@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request
 from flask_login import login_required
 
 from app.models.user import Department, User
+from app.services.content_service import active_banners
 from app.services.dashboard_service import get_dashboard_data
 
 main_bp = Blueprint('main', __name__)
@@ -11,6 +12,7 @@ main_bp = Blueprint('main', __name__)
 @login_required
 def index():
     data = get_dashboard_data()
+    data['banners'] = active_banners()
     return render_template('main/index.html', **data)
 
 

@@ -18,8 +18,9 @@ class BannerForm(FlaskForm):
     link_text   = StringField('Texto do botão', validators=[Optional(), Length(max=50)])
     target_blank = BooleanField('Abrir em nova aba', default=True)
     order_position = IntegerField('Ordem', validators=[Optional(), NumberRange(min=0)], default=0)
-    is_active   = BooleanField('Ativo', default=True)
-    start_date  = DateField('Data de início', validators=[Optional()])
+    is_active      = BooleanField('Ativo', default=True)
+    show_on_home   = BooleanField('Exibir na tela inicial', default=False)
+    start_date     = DateField('Data de início', validators=[Optional()])
     end_date    = DateField('Data de término', validators=[Optional()])
     submit      = SubmitField('Salvar')
 

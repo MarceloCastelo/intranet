@@ -16,6 +16,7 @@
         <th class="px-5 py-3 text-left">Imagem</th>
         <th class="px-5 py-3 text-left">Título</th>
         <th class="px-5 py-3 text-left">Status</th>
+        <th class="px-5 py-3 text-left">Tela inicial</th>
         <th class="px-5 py-3 text-left">Período</th>
         <th class="px-5 py-3 text-left">Ordem</th>
         <th class="px-5 py-3"></th>
@@ -34,6 +35,13 @@
             {{ 'bg-green-100 text-green-700' if b.is_active else 'bg-gray-100 text-gray-500' }}">
             {{ 'Ativo' if b.is_active else 'Inativo' }}
           </span>
+        </td>
+        <td class="px-5 py-3">
+          {% if b.show_on_home %}
+          <span class="inline-flex px-2 py-0.5 rounded text-xs bg-primary-100 text-primary-700">✓ Sim</span>
+          {% else %}
+          <span class="text-xs text-gray-400">—</span>
+          {% endif %}
         </td>
         <td class="px-5 py-3 text-xs text-gray-400">
           {% if b.start_date or b.end_date %}
@@ -56,7 +64,7 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="6" class="px-5 py-10 text-center text-gray-400">Nenhum banner cadastrado.</td></tr>
+      <tr><td colspan="7" class="px-5 py-10 text-center text-gray-400">Nenhum banner cadastrado.</td></tr>
       {% endfor %}
     </tbody>
   </table>

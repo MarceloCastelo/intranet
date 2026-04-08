@@ -14,6 +14,7 @@ class Banner(db.Model):
     link_text      = db.Column(db.String(50))
     order_position = db.Column(db.Integer, default=0)
     is_active      = db.Column(db.Boolean, default=True)
+    show_on_home   = db.Column(db.Boolean, default=False)
     start_date     = db.Column(db.Date)
     end_date       = db.Column(db.Date)
     target_blank   = db.Column(db.Boolean, default=True)

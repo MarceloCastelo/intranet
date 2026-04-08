@@ -293,6 +293,7 @@ CREATE TABLE banners (
     link_text       VARCHAR(50),
     order_position  INT DEFAULT 0,
     is_active       BOOLEAN DEFAULT TRUE,
+    show_on_home    BOOLEAN DEFAULT FALSE,
     start_date      DATE,
     end_date        DATE,
     target_blank    BOOLEAN DEFAULT TRUE,

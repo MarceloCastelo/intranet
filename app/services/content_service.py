@@ -37,7 +37,7 @@ def list_banners() -> list:
 
 def active_banners() -> list:
     today = date.today()
-    q = Banner.query.filter(Banner.is_active == True)  # noqa: E712
+    q = Banner.query.filter(Banner.is_active == True, Banner.show_on_home == True)  # noqa: E712
     q = q.filter(
         db.or_(Banner.start_date == None, Banner.start_date <= today),  # noqa: E711
         db.or_(Banner.end_date   == None, Banner.end_date   >= today),  # noqa: E711
@@ -58,6 +58,7 @@ def create_banner(form, actor_id: int) -> Banner:
         target_blank   = form.target_blank.data,
         order_position = form.order_position.data or 0,
         is_active      = form.is_active.data,
+        show_on_home   = form.show_on_home.data,
         start_date     = form.start_date.data or None,
         end_date       = form.end_date.data or None,
         created_by     = actor_id,
@@ -78,6 +79,7 @@ def update_banner(banner: Banner, form) -> Banner:
     banner.target_blank   = form.target_blank.data
     banner.order_position = form.order_position.data or 0
     banner.is_active      = form.is_active.data
+    banner.show_on_home   = form.show_on_home.data
     banner.start_date     = form.start_date.data or None
     banner.end_date       = form.end_date.data or None
     image = _save_image(form.image.data, 'banners')
