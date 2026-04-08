@@ -13,7 +13,7 @@
 </div>
 
 <div class="max-w-xl bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-  <form method="POST">
+  <form method="POST" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
@@ -59,14 +59,21 @@
                             focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
       </div>
 
-      {# URL do ícone #}
+      {# Logo / ícone #}
       <div class="sm:col-span-2">
         {{ form.icon_url.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-        {{ form.icon_url(class="block w-full rounded-md border-gray-300 shadow-sm
-                                focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+        {% if svc and svc.icon_url %}
+        <div class="mb-2 flex items-center gap-3">
+          <img src="{{ svc.icon_url }}" alt="ícone atual"
+               class="h-12 w-12 rounded object-contain border border-gray-200 bg-gray-50 p-1">
+          <span class="text-xs text-gray-500">Ícone atual — envie um novo arquivo para substituir</span>
+        </div>
+        {% endif %}
+        {{ form.icon_url(class="block w-full text-sm text-gray-700 file:mr-4 file:py-1.5 file:px-4
+                                file:rounded-md file:border-0 file:text-sm file:font-medium
+                                file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100") }}
         <p class="text-xs text-gray-400 mt-1">
-          Opcional. Se vazio, exibe a inicial do título com a cor escolhida.
-          Dica: cole a URL do favicon, ex.: <code>https://servico.com/favicon.ico</code>
+          Opcional. Aceita PNG, JPG, GIF, WebP ou SVG. Se vazio, exibe a inicial do título com a cor escolhida.
         </p>
         {% for e in form.icon_url.errors %}<p class="text-red-500 text-xs mt-1">{{ e }}</p>{% endfor %}
       </div>

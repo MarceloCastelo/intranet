@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, FileField
 from wtforms import (BooleanField, IntegerField, SelectField, StringField,
-                     SubmitField, TextAreaField, URLField)
+                     SubmitField, URLField)
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, URL
 
 COLOR_CHOICES = [
@@ -26,8 +27,10 @@ class ServiceForm(FlaskForm):
                                  validators=[Optional(), Length(max=100)],
                                  render_kw={'placeholder': 'Ex.: TI, RH, Financeiro…'})
     color          = SelectField('Cor do card', choices=COLOR_CHOICES, default='blue')
-    icon_url       = URLField('URL do ícone/logo', validators=[Optional(), Length(max=500)],
-                              render_kw={'placeholder': 'https://…'})
+    icon_url       = FileField('Logo / ícone',
+                               validators=[Optional(),
+                                           FileAllowed(['png','jpg','jpeg','gif','webp','svg'],
+                                                       'Apenas imagens.')])
     target_blank   = BooleanField('Abrir em nova aba', default=True)
     order_position = IntegerField('Ordem', default=0,
                                   validators=[Optional(), NumberRange(min=0)])
