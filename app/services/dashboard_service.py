@@ -7,6 +7,15 @@ from app.models.event import Event
 from app.models.news import News
 from app.models.user import User
 
+_DAYS_PT = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira',
+            'Sexta-feira', 'Sábado', 'Domingo']
+_MONTHS_PT = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+              'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
+
+
+def _date_pt(d: date) -> str:
+    return f"{_DAYS_PT[d.weekday()]}, {d.day:02d} de {_MONTHS_PT[d.month - 1]} de {d.year}"
+
 
 def get_dashboard_data() -> dict:
     today = date.today()
@@ -73,8 +82,9 @@ def get_dashboard_data() -> dict:
             'birthday_count': birthday_count,
             'new_users':      new_users,
         },
-        'recent_news':    recent_news,
+        'recent_news':     recent_news,
         'upcoming_events': upcoming_events,
-        'birthdays':      birthdays,
-        'today':          today,
+        'birthdays':       birthdays,
+        'today':           today,
+        'today_str':       _date_pt(today),
     }

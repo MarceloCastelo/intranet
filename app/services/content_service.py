@@ -9,7 +9,7 @@ from flask import current_app
 from app import db
 from app.models.content import Banner, Faq, FaqCategory
 from app.models.event import Event
-from app.models.communication import Link
+from app.models.communication import File
 from app.models.user import User
 
 
@@ -253,54 +253,4 @@ def update_event(event: Event, form) -> Event:
 
 def delete_event(event: Event) -> None:
     db.session.delete(event)
-    db.session.commit()
-
-
-# ─── Links ────────────────────────────────────────────────────────────────────
-
-def list_links() -> list:
-    return Link.query.order_by(Link.order_position, Link.title).all()
-
-
-def active_links() -> list:
-    return (Link.query
-            .filter(Link.is_active == True)  # noqa:E712
-            .order_by(Link.order_position, Link.title)
-            .all())
-
-
-def get_link_or_404(link_id: int) -> Link:
-    return db.get_or_404(Link, link_id)
-
-
-def create_link(form, actor_id: int) -> Link:
-    link = Link(
-        title          = form.title.data.strip(),
-        url            = form.url.data.strip(),
-        description    = form.description.data or None,
-        icon_class     = form.icon_class.data or None,
-        order_position = form.order_position.data or 0,
-        target_blank   = form.target_blank.data,
-        is_active      = form.is_active.data,
-        created_by     = actor_id,
-    )
-    db.session.add(link)
-    db.session.commit()
-    return link
-
-
-def update_link(link: Link, form) -> Link:
-    link.title          = form.title.data.strip()
-    link.url            = form.url.data.strip()
-    link.description    = form.description.data or None
-    link.icon_class     = form.icon_class.data or None
-    link.order_position = form.order_position.data or 0
-    link.target_blank   = form.target_blank.data
-    link.is_active      = form.is_active.data
-    db.session.commit()
-    return link
-
-
-def delete_link(link: Link) -> None:
-    db.session.delete(link)
     db.session.commit()

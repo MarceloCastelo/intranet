@@ -14,7 +14,7 @@ from app.models.content import (
 )
 from app.models.event import Event
 from app.models.communication import (
-    PhoneExtension, Service, Link, File,
+    PhoneExtension, Service, File,
     Subscriber, Newsletter, NewsletterLog, EmailLog,
 )
 from app.models.audit import (
@@ -36,7 +36,7 @@ __all__ = [
     # event
     'Event',
     # communication
-    'Link', 'File',
+    'File',
     'Subscriber', 'Newsletter', 'NewsletterLog', 'EmailLog',
     # audit
     'Favorite', 'ApprovalWorkflow', 'Notification', 'AuditLog',
