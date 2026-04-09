@@ -7,6 +7,7 @@ from app.services.news_service import (all_categories, create_category,
                                         get_news_or_404, list_news,
                                         record_view, toggle_publish,
                                         update_news)
+from app.routes.approvals import request_approval
 from app.utils.decorators import editor_or_admin_required
 
 news_bp = Blueprint('news', __name__, url_prefix='/noticias')
@@ -48,8 +49,15 @@ def create():
     form = NewsForm()
     cats = _populate_categories(form)
     if form.validate_on_submit():
-        news = create_news(form, author_id=current_user.id)
-        flash('Notícia criada com sucesso.', 'success')
+        news = create_news(form, author_id=current_user.id, force_draft=not current_user.is_admin)
+        if not current_user.is_admin and form.is_published.data:
+            # Editor marcou "publicar" → cria solicitação de publicação
+            from app.routes.approvals import request_approval
+            request_approval('publish', 'news', news.id, news.title,
+                             requested_by_id=current_user.id)
+            flash('Notícia criada. Solicitação de publicação enviada para aprovação.', 'info')
+        else:
+            flash('Notícia criada com sucesso.', 'success')
         return redirect(url_for('news.detail_admin', news_id=news.id))
     return render_template('news/form.html', form=form, title='Nova notícia',
                            categories=cats, news=None)
@@ -72,6 +80,20 @@ def edit(news_id):
         form.content_json.data = json.dumps(news.content_json)
 
     if form.validate_on_submit():
+        # Editor editando notícia publicada → solicita aprovação
+        if not current_user.is_admin and news.is_published:
+            import json
+            snapshot = {
+                'title':        form.title.data.strip(),
+                'summary':      form.summary.data.strip() if form.summary.data else None,
+                'content_json': json.loads(form.content_json.data),
+                'category_ids': form.categories.data,
+                'tag_names':    [t.strip() for t in (form.tags_input.data or '').split(',') if t.strip()],
+            }
+            request_approval('edit', 'news', news.id, news.title,
+                             requested_by_id=current_user.id, snapshot=snapshot)
+            flash('Edição enviada para aprovação do administrador.', 'info')
+            return redirect(url_for('news.detail_admin', news_id=news.id))
         update_news(news, form, actor_id=current_user.id)
         flash('Notícia atualizada.', 'success')
         return redirect(url_for('news.detail_admin', news_id=news.id))
@@ -97,6 +119,14 @@ def detail_admin(news_id):
 @editor_or_admin_required
 def publish(news_id):
     news = get_news_or_404(news_id)
+    if not current_user.is_admin:
+        action = 'unpublish' if news.is_published else 'publish'
+        request_approval(action, 'news', news.id, news.title,
+                        requested_by_id=current_user.id)
+        msg = 'Solicitação de despublicação enviada para aprovação.' if news.is_published \
+              else 'Solicitação de publicação enviada para aprovação.'
+        flash(msg, 'info')
+        return redirect(url_for('news.detail_admin', news_id=news.id))
     toggle_publish(news, actor_id=current_user.id)
     status = 'publicada' if news.is_published else 'despublicada'
     flash(f'Notícia {status}.', 'success')
@@ -110,6 +140,11 @@ def publish(news_id):
 @editor_or_admin_required
 def delete(news_id):
     news = get_news_or_404(news_id)
+    if not current_user.is_admin:
+        request_approval('delete', 'news', news.id, news.title,
+                        requested_by_id=current_user.id)
+        flash('Solicitação de exclusão enviada para aprovação do administrador.', 'info')
+        return redirect(url_for('news.detail_admin', news_id=news.id))
     delete_news(news, actor_id=current_user.id)
     flash('Notícia excluída.', 'success')
     return redirect(url_for('news.index'))

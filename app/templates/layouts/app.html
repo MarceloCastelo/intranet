@@ -444,6 +444,30 @@
         Auditoria
       </a>
 
+      {# ── Aprovações de conteúdo (somente admin) ──────────── #}
+      {% if current_user.is_admin %}
+      {% set _pending_approvals = pending_approvals_count() %}
+      <a href="{{ url_for('approvals.index') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-md
+                {{ 'bg-primary-700' if ep.startswith('approvals.') else 'hover:bg-primary-800' }}">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043
+                   3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746
+                   3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39
+                   1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268
+                   0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0
+                   0 1 21 12Z"/>
+        </svg>
+        <span class="flex-1">Aprovações</span>
+        {% if _pending_approvals > 0 %}
+        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-yellow-400 text-yellow-900 text-xs font-bold">
+          {{ _pending_approvals if _pending_approvals < 10 else '9+' }}
+        </span>
+        {% endif %}
+      </a>
+      {% endif %}
+
       {# ── Módulos (somente admin) ───────────────────────────── #}
       {% if current_user.is_admin %}
       <a href="{{ url_for('modules.index') }}"

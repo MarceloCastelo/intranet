@@ -91,7 +91,7 @@ def get_news_or_404(news_id: int) -> News:
     return db.get_or_404(News, news_id)
 
 
-def create_news(form, author_id: int) -> News:
+def create_news(form, author_id: int, force_draft: bool = False) -> News:
     slug = form.slug.data.strip() if form.slug.data and form.slug.data.strip() \
         else form.title.data
     slug = _unique_slug(slug)
@@ -121,7 +121,7 @@ def create_news(form, author_id: int) -> News:
     if form.tags_input.data:
         news.tags = _sync_tags(form.tags_input.data)
 
-    if form.is_published.data:
+    if form.is_published.data and not force_draft:
         news.is_published = True
         news.published_at = datetime.utcnow()
 

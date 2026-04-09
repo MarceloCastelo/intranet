@@ -23,6 +23,7 @@ from app.models.audit import (
 from app.models.ouvidoria import (
     Manifestacao, ManifestacaoResposta,
 )
+from app.models.approval import ContentApproval
 
 __all__ = [
     # user
@@ -45,4 +46,6 @@ __all__ = [
     'Favorite', 'ApprovalWorkflow', 'Notification', 'AuditLog',
     # ouvidoria
     'Manifestacao', 'ManifestacaoResposta',
+    # approvals
+    'ContentApproval',
 ]
