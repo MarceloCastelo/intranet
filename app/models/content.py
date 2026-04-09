@@ -178,3 +178,15 @@ class ContentVersion(db.Model):
         db.UniqueConstraint('entity', 'entity_id', 'version_number', name='uq_entity_version'),
         db.Index('idx_cv_entity', 'entity', 'entity_id', 'created_at'),
     )
+
+
+class SiteModule(db.Model):
+    """Controle de ativação/desativação de módulos de conteúdo da intranet."""
+    __tablename__ = 'site_modules'
+
+    key       = db.Column(db.String(50), primary_key=True)
+    name      = db.Column(db.String(100), nullable=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+
+    def __repr__(self):
+        return f'<SiteModule {self.key} active={self.is_active}>'

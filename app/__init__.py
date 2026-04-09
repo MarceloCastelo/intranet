@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, abort, request as flask_request
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_wtf import CSRFProtect
 from flask_mail import Mail
 from flask_migrate import Migrate
@@ -55,6 +55,7 @@ def create_app():
     from app.routes.interactions import interactions_bp
     from app.routes.audit import audit_bp
     from app.routes.ouvidoria import ouvidoria_bp
+    from app.routes.modules import modules_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(users_bp)
@@ -69,5 +70,44 @@ def create_app():
     app.register_blueprint(interactions_bp)
     app.register_blueprint(audit_bp)
     app.register_blueprint(ouvidoria_bp)
+    app.register_blueprint(modules_bp)
+
+    # ── Injetar estado dos módulos em todos os templates ────────────────────
+    @app.context_processor
+    def inject_active_modules():
+        try:
+            from app.models.content import SiteModule
+            mods = SiteModule.query.all()
+            return {'active_modules': {m.key: m.is_active for m in mods}}
+        except Exception:
+            # Tabela ainda não existe (antes da migração)
+            return {'active_modules': {}}
+
+    # ── Proteção de rotas por módulo (non-admin → 404 se módulo desativado) ─
+    # Blueprints mapeados 1:1 para chaves de módulo
+    _MODULE_BLUEPRINTS = {
+        'news', 'events', 'faq', 'polls',
+        'gallery', 'extensions', 'services',
+        'pages', 'links',
+    }
+
+    @app.before_request
+    def _enforce_module_access():
+        endpoint = flask_request.endpoint or ''
+        if '.' not in endpoint:
+            return
+        bp = endpoint.split('.')[0]
+        if bp not in _MODULE_BLUEPRINTS:
+            return
+        # Admin bypassa qualquer restrição de módulo
+        if current_user.is_authenticated and current_user.role == 'admin':
+            return
+        try:
+            from app.models.content import SiteModule
+            mod = SiteModule.query.filter_by(key=bp).first()
+            if mod is not None and not mod.is_active:
+                abort(404)
+        except Exception:
+            pass
 
     return app
