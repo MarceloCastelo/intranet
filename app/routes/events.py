@@ -26,6 +26,15 @@ def public_list():
     return render_template('events/public_list.html', events=events)
 
 
+@events_bp.route('/<int:event_id>')
+@login_required
+def view(event_id: int):
+    event = get_event_or_404(event_id)
+    from app.services.interaction_service import interaction_context
+    ctx = interaction_context('event', event.id, current_user.id)
+    return render_template('events/view.html', event=event, **ctx)
+
+
 @events_bp.route('/admin')
 @login_required
 @editor_or_admin_required

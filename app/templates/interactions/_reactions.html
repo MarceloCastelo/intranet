@@ -1,0 +1,98 @@
+{#
+  Inclua com:
+  {% with entity_type='news', entity_id=news.id,
+          reactions=reactions, user_reaction=user_reaction,
+          emoji_labels=emoji_labels %}
+    {% include 'interactions/_reactions.html' %}
+  {% endwith %}
+#}
+{% set _total = reactions.values() | sum %}
+<div class="reactions-bar flex items-center gap-1 flex-wrap"
+     data-entity-type="{{ entity_type }}"
+     data-entity-id="{{ entity_id }}">
+
+  {% for key, (icon, label) in emoji_labels.items() %}
+  {% set count = reactions.get(key, 0) %}
+  <button
+    type="button"
+    data-emoji="{{ key }}"
+    title="{{ label }}"
+    class="reaction-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm
+           border transition-all select-none
+           {% if user_reaction == key %}
+             border-primary-400 bg-primary-50 text-primary-700 font-semibold
+           {% else %}
+             border-gray-200 bg-white text-gray-500 hover:border-primary-300 hover:bg-primary-50
+           {% endif %}">
+    <span>{{ icon }}</span>
+    {% if count > 0 %}<span class="reaction-count">{{ count }}</span>{% endif %}
+  </button>
+  {% endfor %}
+
+  {% if _total > 0 %}
+  <span class="text-xs text-gray-400 ml-1">{{ _total }} reação{{ 'ões' if _total != 1 }}</span>
+  {% endif %}
+</div>
+
+<script>
+(function () {
+  const bar = document.querySelector('.reactions-bar[data-entity-type="{{ entity_type }}"][data-entity-id="{{ entity_id }}"]');
+  if (!bar) return;
+
+  bar.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.reaction-btn');
+    if (!btn) return;
+
+    const emoji       = btn.dataset.emoji;
+    const entityType  = bar.dataset.entityType;
+    const entityId    = bar.dataset.entityId;
+
+    const fd = new FormData();
+    fd.append('entity_type', entityType);
+    fd.append('entity_id',   entityId);
+    fd.append('emoji',       emoji);
+    fd.append('csrf_token',  '{{ csrf_token() }}');
+
+    const res  = await fetch('{{ url_for("interactions.react") }}', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!data.ok) return;
+
+    // Atualizar todos os botões
+    bar.querySelectorAll('.reaction-btn').forEach(b => {
+      const k     = b.dataset.emoji;
+      const cnt   = data.counts[k] || 0;
+      const active = data.user_reaction === k;
+
+      b.classList.toggle('border-primary-400', active);
+      b.classList.toggle('bg-primary-50',      active);
+      b.classList.toggle('text-primary-700',   active);
+      b.classList.toggle('font-semibold',      active);
+      b.classList.toggle('border-gray-200',   !active);
+      b.classList.toggle('bg-white',          !active);
+      b.classList.toggle('text-gray-500',     !active);
+
+      let span = b.querySelector('.reaction-count');
+      if (cnt > 0) {
+        if (!span) { span = document.createElement('span'); span.className = 'reaction-count'; b.appendChild(span); }
+        span.textContent = cnt;
+      } else {
+        span?.remove();
+      }
+    });
+
+    // Atualizar total
+    let totalSpan = bar.querySelector('.reactions-total');
+    const total = Object.values(data.counts).reduce((a, b) => a + b, 0);
+    if (total > 0) {
+      if (!totalSpan) {
+        totalSpan = document.createElement('span');
+        totalSpan.className = 'reactions-total text-xs text-gray-400 ml-1';
+        bar.appendChild(totalSpan);
+      }
+      totalSpan.textContent = `${total} reação${total !== 1 ? 'ões' : ''}`;
+    } else {
+      totalSpan?.remove();
+    }
+  });
+})();
+</script>

@@ -156,6 +156,8 @@ def public_list():
 @login_required
 def view(slug):
     from app.models.news import News
+    from app.services.interaction_service import interaction_context
     news = News.query.filter_by(slug=slug, is_published=True).first_or_404()
     record_view(news, user_id=current_user.id, ip=request.remote_addr)
-    return render_template('news/view.html', news=news)
+    ctx = interaction_context('news', news.id, current_user.id)
+    return render_template('news/view.html', news=news, **ctx)

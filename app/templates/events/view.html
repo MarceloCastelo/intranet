@@ -1,0 +1,106 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block content %}
+{% set TYPE_COLOR = {
+  'meeting':    'bg-blue-100 text-blue-700',
+  'holiday':    'bg-green-100 text-green-700',
+  'training':   'bg-purple-100 text-purple-700',
+  'birthday':   'bg-pink-100 text-pink-700',
+  'general':    'bg-gray-100 text-gray-700',
+} %}
+{% set TYPE_LABEL = {
+  'meeting':  'Reunião',
+  'holiday':  'Feriado',
+  'training': 'Treinamento',
+  'birthday': 'Aniversário',
+  'general':  'Geral',
+} %}
+
+<div class="max-w-2xl">
+  {# Voltar #}
+  <a href="{{ url_for('events.public_list') }}"
+     class="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 mb-5">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+    </svg>
+    Eventos
+  </a>
+
+  <div class="bg-white rounded-xl border border-gray-200 p-7">
+    {# Tipo #}
+    <div class="flex items-center gap-2 mb-3">
+      <span class="px-2.5 py-0.5 rounded-full text-xs font-medium
+                   {{ TYPE_COLOR.get(event.event_type, 'bg-gray-100 text-gray-700') }}">
+        {{ TYPE_LABEL.get(event.event_type, event.event_type) }}
+      </span>
+      {% if current_user.role in ('admin', 'editor') %}
+      <a href="{{ url_for('events.edit', event_id=event.id) }}"
+         class="text-xs text-gray-400 hover:text-gray-600 ml-auto">Editar</a>
+      {% endif %}
+    </div>
+
+    <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ event.title }}</h1>
+
+    {# Data e horário #}
+    <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-5">
+      <div class="flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21
+                   7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25
+                   2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/>
+        </svg>
+        {{ event.event_date.strftime('%d/%m/%Y') }}
+        {% if event.end_date and event.end_date != event.event_date %}
+          até {{ event.end_date.strftime('%d/%m/%Y') }}
+        {% endif %}
+      </div>
+      {% if event.event_time %}
+      <div class="flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+        </svg>
+        {{ event.event_time.strftime('%H:%M') }}
+      </div>
+      {% endif %}
+      {% if event.location %}
+      <div class="flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5
+                   11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>
+        </svg>
+        {% if event.location_url %}
+          <a href="{{ event.location_url }}" target="_blank" rel="noopener"
+             class="hover:underline text-primary-600">{{ event.location }}</a>
+        {% else %}
+          {{ event.location }}
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    {# Aniversariante #}
+    {% if event.event_type == 'birthday' and event.related_user %}
+    <div class="flex items-center gap-2 text-sm text-pink-700 bg-pink-50 rounded-lg px-4 py-2 mb-5">
+      🎂 Aniversário de <strong>{{ event.related_user.name }}</strong>
+    </div>
+    {% endif %}
+
+    {# Reações #}
+    <div class="mb-1">
+      {% with entity_type='event', entity_id=event.id,
+              reactions=reactions, user_reaction=user_reaction,
+              emoji_labels=emoji_labels %}
+        {% include 'interactions/_reactions.html' %}
+      {% endwith %}
+    </div>
+  </div>
+
+  {# Comentários #}
+  {% with entity_type='event', entity_id=event.id, comments=comments %}
+    {% include 'interactions/_comments.html' %}
+  {% endwith %}
+</div>
+{% endblock %}

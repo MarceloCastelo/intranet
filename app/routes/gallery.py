@@ -59,9 +59,11 @@ def delete(gallery_id):
 @gallery_bp.route('/<int:gallery_id>')
 @login_required
 def detail(gallery_id):
+    from app.services.interaction_service import interaction_context
     gallery = get_gallery_or_404(gallery_id)
     items   = sorted(gallery.items, key=lambda i: i.order_position)
-    return render_template('gallery/detail.html', gallery=gallery, items=items)
+    ctx = interaction_context('gallery', gallery.id, current_user.id)
+    return render_template('gallery/detail.html', gallery=gallery, items=items, **ctx)
 
 
 # ─── Upload de imagens ────────────────────────────────────────────────────────

@@ -46,7 +46,9 @@
     </h2>
   {% endif %}
 
-  <div class="bg-white rounded-lg border border-gray-200 flex items-center gap-4 px-5 py-4 hover:bg-gray-50">
+  <a href="{{ url_for('events.view', event_id=event.id) }}"
+     class="bg-white rounded-lg border border-gray-200 flex items-center gap-4 px-5 py-4
+            hover:bg-gray-50 hover:border-primary-200 transition-colors">
     {# Data #}
     <div class="shrink-0 w-12 text-center">
       <div class="text-2xl font-bold text-gray-900 leading-none">{{ event.event_date.strftime('%d') }}</div>
@@ -75,7 +77,7 @@
       {{ event.event_time.strftime('%H:%M') }}
     </div>
     {% endif %}
-  </div>
+  </a>
   {% endfor %}
 </div>
 {% else %}

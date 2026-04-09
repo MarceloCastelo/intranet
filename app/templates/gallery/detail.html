@@ -143,4 +143,19 @@
   {% endif %}
 </div>
 {% endif %}
+
+{# Reações #}
+<div class="mt-8 pt-6 border-t border-gray-200">
+  {% with entity_type='gallery', entity_id=gallery.id,
+          reactions=reactions, user_reaction=user_reaction,
+          emoji_labels=emoji_labels %}
+    {% include 'interactions/_reactions.html' %}
+  {% endwith %}
+</div>
+
+{# Comentários #}
+{% with entity_type='gallery', entity_id=gallery.id, comments=comments %}
+  {% include 'interactions/_comments.html' %}
+{% endwith %}
+
 {% endblock %}

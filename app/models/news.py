@@ -67,8 +67,6 @@ class News(db.Model):
     categories = db.relationship('Category', secondary=news_categories, back_populates='news')
     tags       = db.relationship('Tag',      secondary=news_tags,       back_populates='news')
     views      = db.relationship('NewsView',  back_populates='news', cascade='all, delete-orphan')
-    comments   = db.relationship('Comment',   back_populates='news', cascade='all, delete-orphan')
-    reactions  = db.relationship('Reaction',  back_populates='news', cascade='all, delete-orphan')
 
     __table_args__ = (
         db.Index('idx_news_published', 'is_published', 'published_at'),
@@ -102,42 +100,33 @@ class Comment(db.Model):
     __tablename__ = 'comments'
 
     id          = db.Column(db.Integer, primary_key=True)
-    news_id     = db.Column(db.Integer, db.ForeignKey('news.id',     ondelete='CASCADE'), nullable=False)
-    user_id     = db.Column(db.Integer, db.ForeignKey('users.id',    ondelete='SET NULL'))
-    parent_id   = db.Column(db.Integer, db.ForeignKey('comments.id', ondelete='CASCADE'))
+    entity_type = db.Column(db.String(20),  nullable=False)  # 'news' | 'event' | 'gallery'
+    entity_id   = db.Column(db.Integer,     nullable=False)
+    user_id     = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
     content     = db.Column(db.Text, nullable=False)
     is_approved = db.Column(db.Boolean, default=True)
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at  = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    news    = db.relationship('News', back_populates='comments')
-    user    = db.relationship('User', foreign_keys=[user_id])
-    # Self-referential: um comentário pode ter respostas
-    replies = db.relationship(
-        'Comment',
-        backref=db.backref('parent', remote_side='Comment.id'),
-        foreign_keys='[Comment.parent_id]',
-        cascade='all, delete-orphan',
-    )
+    user = db.relationship('User', foreign_keys=[user_id])
 
     __table_args__ = (
-        db.Index('idx_comments_news',     'news_id', 'created_at'),
-        db.Index('idx_comments_approved', 'news_id', 'is_approved', 'created_at'),
+        db.Index('idx_comments_entity', 'entity_type', 'entity_id', 'is_approved', 'created_at'),
     )
 
 
 class Reaction(db.Model):
     __tablename__ = 'reactions'
 
-    id         = db.Column(db.Integer, primary_key=True)
-    news_id    = db.Column(db.Integer, db.ForeignKey('news.id',  ondelete='CASCADE'), nullable=False)
-    user_id    = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    type       = db.Column(db.Enum('like', 'love', 'clap', 'insightful', 'curious'), default='like')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id          = db.Column(db.Integer, primary_key=True)
+    entity_type = db.Column(db.String(20),  nullable=False)  # 'news' | 'event' | 'gallery'
+    entity_id   = db.Column(db.Integer,     nullable=False)
+    user_id     = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    emoji       = db.Column(db.Enum('like', 'love', 'clap', 'laugh', 'sad'), default='like')
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
 
-    news = db.relationship('News', back_populates='reactions')
     user = db.relationship('User', foreign_keys=[user_id])
 
     __table_args__ = (
-        db.UniqueConstraint('news_id', 'user_id', name='uq_reaction'),
+        db.UniqueConstraint('entity_type', 'entity_id', 'user_id', name='uq_reaction_entity'),
     )
