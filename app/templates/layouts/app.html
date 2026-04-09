@@ -64,7 +64,7 @@
       </div>
 
       {# ── Notícias ─────────────────────────────────────────── #}
-      {% if current_user.role == 'admin' %}
+      {% if current_user.role in ('admin', 'editor') %}
       <div x-data="{ open: {{ 'true' if news_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -111,7 +111,7 @@
       {% endif %}
 
       {# ── Eventos ─────────────────────────────────────────── #}
-      {% if current_user.role == 'admin' %}
+      {% if current_user.role in ('admin', 'editor') %}
       <div x-data="{ open: {{ 'true' if events_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -156,7 +156,7 @@
       {% endif %}
 
       {# ── FAQ ─────────────────────────────────────────── #}
-      {% if current_user.role == 'admin' %}
+      {% if current_user.role in ('admin', 'editor') %}
       <div x-data="{ open: {{ 'true' if faq_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -201,7 +201,7 @@
       {% endif %}
 
       {# ── Enquetes ─────────────────────────────────────────── #}
-      {% if current_user.role == 'admin' %}
+      {% if current_user.role in ('admin', 'editor') %}
       <div x-data="{ open: {{ 'true' if polls_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -276,7 +276,7 @@
       </a>
 
       {# ── Serviços ─────────────────────────────────────────── #}
-      {% if current_user.role == 'admin' %}
+      {% if current_user.role in ('admin', 'editor') %}
       <div x-data="{ open: {{ 'true' if srv_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -341,11 +341,27 @@
         Colaboradores
       </a>
 
-      {% if current_user.role == 'admin' %}
+      {% if current_user.role in ('admin', 'editor') %}
       <div class="pt-4 pb-1 px-3 text-xs font-semibold text-primary-400 uppercase tracking-wider">
         Administração
       </div>
 
+      {# ── Banners (admin e editor) ──────────────────────────── #}
+      <a href="{{ url_for('banners.index') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-md
+                {{ 'bg-primary-700' if 'banners.' in ep else 'hover:bg-primary-800' }}">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5
+                   1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5
+                   0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5
+                   1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1
+                   1-.75 0 .375.375 0 0 1 .75 0Z"/>
+        </svg>
+        Banners
+      </a>
+
+      {% if current_user.role == 'admin' %}
       {# ── Usuários (dropdown: Gerenciar + Departamentos) ────── #}
       <div x-data="{ open: {{ 'true' if usr_active else 'false' }} }">
         <button @click="open = !open"
@@ -378,21 +394,7 @@
           </a>
         </div>
       </div>
-
-      {# ── Banners ───────────────────────────────────────────── #}
-      <a href="{{ url_for('banners.index') }}"
-         class="flex items-center gap-3 px-3 py-2 rounded-md
-                {{ 'bg-primary-700' if 'banners.' in ep else 'hover:bg-primary-800' }}">
-        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round"
-                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5
-                   1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5
-                   0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5
-                   1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1
-                   1-.75 0 .375.375 0 0 1 .75 0Z"/>
-        </svg>
-        Banners
-      </a>
+      {% endif %}
 
       {% endif %}
 

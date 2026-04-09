@@ -5,14 +5,14 @@ from app.forms.content import BannerForm
 from app.services.content_service import (create_banner, delete_banner,
                                            get_banner_or_404, list_banners,
                                            update_banner)
-from app.utils.decorators import admin_required
+from app.utils.decorators import editor_or_admin_required
 
 banners_bp = Blueprint('banners', __name__, url_prefix='/admin/banners')
 
 
 @banners_bp.route('/')
 @login_required
-@admin_required
+@editor_or_admin_required
 def index():
     items = list_banners()
     return render_template('banners/index.html', banners=items)
@@ -20,7 +20,7 @@ def index():
 
 @banners_bp.route('/criar', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@editor_or_admin_required
 def create():
     form = BannerForm()
     if form.validate_on_submit():
@@ -35,7 +35,7 @@ def create():
 
 @banners_bp.route('/<int:banner_id>/editar', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@editor_or_admin_required
 def edit(banner_id):
     banner = get_banner_or_404(banner_id)
     form = BannerForm(obj=banner)
@@ -48,7 +48,7 @@ def edit(banner_id):
 
 @banners_bp.route('/<int:banner_id>/excluir', methods=['POST'])
 @login_required
-@admin_required
+@editor_or_admin_required
 def delete(banner_id):
     banner = get_banner_or_404(banner_id)
     delete_banner(banner)

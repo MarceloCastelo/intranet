@@ -36,7 +36,8 @@ def add_comment(entity_type: str, entity_id: int, user_id: int, body: str) -> Co
 
 def delete_comment(comment_id: int, actor_id: int, actor_role: str) -> None:
     c = Comment.query.get_or_404(comment_id)
-    if c.user_id != actor_id and actor_role not in ('admin', 'editor'):
+    # Admin pode excluir qualquer comentário; demais usuários só os próprios
+    if actor_role != 'admin' and c.user_id != actor_id:
         abort(403)
     db.session.delete(c)
     db.session.commit()

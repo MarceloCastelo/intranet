@@ -28,28 +28,30 @@ Sistema de portal corporativo enterprise-ready com todos os recursos que um clie
 
 ### 1. Gestão de Usuários e Segurança
 - ✅ Cadastro e gerenciamento de colaboradores
+- ✅ Diretório de colaboradores (`/colaboradores`)
 - ✅ 4 perfis: Admin, Editor, User, Viewer
 - ✅ Status: Ativo, Inativo, Bloqueado
 - ✅ Vínculo com departamentos
 - ✅ **2FA obrigatório no primeiro login** (código por e-mail)
 - ✅ Histórico de senhas (impede reutilização)
-- ✅ Bloqueio de IPs suspeitos
 - ✅ Login com tentativas limitadas
 - ✅ Sessões gerenciadas
+- ✅ Validação de domínio corporativo no cadastro
 
 ### 2. Notícias e Conteúdo
-- ✅ Publicação com editor rich text (JSON)
+- ✅ Publicação com editor rich text (TipTap)
 - ✅ **Categorias + Tags** (marcadores livres)
 - ✅ Slug amigável para SEO
 - ✅ Imagem destacada
 - ✅ **Contador de visualizações**
-- ✅ Comentários com respostas aninhadas
-- ✅ 5 tipos de reações (like, love, clap, insightful, curious)
+- ✅ Comentários (modelo polimórfico: notícias, eventos, galeria)
+- ✅ 5 tipos de reações: `like`, `love`, `clap`, `laugh`, `sad` (polimórfico)
 - ✅ **Workflow de aprovação** (rascunho → revisão → publicado)
 - ✅ **Versionamento completo** (histórico de edições)
 
 ### 3. Conteúdo Dinâmico
-- ✅ **Banners rotativos** (homepage)
+- ✅ **Banners rotativos** com carrossel hero na homepage (full-bleed, auto-advance)
+- ✅ Seleção de banners para exibição na tela inicial (`show_on_home`)
 - ✅ **FAQ** com categorias e contador de utilidade
 - ✅ **Enquetes** (múltipla escolha, expiração)
 - ✅ **Galeria de imagens**
@@ -61,23 +63,18 @@ Sistema de portal corporativo enterprise-ready com todos os recursos que um clie
 - ✅ Links para Google Maps/Teams/Zoom
 - ✅ Eventos de múltiplos dias
 
-### 5. Menu de Serviços (Links)
-- ✅ CRUD completo de links
-- ✅ Ícones personalizados
+### 5. Menu de Serviços
+- ✅ CRUD completo de serviços
+- ✅ Upload de ícone por imagem (PNG, JPG, SVG, etc.)
 - ✅ Ordem de exibição
 - ✅ Cards responsivos com Tailwind
 
-### 6. Páginas Estáticas
-- ✅ Conteúdo gerenciável
-- ✅ Versionamento
-- ✅ Slug amigável
-
-### 7. Colaboração
+### 6. Colaboração
 - ✅ **Favoritos** (salvar itens importantes)
 - ✅ Upload de arquivos
 - ✅ Notificações em tempo real
 
-### 8. Auditoria e Métricas
+### 7. Auditoria e Métricas
 - ✅ Logs completos de ações
 - ✅ Logs de visualizações de notícias
 - ✅ Logs de e-mails enviados
@@ -95,32 +92,35 @@ Sistema de portal corporativo enterprise-ready com todos os recursos que um clie
 | Gerenciar FAQ | ✅ | ✅ | ❌ | ❌ |
 | Criar enquetes | ✅ | ✅ | ❌ | ❌ |
 | Responder enquetes | ✅ | ✅ | ✅ | ✅ |
-| Gerenciar links | ✅ | ✅ | ❌ | ❌ |
+| Comentar conteúdo | ✅ | ✅ | ✅ | ❌ |
+| Excluir comentários alheios | ✅ | ❌ | ❌ | ❌ |
+| Gerenciar serviços | ✅ | ✅ | ❌ | ❌ |
 | Gerenciar usuários | ✅ | ❌ | ❌ | ❌ |
 | Ver relatórios | ✅ | ❌ | ❌ | ❌ |
 
-*Editor pode criar mas precisa de aprovação do Admin
-
 ---
 
-## 🗂️ Estrutura de Banco de Dados (33 tabelas)
+## 🗂️ Estrutura de Banco de Dados (35 tabelas)
 
-### Core (7 tabelas)
+### Core (6 tabelas)
 - `users`, `departments`, `permissions`, `user_tokens`
-- `two_factor_logs`, `password_history`, `blocked_ips`
+- `two_factor_logs`, `password_history`
 
-### Conteúdo (10 tabelas)
+### Conteúdo (8 tabelas)
 - `news`, `categories`, `tags`, `news_categories`, `news_tags`
-- `news_views`, `comments`, `reactions`
-- `pages`, `content_versions`
+- `news_views`, `comments` (polimórfico), `reactions` (polimórfico)
+- `content_versions`
 
 ### Dinâmico (6 tabelas)
-- `banners`, `faq_categories`, `faq`
+- `banners` (com `show_on_home`), `faq_categories`, `faq`
 - `polls`, `poll_options`, `poll_votes`
 
-### Colaboração (6 tabelas)
-- `events`, `links`, `files`
+### Colaboração (5 tabelas)
+- `events`, `files`
 - `galleries`, `gallery_items`, `favorites`
+
+### Serviços (2 tabelas)
+- `services`, `phone_extensions`
 
 ### Comunicação (4 tabelas)
 - `subscribers`, `newsletters`, `newsletter_logs`, `email_logs`
@@ -150,11 +150,8 @@ cp .env.example .env
 # 3. Inicie os containers
 docker-compose up -d
 
-# 4. Execute as migrações
-docker-compose exec app flask db upgrade
-
-# 5. Crie usuário admin
-docker-compose exec app flask create-admin --email admin@empresa.com --name "Administrador"
+# 4. Crie usuário admin
+docker-compose exec app python scripts/create_admin.py
 
 # 6. Acesse o portal
 http://localhost
