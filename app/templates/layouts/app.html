@@ -359,8 +359,8 @@
       </a>
       {% endif %}{# /directory #}
 
-      {# ── Seção Ouvidoria (rh / patrimônio / controladoria / admin) ── #}
-      {% if current_user.is_admin or current_user.role in ('rh', 'patrimonio', 'controladoria') %}
+      {# ── Seção Ouvidoria (rh / patrimônio / controladoria) ── #}
+      {% if current_user.role in ('rh', 'patrimonio', 'controladoria') %}
       <div class="pt-4 pb-1 px-3 text-xs font-semibold text-primary-400 uppercase tracking-wider">
         Ouvidoria
       </div>

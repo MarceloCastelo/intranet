@@ -38,12 +38,12 @@ def editor_or_admin_required(f):
 
 
 def ouvidoria_required(f):
-    """Acesso ao painel de ouvidoria: is_admin=True ou role em rh/patrimonio/controladoria."""
+    """Acesso ao painel de ouvidoria: apenas roles rh/patrimonio/controladoria."""
     @wraps(f)
     def decorated(*args, **kwargs):
         if not current_user.is_authenticated:
             abort(401)
-        if not (current_user.is_admin or current_user.role in ('rh', 'patrimonio', 'controladoria')):
+        if current_user.role not in ('rh', 'patrimonio', 'controladoria'):
             abort(403)
         return f(*args, **kwargs)
     return decorated
