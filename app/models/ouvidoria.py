@@ -46,6 +46,7 @@ class ManifestacaoResposta(db.Model):
     manifestacao_id  = db.Column(db.Integer, db.ForeignKey('manifestacoes.id', ondelete='CASCADE'), nullable=False)
     respondente_id   = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
     conteudo         = db.Column(db.Text, nullable=False)
+    origem           = db.Column(db.Enum('responsavel', 'autor'), nullable=False, default='responsavel')
     status_anterior  = db.Column(db.String(20), nullable=False)
     status_novo      = db.Column(db.String(20), nullable=False)
     created_at       = db.Column(db.DateTime, default=datetime.utcnow)

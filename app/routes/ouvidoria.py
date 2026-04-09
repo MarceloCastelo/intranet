@@ -81,29 +81,66 @@ def confirmacao(public_id: str):
 
 @ouvidoria_bp.route('/acompanhar', methods=['GET', 'POST'])
 def acompanhar():
-    """Interface de consulta pelo ID único."""
-    m = None
-    erro = None
-    tipo_info = None
-    status_info = None
-
+    """Interface de consulta e conversa pelo ID único."""
+    # POST: redireciona para o GET com o ID na URL
     if request.method == 'POST':
-        pid = request.form.get('public_id', '').strip().lower().replace('-', '')
-        if not pid:
-            erro = 'Informe o ID da manifestação.'
+        pid = request.form.get('public_id', '').strip().lower().replace('-', '').replace(' ', '')
+        if pid:
+            return redirect(url_for('ouvidoria.acompanhar', id=pid))
+        return render_template('ouvidoria/acompanhar.html',
+                               m=None, erro='Informe o ID da manifestação.',
+                               tipo_info=None, status_info=None,
+                               status_labels=STATUS_LABELS)
+
+    # GET: carrega pelo ?id= ou mostra formulário vazio
+    pid = request.args.get('id', '').strip().lower().replace('-', '').replace(' ', '')
+    m = erro = tipo_info = status_info = None
+
+    if pid:
+        m = Manifestacao.query.filter_by(public_id=pid).first()
+        if not m:
+            erro = 'Nenhuma manifestação encontrada com esse ID.'
         else:
-            m = Manifestacao.query.filter_by(public_id=pid).first()
-            if not m:
-                erro = 'Nenhuma manifestação encontrada com esse ID.'
-            else:
-                tipo_info   = TIPO_LABELS.get(m.tipo, (m.tipo, ''))
-                status_info = STATUS_LABELS.get(m.status, (m.status, ''))
+            tipo_info   = TIPO_LABELS.get(m.tipo, (m.tipo, ''))
+            status_info = STATUS_LABELS.get(m.status, (m.status, ''))
 
     return render_template('ouvidoria/acompanhar.html',
-                           m=m, erro=erro,
+                           m=m, erro=erro, pid=pid,
                            tipo_info=tipo_info,
                            status_info=status_info,
                            status_labels=STATUS_LABELS)
+
+
+@ouvidoria_bp.route('/<public_id>/mensagem', methods=['POST'])
+def autor_mensagem(public_id: str):
+    """Mensagem enviada pelo autor anônimo via ID único."""
+    m = Manifestacao.query.filter_by(public_id=public_id).first_or_404()
+
+    if m.status in ('concluida', 'arquivada'):
+        flash('Esta manifestação está encerrada e não aceita mais mensagens.', 'warning')
+        return redirect(url_for('ouvidoria.acompanhar', id=public_id))
+
+    conteudo = request.form.get('conteudo', '').strip()
+    if not conteudo:
+        flash('A mensagem não pode estar vazia.', 'danger')
+        return redirect(url_for('ouvidoria.acompanhar', id=public_id))
+
+    resposta = ManifestacaoResposta(
+        manifestacao_id=m.id,
+        respondente_id=None,
+        conteudo=conteudo,
+        origem='autor',
+        status_anterior=m.status,
+        status_novo=m.status,
+    )
+    # Reabre automaticamente se estava pendente → em_andamento quando autor responde
+    if m.status == 'pendente':
+        resposta.status_novo = 'em_andamento'
+        m.status = 'em_andamento'
+
+    db.session.add(resposta)
+    db.session.commit()
+    return redirect(url_for('ouvidoria.acompanhar', id=public_id))
 
 
 # ── Rotas administrativas ─────────────────────────────────────────────────────
@@ -194,6 +231,7 @@ def admin_responder(public_id: str):
         manifestacao_id=m.id,
         respondente_id=current_user.id,
         conteudo=conteudo,
+        origem='responsavel',
         status_anterior=m.status,
         status_novo=status_novo,
     )

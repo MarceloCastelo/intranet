@@ -17,30 +17,42 @@
     </div>
   </header>
 
-  <main class="flex-1 py-12 px-4">
+  <main class="flex-1 py-10 px-4">
     <div class="max-w-2xl mx-auto">
 
       <h1 class="text-2xl font-bold text-gray-900 mb-2">Acompanhar manifestação</h1>
-      <p class="text-sm text-gray-500 mb-8">Informe seu ID único para consultar o status.</p>
+      <p class="text-sm text-gray-500 mb-6">Informe seu ID único para consultar e continuar o diálogo.</p>
 
-      {# Formulário #}
-      <form method="POST" action="{{ url_for('ouvidoria.acompanhar') }}" class="mb-8" novalidate>
+      {# Formulário de busca #}
+      <form method="POST" action="{{ url_for('ouvidoria.acompanhar') }}" class="mb-6" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="flex gap-3">
           <input type="text" name="public_id"
-                 value="{{ request.form.get('public_id', '') }}"
+                 value="{{ pid or '' }}"
                  placeholder="Cole aqui o ID da sua manifestação"
                  class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm font-mono
                         focus:outline-none focus:ring-2 focus:ring-amber-400">
           <button type="submit"
                   class="px-5 py-2 rounded-md bg-amber-600 text-white text-sm font-medium
                          hover:bg-amber-700 transition">
-            Consultar
+            Buscar
           </button>
         </div>
       </form>
 
-      {# Erro #}
+      {# Flash / Erro #}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="mb-4 rounded-md px-4 py-3 text-sm
+            {% if category == 'danger' %}bg-red-50 text-red-700 border border-red-200
+            {% elif category == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200
+            {% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200
+            {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
       {% if erro %}
       <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 mb-6">
         {{ erro }}
@@ -51,66 +63,110 @@
       {% if m %}
       <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
 
-        {# Cabeçalho #}
-        <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <p class="text-xs text-gray-400 mb-1">ID da manifestação</p>
-            <code class="text-sm font-mono text-gray-700">{{ m.public_id }}</code>
+        {# Cabeçalho da manifestação #}
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-100">
+          <div class="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ tipo_info[1] }}">
+                  {{ tipo_info[0] }}
+                </span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ status_info[1] }}">
+                  {{ status_info[0] }}
+                </span>
+              </div>
+              <p class="font-semibold text-gray-800 text-sm">{{ m.assunto }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Enviado em {{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+            </div>
+            <code class="text-xs font-mono text-gray-400 break-all max-w-[14rem]">{{ m.public_id }}</code>
           </div>
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
-                       {{ status_info[1] }}">
-            {{ status_info[0] }}
-          </span>
         </div>
 
-        {# Detalhes #}
-        <div class="divide-y divide-gray-100 text-sm">
-          <div class="flex gap-4 px-6 py-3">
-            <span class="text-gray-400 w-28 shrink-0">Tipo</span>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ tipo_info[1] }}">
-              {{ tipo_info[0] }}
-            </span>
+        {# Conversa #}
+        <div class="px-5 py-5 space-y-4 min-h-[160px]">
+
+          {# Mensagem inicial (descrição) #}
+          <div class="flex justify-end">
+            <div class="max-w-[80%]">
+              <div class="bg-amber-100 text-amber-900 rounded-2xl rounded-tr-sm px-4 py-3 text-sm">
+                {{ m.descricao }}
+              </div>
+              <p class="text-xs text-gray-400 text-right mt-1">
+                {{ m.created_at.strftime('%d/%m/%Y %H:%M') }} · Você
+              </p>
+            </div>
           </div>
-          <div class="flex gap-4 px-6 py-3">
-            <span class="text-gray-400 w-28 shrink-0">Assunto</span>
-            <span class="text-gray-800">{{ m.assunto }}</span>
-          </div>
-          <div class="flex gap-4 px-6 py-3">
-            <span class="text-gray-400 w-28 shrink-0">Enviado em</span>
-            <span class="text-gray-800">{{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
-          </div>
-          {% if m.updated_at and m.updated_at != m.created_at %}
-          <div class="flex gap-4 px-6 py-3">
-            <span class="text-gray-400 w-28 shrink-0">Atualizado em</span>
-            <span class="text-gray-800">{{ m.updated_at.strftime('%d/%m/%Y %H:%M') }}</span>
-          </div>
+
+          {# Mensagens subsequentes #}
+          {% for resp in m.respostas %}
+            {% if resp.origem == 'autor' %}
+            {# Autor → balão direita (âmbar) #}
+            <div class="flex justify-end">
+              <div class="max-w-[80%]">
+                <div class="bg-amber-100 text-amber-900 rounded-2xl rounded-tr-sm px-4 py-3 text-sm whitespace-pre-wrap">
+                  {{ resp.conteudo }}
+                </div>
+                <p class="text-xs text-gray-400 text-right mt-1">
+                  {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }} · Você
+                </p>
+              </div>
+            </div>
+
+            {% else %}
+            {# Responsável → balão esquerda (cinza) #}
+            <div class="flex justify-start">
+              <div class="max-w-[80%]">
+                <div class="bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 text-sm whitespace-pre-wrap">
+                  {{ resp.conteudo }}
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                  <p class="text-xs text-gray-400">
+                    {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }} · Equipe responsável
+                  </p>
+                  {% if resp.status_anterior != resp.status_novo %}
+                  <span class="text-xs text-gray-400">
+                    · status →
+                    <span class="font-medium text-gray-600">
+                      {{ status_labels.get(resp.status_novo, (resp.status_novo, ''))[0] }}
+                    </span>
+                  </span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          {% endfor %}
+
+          {% if not m.respostas %}
+          <p class="text-sm text-gray-400 text-center py-4">
+            Aguardando resposta da equipe responsável.
+          </p>
           {% endif %}
         </div>
 
-        {# Histórico de respostas (conteúdo visível ao autor) #}
-        {% if m.respostas %}
-        <div class="border-t border-gray-200 px-6 py-5">
-          <h2 class="text-sm font-semibold text-gray-700 mb-4">Andamento</h2>
-          <div class="space-y-4">
-            {% for resp in m.respostas %}
-            <div class="pl-4 border-l-2 border-amber-300">
-              <p class="text-xs text-gray-400 mb-1">
-                {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }}
-                {% if resp.status_anterior != resp.status_novo %}
-                  — status alterado para
-                  <span class="font-medium text-gray-600">
-                    {{ status_labels.get(resp.status_novo, (resp.status_novo, ''))[0] }}
-                  </span>
-                {% endif %}
-              </p>
-              <p class="text-sm text-gray-700">{{ resp.conteudo }}</p>
+        {# Formulário de resposta do autor #}
+        {% if m.status not in ('concluida', 'arquivada') %}
+        <div class="border-t border-gray-100 px-5 py-4 bg-gray-50">
+          <form method="POST"
+                action="{{ url_for('ouvidoria.autor_mensagem', public_id=m.public_id) }}"
+                novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="flex gap-3 items-end">
+              <textarea name="conteudo" rows="2" required
+                        placeholder="Escreva sua mensagem…"
+                        class="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-sm
+                               focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"></textarea>
+              <button type="submit"
+                      class="shrink-0 px-4 py-2 rounded-xl bg-amber-600 text-white text-sm
+                             font-medium hover:bg-amber-700 transition">
+                Enviar
+              </button>
             </div>
-            {% endfor %}
-          </div>
+          </form>
         </div>
         {% else %}
-        <div class="border-t border-gray-100 px-6 py-5 text-sm text-gray-400 text-center">
-          Aguardando análise da equipe responsável.
+        <div class="border-t border-gray-100 px-5 py-4 text-center text-sm text-gray-400 bg-gray-50">
+          Esta manifestação foi encerrada e não aceita mais mensagens.
         </div>
         {% endif %}
 

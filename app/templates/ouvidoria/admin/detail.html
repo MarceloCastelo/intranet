@@ -50,90 +50,110 @@
         </div>
       </div>
 
-      {# Histórico de respostas #}
-      <div class="bg-white border border-gray-200 rounded-lg p-5">
-        <h2 class="text-sm font-semibold text-gray-700 mb-4">
-          Histórico de andamento
-          <span class="ml-1 text-xs font-normal text-gray-400">({{ m.respostas | length }} resposta(s))</span>
-        </h2>
+      {# Histórico / Chat #}
+      <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-700">
+            Conversa
+            <span class="ml-1 text-xs font-normal text-gray-400">({{ m.respostas | length }} mensagem(ns))</span>
+          </h2>
+        </div>
 
-        {% if m.respostas %}
-        <div class="space-y-4">
-          {% for resp in m.respostas %}
-          {% set si_ant = status_labels.get(resp.status_anterior, (resp.status_anterior, '')) %}
-          {% set si_nov = status_labels.get(resp.status_novo,      (resp.status_novo, '')) %}
-          <div class="pl-4 border-l-2 border-primary-300">
-            <div class="flex items-center gap-2 mb-1 flex-wrap">
-              <span class="text-xs text-gray-400">{{ resp.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
-              {% if resp.status_anterior != resp.status_novo %}
-              <span class="text-xs text-gray-400">
-                Status:
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ si_ant[1] }}">{{ si_ant[0] }}</span>
-                →
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ si_nov[1] }}">{{ si_nov[0] }}</span>
-              </span>
-              {% endif %}
+        <div class="px-5 py-5 space-y-4 min-h-[160px]">
+
+          {# Mensagem inicial / denúncia #}
+          <div class="flex justify-start">
+            <div class="max-w-[80%]">
+              <div class="bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 text-sm whitespace-pre-wrap">
+                {{ m.descricao }}
+              </div>
+              <p class="text-xs text-gray-400 mt-1">
+                {{ m.created_at.strftime('%d/%m/%Y %H:%M') }} · Autor (anônimo)
+              </p>
             </div>
-            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ resp.conteudo }}</p>
           </div>
+
+          {% for resp in m.respostas %}
+            {% if resp.origem == 'autor' %}
+            {# Mensagem do autor → esquerda #}
+            <div class="flex justify-start">
+              <div class="max-w-[80%]">
+                <div class="bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 text-sm whitespace-pre-wrap">
+                  {{ resp.conteudo }}
+                </div>
+                <p class="text-xs text-gray-400 mt-1">
+                  {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }} · Autor (anônimo)
+                </p>
+              </div>
+            </div>
+
+            {% else %}
+            {# Mensagem do responsável → direita #}
+            <div class="flex justify-end">
+              <div class="max-w-[80%]">
+                <div class="bg-primary-100 text-primary-900 rounded-2xl rounded-tr-sm px-4 py-3 text-sm whitespace-pre-wrap">
+                  {{ resp.conteudo }}
+                </div>
+                <div class="flex items-center justify-end gap-2 mt-1 flex-wrap">
+                  <p class="text-xs text-gray-400">
+                    {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }} · Você
+                  </p>
+                  {% if resp.status_anterior != resp.status_novo %}
+                  {% set si_ant = status_labels.get(resp.status_anterior, (resp.status_anterior, '')) %}
+                  {% set si_nov = status_labels.get(resp.status_novo, (resp.status_novo, '')) %}
+                  <span class="text-xs text-gray-400">
+                    · <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ si_ant[1] }}">{{ si_ant[0] }}</span>
+                    → <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ si_nov[1] }}">{{ si_nov[0] }}</span>
+                  </span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
           {% endfor %}
+
+          {% if not m.respostas %}
+          <p class="text-sm text-gray-400 text-center py-6">
+            Nenhuma mensagem ainda. Seja o primeiro a responder.
+          </p>
+          {% endif %}
+
+        </div>
+
+        {# Formulário de resposta #}
+        {% if m.status not in ('concluida', 'arquivada') %}
+        <div class="border-t border-gray-100 px-5 py-4 bg-gray-50">
+          <form method="POST" action="{{ url_for('ouvidoria.admin_responder', public_id=m.public_id) }}" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="flex gap-3 items-end">
+              <div class="flex-1 space-y-2">
+                <select name="status_novo"
+                        class="w-full text-xs border border-gray-300 rounded-md px-2 py-1.5
+                               focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-700">
+                  {% for key, (label, badge) in status_labels.items() %}
+                  <option value="{{ key }}" {{ 'selected' if key == m.status }}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <textarea name="conteudo" rows="2" required
+                          placeholder="Escreva sua resposta…"
+                          class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm
+                                 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"></textarea>
+              </div>
+              <button type="submit"
+                      class="shrink-0 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm
+                             font-medium hover:bg-primary-700 transition">
+                Enviar
+              </button>
+            </div>
+          </form>
         </div>
         {% else %}
-        <p class="text-sm text-gray-400">Nenhuma resposta registrada ainda.</p>
+        <div class="border-t border-gray-100 px-5 py-4 text-center text-sm text-gray-400 bg-gray-50">
+          Esta manifestação está encerrada.
+        </div>
         {% endif %}
+
       </div>
-
-    </div>
-
-    {# Coluna lateral: responder #}
-    <div class="space-y-4">
-
-      <div class="bg-white border border-gray-200 rounded-lg p-5">
-        <h2 class="text-sm font-semibold text-gray-700 mb-4">Registrar resposta</h2>
-
-        <form method="POST" action="{{ url_for('ouvidoria.admin_responder', public_id=m.public_id) }}" novalidate>
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <div class="space-y-4">
-
-            <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Novo status</label>
-              <select name="status_novo"
-                      class="w-full text-sm border border-gray-300 rounded-md px-3 py-2
-                             focus:outline-none focus:ring-2 focus:ring-primary-500">
-                {% for key, (label, badge) in status_labels.items() %}
-                <option value="{{ key }}" {{ 'selected' if key == m.status }}>{{ label }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">
-                Conteúdo da resposta <span class="text-red-500">*</span>
-              </label>
-              <textarea name="conteudo" rows="6" required
-                        placeholder="Descreva o andamento ou providências tomadas…"
-                        class="w-full text-sm border border-gray-300 rounded-md px-3 py-2
-                               focus:outline-none focus:ring-2 focus:ring-primary-500 resize-y"></textarea>
-            </div>
-
-            <button type="submit"
-                    class="w-full py-2 px-4 rounded-md bg-primary-600 text-white text-sm font-medium
-                           hover:bg-primary-700 transition">
-              Registrar
-            </button>
-
-          </div>
-        </form>
-      </div>
-
-      {# Aviso de anonimato #}
-      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-xs text-amber-700">
-        <p class="font-semibold mb-1">Anonimato garantido</p>
-        <p>Nenhum dado de identificação do autor foi coletado. Esta manifestação é controlada exclusivamente pelo ID único.</p>
-      </div>
-
-    </div>
-  </div>
 
 </div>
 {% endblock %}
