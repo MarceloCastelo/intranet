@@ -24,3 +24,8 @@ def admin_required(f):
 
 def editor_or_admin_required(f):
     return role_required('admin', 'editor')(f)
+
+
+def ouvidoria_required(f):
+    """Acesso ao painel de ouvidoria: admin, rh, patrimonio, seguranca_dados."""
+    return role_required('admin', 'rh', 'patrimonio', 'seguranca_dados')(f)

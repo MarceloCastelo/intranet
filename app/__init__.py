@@ -54,6 +54,7 @@ def create_app():
     from app.routes.services import services_bp
     from app.routes.interactions import interactions_bp
     from app.routes.audit import audit_bp
+    from app.routes.ouvidoria import ouvidoria_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(users_bp)
@@ -67,5 +68,6 @@ def create_app():
     app.register_blueprint(services_bp)
     app.register_blueprint(interactions_bp)
     app.register_blueprint(audit_bp)
+    app.register_blueprint(ouvidoria_bp)
 
     return app

@@ -35,7 +35,7 @@ def _flash_error(key: str) -> None:
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.home'))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -148,7 +148,7 @@ def change_password():
             return render_template('auth/change_password.html', form=form)
 
         flash('Senha alterada com sucesso.', 'success')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.home'))
 
     return render_template('auth/change_password.html', form=form)
 
@@ -158,7 +158,7 @@ def change_password():
 @auth_bp.route('/esqueci-senha', methods=['GET', 'POST'])
 def forgot_password():
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.home'))
 
     form = ForgotPasswordForm()
     if form.validate_on_submit():
@@ -172,7 +172,7 @@ def forgot_password():
 @auth_bp.route('/resetar-senha/<token>', methods=['GET', 'POST'])
 def reset_password(token: str):
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.home'))
 
     user, token_obj = auth_service.consume_reset_token(token)
     if not user:
@@ -213,4 +213,4 @@ def _next_safe() -> str:
     next_url = request.args.get('next', '')
     if next_url and next_url.startswith('/') and not next_url.startswith('//'):
         return next_url
-    return url_for('main.index')
+    return url_for('main.home')

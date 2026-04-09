@@ -1,0 +1,91 @@
+{% extends "base_auth.html" %}
+{% block title %}Bem-vindo{% endblock %}
+
+{% block body %}
+<div class="min-h-full flex flex-col items-center justify-center py-16 px-4 bg-gray-50">
+
+  {# Logo / Nome do portal #}
+  <div class="text-center mb-12">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-600 text-white mb-5 shadow-lg">
+      <svg class="w-9 h-9" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5
+                 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125
+                 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
+      </svg>
+    </div>
+    <h1 class="text-3xl font-bold text-gray-900 tracking-tight">{{ config.APP_NAME }}</h1>
+    <p class="mt-2 text-gray-500 text-sm">Selecione o portal que deseja acessar</p>
+  </div>
+
+  {# Cards de seleção #}
+  <div class="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+    {# ── Intranet ── #}
+    <a href="{{ url_for('auth.login') }}"
+       class="group flex flex-col items-center gap-5 bg-white rounded-2xl border border-gray-200
+              p-8 shadow-sm hover:shadow-md hover:border-primary-400 transition-all duration-200">
+      <div class="w-14 h-14 rounded-xl bg-primary-50 group-hover:bg-primary-100 flex items-center
+                  justify-center text-primary-600 transition-colors">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501
+                   20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676
+                   0-5.216-.584-7.499-1.632Z"/>
+        </svg>
+      </div>
+      <div class="text-center">
+        <h2 class="text-lg font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
+          Intranet
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+          Acesso ao portal interno para colaboradores
+        </p>
+      </div>
+      <span class="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-primary-600
+                   group-hover:gap-2.5 transition-all">
+        Acessar
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
+        </svg>
+      </span>
+    </a>
+
+    {# ── Canal de Ética e Ouvidoria ── #}
+    <a href="{{ url_for('ouvidoria.index') }}"
+       class="group flex flex-col items-center gap-5 bg-white rounded-2xl border border-gray-200
+              p-8 shadow-sm hover:shadow-md hover:border-amber-400 transition-all duration-200">
+      <div class="w-14 h-14 rounded-xl bg-amber-50 group-hover:bg-amber-100 flex items-center
+                  justify-center text-amber-600 transition-colors">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
+                   2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898
+                   0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+        </svg>
+      </div>
+      <div class="text-center">
+        <h2 class="text-lg font-semibold text-gray-900 group-hover:text-amber-700 transition-colors">
+          Canal de Ética e Ouvidoria
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+          Reporte situações, denúncias ou sugestões
+        </p>
+      </div>
+      <span class="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-amber-600
+                   group-hover:gap-2.5 transition-all">
+        Acessar
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
+        </svg>
+      </span>
+    </a>
+
+  </div>
+
+  <p class="mt-10 text-xs text-gray-400">
+    &copy; {{ now.year if now is defined else 2026 }} {{ config.APP_NAME }}. Todos os direitos reservados.
+  </p>
+
+</div>
+{% endblock %}

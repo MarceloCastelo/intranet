@@ -20,6 +20,9 @@ from app.models.communication import (
 from app.models.audit import (
     Favorite, ApprovalWorkflow, Notification, AuditLog,
 )
+from app.models.ouvidoria import (
+    Manifestacao, ManifestacaoResposta,
+)
 
 __all__ = [
     # user
@@ -40,4 +43,6 @@ __all__ = [
     'Subscriber', 'Newsletter', 'NewsletterLog', 'EmailLog',
     # audit
     'Favorite', 'ApprovalWorkflow', 'Notification', 'AuditLog',
+    # ouvidoria
+    'Manifestacao', 'ManifestacaoResposta',
 ]

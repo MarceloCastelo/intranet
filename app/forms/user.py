@@ -26,7 +26,9 @@ class UserForm(FlaskForm):
                                 validators=[DataRequired(), Email(), Length(max=150)])
     role          = SelectField('Perfil',
                                 choices=[('user', 'Usuário'), ('editor', 'Editor'),
-                                         ('viewer', 'Visualizador'), ('admin', 'Administrador')])
+                                         ('viewer', 'Visualizador'), ('admin', 'Administrador'),
+                                         ('rh', 'RH'), ('patrimonio', 'Patrimônio'),
+                                         ('seguranca_dados', 'Segurança de Dados')])
     status        = SelectField('Status',
                                 choices=[('active', 'Ativo'), ('inactive', 'Inativo'),
                                          ('blocked', 'Bloqueado')])
@@ -68,7 +70,9 @@ class InviteUserForm(FlaskForm):
                                 validators=[DataRequired(), Email(), Length(max=150)])
     role          = SelectField('Perfil',
                                 choices=[('user', 'Usuário'), ('editor', 'Editor'),
-                                         ('viewer', 'Visualizador'), ('admin', 'Administrador')])
+                                         ('viewer', 'Visualizador'), ('admin', 'Administrador'),
+                                         ('rh', 'RH'), ('patrimonio', 'Patrimônio'),
+                                         ('seguranca_dados', 'Segurança de Dados')])
     department_id = SelectField('Departamento', coerce=int, validators=[Optional()])
     submit        = SubmitField('Enviar convite')
 

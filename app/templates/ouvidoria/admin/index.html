@@ -1,0 +1,176 @@
+{% extends "layouts/app.html" %}
+{% block title %}Ouvidoria{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Canal de Ética e Ouvidoria</h1>
+    <p class="text-sm text-gray-500 mt-1">
+      {% if current_user.role == 'patrimonio' %}
+        Acesso restrito a Reclamações e Sugestões
+      {% elif current_user.role == 'seguranca_dados' %}
+        Gestão de anonimato por ID
+      {% else %}
+        Todas as manifestações
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+{# Filtros #}
+<form method="get" class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+    {% if can_see_denuncia %}
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Tipo</label>
+      <select name="tipo"
+              class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
+        <option value="">Todos</option>
+        {% for key, (label, badge) in tipo_labels.items() %}
+        <option value="{{ key }}" {{ 'selected' if tipo_f == key }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% else %}
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Tipo</label>
+      <select name="tipo"
+              class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
+        <option value="">Todos (permitidos)</option>
+        {% for key, (label, badge) in tipo_labels.items() if key != 'denuncia' %}
+        <option value="{{ key }}" {{ 'selected' if tipo_f == key }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+      <select name="status"
+              class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
+        <option value="">Todos</option>
+        {% for key, (label, badge) in status_labels.items() %}
+        <option value="{{ key }}" {{ 'selected' if status_f == key }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="flex items-end gap-2">
+      <button type="submit"
+              class="flex-1 px-4 py-2 rounded-md bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition">
+        Filtrar
+      </button>
+      <a href="{{ url_for('ouvidoria.admin_index') }}"
+         class="px-4 py-2 rounded-md border border-gray-300 text-gray-600 text-sm hover:bg-gray-50 transition">
+        Limpar
+      </a>
+    </div>
+  </div>
+</form>
+
+{# Tabela #}
+<div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+
+  <div class="px-5 py-3 border-b border-gray-100">
+    <p class="text-sm text-gray-500">
+      <span class="font-semibold text-gray-800">{{ pagination.total }}</span> manifestação(ões) encontrada(s)
+    </p>
+  </div>
+
+  {% if pagination.items %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Tipo</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Assunto</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Data</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Respostas</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for m in pagination.items %}
+        {% set ti = tipo_labels.get(m.tipo, (m.tipo, 'bg-gray-100 text-gray-600')) %}
+        {% set si = status_labels.get(m.status, (m.status, 'bg-gray-100 text-gray-600')) %}
+        <tr class="hover:bg-gray-50 transition-colors">
+
+          <td class="px-4 py-3">
+            <code class="text-xs font-mono text-gray-500 break-all">{{ m.public_id[:12] }}…</code>
+          </td>
+
+          <td class="px-4 py-3 whitespace-nowrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ ti[1] }}">
+              {{ ti[0] }}
+            </span>
+          </td>
+
+          <td class="px-4 py-3 text-gray-800 max-w-xs truncate">{{ m.assunto }}</td>
+
+          <td class="px-4 py-3 whitespace-nowrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ si[1] }}">
+              {{ si[0] }}
+            </span>
+          </td>
+
+          <td class="px-4 py-3 whitespace-nowrap text-gray-500 text-xs">
+            {{ m.created_at.strftime('%d/%m/%Y') }}<br>
+            {{ m.created_at.strftime('%H:%M') }}
+          </td>
+
+          <td class="px-4 py-3 text-center text-gray-500">
+            {{ m.respostas | length }}
+          </td>
+
+          <td class="px-4 py-3 text-right">
+            <a href="{{ url_for('ouvidoria.admin_detail', public_id=m.public_id) }}"
+               class="text-xs font-medium text-primary-600 hover:text-primary-800">
+              Ver →
+            </a>
+          </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <p class="px-5 py-12 text-center text-sm text-gray-400">
+    Nenhuma manifestação encontrada.
+  </p>
+  {% endif %}
+
+  {# Paginação #}
+  {% if pagination.pages > 1 %}
+  <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between">
+    <p class="text-sm text-gray-500">Página {{ pagination.page }} de {{ pagination.pages }}</p>
+    <div class="flex gap-1">
+      {% if pagination.has_prev %}
+      <a href="{{ url_for('ouvidoria.admin_index', page=pagination.prev_num, tipo=tipo_f, status=status_f) }}"
+         class="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition">← Anterior</a>
+      {% endif %}
+      {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+          <a href="{{ url_for('ouvidoria.admin_index', page=p, tipo=tipo_f, status=status_f) }}"
+             class="px-3 py-1.5 text-sm border rounded-md transition
+                    {{ 'bg-primary-600 text-white border-primary-600' if p == pagination.page else 'border-gray-300 hover:bg-gray-50' }}">
+            {{ p }}
+          </a>
+        {% else %}
+          <span class="px-2 py-1.5 text-sm text-gray-400">…</span>
+        {% endif %}
+      {% endfor %}
+      {% if pagination.has_next %}
+      <a href="{{ url_for('ouvidoria.admin_index', page=pagination.next_num, tipo=tipo_f, status=status_f) }}"
+         class="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition">Próxima →</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

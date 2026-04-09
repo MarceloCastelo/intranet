@@ -1,0 +1,128 @@
+{% extends "base_auth.html" %}
+{% block title %}Acompanhar Manifestação{% endblock %}
+
+{% block body %}
+<div class="min-h-full flex flex-col bg-gray-50">
+
+  <header class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <a href="{{ url_for('ouvidoria.index') }}"
+         class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+        </svg>
+        Voltar
+      </a>
+      <span class="text-sm font-medium text-gray-700">{{ config.APP_NAME }}</span>
+    </div>
+  </header>
+
+  <main class="flex-1 py-12 px-4">
+    <div class="max-w-2xl mx-auto">
+
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Acompanhar manifestação</h1>
+      <p class="text-sm text-gray-500 mb-8">Informe seu ID único para consultar o status.</p>
+
+      {# Formulário #}
+      <form method="POST" action="{{ url_for('ouvidoria.acompanhar') }}" class="mb-8" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="flex gap-3">
+          <input type="text" name="public_id"
+                 value="{{ request.form.get('public_id', '') }}"
+                 placeholder="Cole aqui o ID da sua manifestação"
+                 class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm font-mono
+                        focus:outline-none focus:ring-2 focus:ring-amber-400">
+          <button type="submit"
+                  class="px-5 py-2 rounded-md bg-amber-600 text-white text-sm font-medium
+                         hover:bg-amber-700 transition">
+            Consultar
+          </button>
+        </div>
+      </form>
+
+      {# Erro #}
+      {% if erro %}
+      <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 mb-6">
+        {{ erro }}
+      </div>
+      {% endif %}
+
+      {# Resultado #}
+      {% if m %}
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+
+        {# Cabeçalho #}
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <p class="text-xs text-gray-400 mb-1">ID da manifestação</p>
+            <code class="text-sm font-mono text-gray-700">{{ m.public_id }}</code>
+          </div>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                       {{ status_info[1] }}">
+            {{ status_info[0] }}
+          </span>
+        </div>
+
+        {# Detalhes #}
+        <div class="divide-y divide-gray-100 text-sm">
+          <div class="flex gap-4 px-6 py-3">
+            <span class="text-gray-400 w-28 shrink-0">Tipo</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ tipo_info[1] }}">
+              {{ tipo_info[0] }}
+            </span>
+          </div>
+          <div class="flex gap-4 px-6 py-3">
+            <span class="text-gray-400 w-28 shrink-0">Assunto</span>
+            <span class="text-gray-800">{{ m.assunto }}</span>
+          </div>
+          <div class="flex gap-4 px-6 py-3">
+            <span class="text-gray-400 w-28 shrink-0">Enviado em</span>
+            <span class="text-gray-800">{{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+          </div>
+          {% if m.updated_at and m.updated_at != m.created_at %}
+          <div class="flex gap-4 px-6 py-3">
+            <span class="text-gray-400 w-28 shrink-0">Atualizado em</span>
+            <span class="text-gray-800">{{ m.updated_at.strftime('%d/%m/%Y %H:%M') }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        {# Histórico de respostas (conteúdo visível ao autor) #}
+        {% if m.respostas %}
+        <div class="border-t border-gray-200 px-6 py-5">
+          <h2 class="text-sm font-semibold text-gray-700 mb-4">Andamento</h2>
+          <div class="space-y-4">
+            {% for resp in m.respostas %}
+            <div class="pl-4 border-l-2 border-amber-300">
+              <p class="text-xs text-gray-400 mb-1">
+                {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }}
+                {% if resp.status_anterior != resp.status_novo %}
+                  — status alterado para
+                  <span class="font-medium text-gray-600">
+                    {{ status_labels.get(resp.status_novo, (resp.status_novo, ''))[0] }}
+                  </span>
+                {% endif %}
+              </p>
+              <p class="text-sm text-gray-700">{{ resp.conteudo }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% else %}
+        <div class="border-t border-gray-100 px-6 py-5 text-sm text-gray-400 text-center">
+          Aguardando análise da equipe responsável.
+        </div>
+        {% endif %}
+
+      </div>
+      {% endif %}
+
+    </div>
+  </main>
+
+  <footer class="py-6 text-center">
+    <p class="text-xs text-gray-400">&copy; 2026 {{ config.APP_NAME }}. Todos os direitos reservados.</p>
+  </footer>
+
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request
-from flask_login import login_required
+from flask import Blueprint, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 
 from app.models.user import Department, User
 from app.services.content_service import active_banners
@@ -9,8 +9,16 @@ main_bp = Blueprint('main', __name__)
 
 
 @main_bp.route('/')
-@login_required
 def index():
+    """Landing pública: seleção de portal."""
+    if current_user.is_authenticated:
+        return redirect(url_for('main.home'))
+    return render_template('main/landing.html')
+
+
+@main_bp.route('/home')
+@login_required
+def home():
     data = get_dashboard_data()
     data['banners'] = active_banners()
     return render_template('main/index.html', **data)
