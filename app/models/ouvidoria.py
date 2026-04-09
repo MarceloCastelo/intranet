@@ -4,7 +4,8 @@ from datetime import datetime
 from app import db
 
 
-OUVIDORIA_ROLES = ('admin', 'rh', 'patrimonio', 'seguranca_dados')
+# Roles que têm acesso ao painel de ouvidoria (além de is_admin)
+OUVIDORIA_ROLES = ('rh', 'patrimonio', 'controladoria')
 
 
 def _gen_public_id() -> str:

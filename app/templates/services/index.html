@@ -30,7 +30,7 @@
 {% block content %}
 <div class="flex items-center justify-between mb-6">
   <h1 class="text-2xl font-bold text-gray-900">Serviços</h1>
-  {% if current_user.role == 'admin' %}
+  {% if current_user.is_admin %}
   <a href="{{ url_for('services.admin') }}"
      class="text-sm text-primary-600 hover:text-primary-800 font-medium">
     Gerenciar serviços →
@@ -84,7 +84,7 @@
 {% else %}
 <div class="bg-white rounded-lg border border-gray-200 p-16 text-center text-gray-400">
   Nenhum serviço cadastrado ainda.
-  {% if current_user.role == 'admin' %}
+  {% if current_user.is_admin %}
   <br>
   <a href="{{ url_for('services.create') }}" class="mt-2 inline-block text-primary-600 hover:underline text-sm">
     Cadastrar primeiro serviço

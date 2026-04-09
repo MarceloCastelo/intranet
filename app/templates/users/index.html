@@ -29,10 +29,11 @@
   <select name="role" class="rounded-md border-gray-300 shadow-sm text-sm
                               focus:ring-primary-500 focus:border-primary-500">
     <option value="">Todos os perfis</option>
-    <option value="admin"   {{ 'selected' if role == 'admin' }}>Admin</option>
     <option value="editor"  {{ 'selected' if role == 'editor' }}>Editor</option>
     <option value="user"    {{ 'selected' if role == 'user' }}>Usuário</option>
-    <option value="viewer"  {{ 'selected' if role == 'viewer' }}>Visualizador</option>
+    <option value="rh"      {{ 'selected' if role == 'rh' }}>RH</option>
+    <option value="patrimonio" {{ 'selected' if role == 'patrimonio' }}>Patrimônio</option>
+    <option value="controladoria" {{ 'selected' if role == 'controladoria' }}>Controladoria</option>
   </select>
 
   <select name="status" class="rounded-md border-gray-300 shadow-sm text-sm
@@ -87,11 +88,11 @@
         </td>
         <td class="px-6 py-3">
           <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium
-            {% if user.role == 'admin' %}bg-purple-100 text-purple-700
+            {% if user.is_admin %}bg-purple-100 text-purple-700
             {% elif user.role == 'editor' %}bg-blue-100 text-blue-700
-            {% elif user.role == 'viewer' %}bg-gray-100 text-gray-600
+            {% elif user.role in ('rh','patrimonio','controladoria') %}bg-orange-100 text-orange-700
             {% else %}bg-green-100 text-green-700{% endif %}">
-            {{ user.role | capitalize }}
+            {{ user.role | capitalize }}{% if user.is_admin %} ★{% endif %}
           </span>
         </td>
         <td class="px-6 py-3">

@@ -4,7 +4,7 @@
 
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
   <h1 class="text-2xl font-bold text-gray-900">Notícias</h1>
-  {% if current_user.role in ('admin', 'editor') %}
+  {% if current_user.is_admin or current_user.role == 'editor' %}
   <a href="{{ url_for('news.index') }}"
      class="text-sm text-primary-600 hover:text-primary-800 font-medium">
     Gerenciar notícias →

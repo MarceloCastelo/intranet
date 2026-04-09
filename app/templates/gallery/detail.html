@@ -13,7 +13,7 @@
     <h1 class="text-2xl font-bold text-gray-900">{{ gallery.title }}</h1>
     <span class="text-sm text-gray-400">{{ items | length }} foto{{ 's' if items | length != 1 }}</span>
   </div>
-  {% if current_user.role in ('admin', 'editor') %}
+  {% if current_user.is_admin or current_user.role == 'editor' %}
   <div class="flex gap-2">
     <a href="{{ url_for('gallery.upload', gallery_id=gallery.id) }}"
        class="px-4 py-2 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
@@ -23,7 +23,7 @@
        class="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
       Editar
     </a>
-    {% if current_user.role == 'admin' %}
+    {% if current_user.is_admin %}
     <form method="POST" action="{{ url_for('gallery.delete', gallery_id=gallery.id) }}"
           onsubmit="return confirm('Excluir esta galeria e todas as fotos?')">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -61,7 +61,7 @@
     </p>
     {% endif %}
 
-    {% if current_user.role in ('admin','editor') %}
+    {% if current_user.is_admin or current_user.role == 'editor' %}
     <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
       <form method="POST" action="{{ url_for('gallery.set_cover_view', item_id=item.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -134,7 +134,7 @@
 {% else %}
 <div class="bg-white rounded-lg border border-gray-200 p-16 text-center text-gray-400">
   Nenhuma foto nesta galeria.
-  {% if current_user.role in ('admin','editor') %}
+  {% if current_user.is_admin or current_user.role == 'editor' %}
   <br>
   <a href="{{ url_for('gallery.upload', gallery_id=gallery.id) }}"
      class="mt-3 inline-block text-primary-600 hover:underline text-sm">

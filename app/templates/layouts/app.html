@@ -67,7 +67,7 @@
 
       {# ── Notícias ─────────────────────────────────────────── #}
       {% if active_modules.get('news', True) %}
-      {% if current_user.role in ('admin', 'editor') %}
+      {% if current_user.is_admin or current_user.role == 'editor' %}
       <div x-data="{ open: {{ 'true' if news_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -116,7 +116,7 @@
 
       {# ── Eventos ─────────────────────────────────────────── #}
       {% if active_modules.get('events', True) %}
-      {% if current_user.role in ('admin', 'editor') %}
+      {% if current_user.is_admin or current_user.role == 'editor' %}
       <div x-data="{ open: {{ 'true' if events_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -163,7 +163,7 @@
 
       {# ── FAQ ─────────────────────────────────────────── #}
       {% if active_modules.get('faq', True) %}
-      {% if current_user.role in ('admin', 'editor') %}
+      {% if current_user.is_admin or current_user.role == 'editor' %}
       <div x-data="{ open: {{ 'true' if faq_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -210,7 +210,7 @@
 
       {# ── Enquetes ─────────────────────────────────────────── #}
       {% if active_modules.get('polls', True) %}
-      {% if current_user.role in ('admin', 'editor') %}
+      {% if current_user.is_admin or current_user.role == 'editor' %}
       <div x-data="{ open: {{ 'true' if polls_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -291,7 +291,7 @@
 
       {# ── Serviços ─────────────────────────────────────────── #}
       {% if active_modules.get('services', True) %}
-      {% if current_user.role in ('admin', 'editor') %}
+      {% if current_user.is_admin or current_user.role == 'editor' %}
       <div x-data="{ open: {{ 'true' if srv_active else 'false' }} }">
         <button @click="open = !open"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left
@@ -359,8 +359,8 @@
       </a>
       {% endif %}{# /directory #}
 
-      {# ── Seção Ouvidoria (rh / patrimônio / segurança de dados / admin) ── #}
-      {% if current_user.role in ('admin', 'rh', 'patrimonio', 'seguranca_dados') %}
+      {# ── Seção Ouvidoria (rh / patrimônio / controladoria / admin) ── #}
+      {% if current_user.is_admin or current_user.role in ('rh', 'patrimonio', 'controladoria') %}
       <div class="pt-4 pb-1 px-3 text-xs font-semibold text-primary-400 uppercase tracking-wider">
         Ouvidoria
       </div>
@@ -378,7 +378,7 @@
       </a>
       {% endif %}
 
-      {% if current_user.role in ('admin', 'editor') %}
+      {% if current_user.is_admin or current_user.role == 'editor' %}
       <div class="pt-4 pb-1 px-3 text-xs font-semibold text-primary-400 uppercase tracking-wider">
         Administração
       </div>
@@ -398,7 +398,7 @@
         Banners
       </a>
 
-      {% if current_user.role == 'admin' %}
+      {% if current_user.is_admin %}
       {# ── Usuários (dropdown: Gerenciar + Departamentos) ────── #}
       <div x-data="{ open: {{ 'true' if usr_active else 'false' }} }">
         <button @click="open = !open"
@@ -445,7 +445,7 @@
       </a>
 
       {# ── Módulos (somente admin) ───────────────────────────── #}
-      {% if current_user.role == 'admin' %}
+      {% if current_user.is_admin %}
       <a href="{{ url_for('modules.index') }}"
          class="flex items-center gap-3 px-3 py-2 rounded-md
                 {{ 'bg-primary-700' if ep.startswith('modules.') else 'hover:bg-primary-800' }}">
@@ -481,7 +481,9 @@
         <div class="flex-1 min-w-0">
           <a href="{{ url_for('users.profile') }}"
              class="text-sm font-medium truncate hover:underline block">{{ current_user.name }}</a>
-          <p class="text-xs text-primary-400 capitalize">{{ current_user.role }}</p>
+          <p class="text-xs text-primary-400 capitalize">
+            {{ current_user.role }}{% if current_user.is_admin %} · Admin{% endif %}
+          </p>
         </div>
         <a href="{{ url_for('auth.logout') }}" title="Sair"
            class="text-primary-400 hover:text-white">

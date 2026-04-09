@@ -3,7 +3,7 @@
 {% block content %}
 <div class="flex items-center justify-between mb-6">
   <h1 class="text-2xl font-bold text-gray-900">Galeria</h1>
-  {% if current_user.role in ('admin','editor') %}
+  {% if current_user.is_admin or current_user.role == 'editor' %}
   <a href="{{ url_for('gallery.create') }}"
      class="px-4 py-2 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
     + Nova galeria
@@ -37,7 +37,7 @@
         <p class="text-xs text-gray-400 mt-0.5">{{ g.items | length }} foto{{ 's' if g.items | length != 1 }}</p>
       </div>
     </a>
-    {% if current_user.role in ('admin','editor') %}
+    {% if current_user.is_admin or current_user.role == 'editor' %}
     <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
       <a href="{{ url_for('gallery.edit', gallery_id=g.id) }}"
          class="bg-white/90 rounded p-1 text-gray-600 hover:text-primary-700 shadow-sm">

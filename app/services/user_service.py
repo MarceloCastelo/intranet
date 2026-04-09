@@ -86,6 +86,7 @@ def create_user(form, actor_id: int) -> User:
         name                 = form.name.data.strip(),
         email                = email,
         role                 = form.role.data,
+        is_admin             = bool(form.is_admin.data),
         status               = form.status.data,
         department_id        = dept_id,
         birth_date           = form.birth_date.data,
@@ -125,6 +126,7 @@ def update_user(user: User, form, actor_id: int) -> User:
     user.name                 = form.name.data.strip()
     user.email                = new_email
     user.role                 = form.role.data
+    user.is_admin             = bool(form.is_admin.data)
     user.status               = form.status.data
     user.department_id        = form.department_id.data or None
     user.birth_date           = form.birth_date.data
@@ -158,6 +160,7 @@ def invite_user(form, actor_id: int) -> User:
         name          = form.name.data.strip(),
         email         = email,
         role          = form.role.data,
+        is_admin      = bool(form.is_admin.data),
         status        = 'active',
         department_id = dept_id,
         first_login   = True,

@@ -100,7 +100,7 @@ def create_app():
         if bp not in _MODULE_BLUEPRINTS:
             return
         # Admin bypassa qualquer restrição de módulo
-        if current_user.is_authenticated and current_user.role == 'admin':
+        if current_user.is_authenticated and current_user.is_admin:
             return
         try:
             from app.models.content import SiteModule

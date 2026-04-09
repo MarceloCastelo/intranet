@@ -38,7 +38,7 @@
         </div>
         <div class="flex items-center gap-3 mt-1 px-1 text-xs text-gray-400">
           <span>{{ c.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
-          {% if current_user.id == c.user_id or current_user.role in ('admin','editor') %}
+          {% if current_user.id == c.user_id or current_user.is_admin or current_user.role == 'editor' %}
           <button type="button"
                   class="hover:text-red-500 delete-comment-btn"
                   data-comment-id="{{ c.id }}">

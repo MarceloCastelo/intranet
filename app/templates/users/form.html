@@ -68,6 +68,17 @@
           {{ form.two_factor_mandatory.label(class="text-sm font-medium text-gray-700") }}
         </div>
 
+        {# Administrador #}
+        <div class="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-3">
+          {{ form.is_admin(class="mt-0.5 rounded border-amber-400 text-amber-600 focus:ring-amber-500") }}
+          <div>
+            {{ form.is_admin.label(class="text-sm font-medium text-amber-800") }}
+            <p class="text-xs text-amber-600 mt-0.5">
+              Concede acesso ao painel de administração: gerenciar usuários, módulos, auditoria e conteúdo de todos os módulos.
+            </p>
+          </div>
+        </div>
+
         {# Foto #}
         <div class="sm:col-span-2">
           {{ form.profile_picture.label(class="block text-sm font-medium text-gray-700") }}

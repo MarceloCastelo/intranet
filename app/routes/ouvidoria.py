@@ -41,7 +41,7 @@ def index():
     """Formulário público de envio."""
     if current_user.is_authenticated:
         # Redireciona usuários com perfil de ouvidoria direto para o painel
-        if current_user.role in OUVIDORIA_ROLES:
+        if current_user.is_admin or current_user.role in OUVIDORIA_ROLES:
             return redirect(url_for('ouvidoria.admin_index'))
     return render_template('ouvidoria/index.html',
                            tipo_labels=TIPO_LABELS)

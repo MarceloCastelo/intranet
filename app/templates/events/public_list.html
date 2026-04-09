@@ -10,7 +10,7 @@
               text-gray-700 hover:bg-gray-50">
       Ver Calendário
     </a>
-    {% if current_user.role in ('admin', 'editor') %}
+    {% if current_user.is_admin or current_user.role == 'editor' %}
     <a href="{{ url_for('events.index') }}"
        class="text-sm text-primary-600 hover:text-primary-800 font-medium self-center">
       Gerenciar →

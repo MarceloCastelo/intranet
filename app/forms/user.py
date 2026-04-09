@@ -24,11 +24,11 @@ class UserForm(FlaskForm):
                                 validators=[DataRequired(), Length(max=150)])
     email         = StringField('E-mail corporativo',
                                 validators=[DataRequired(), Email(), Length(max=150)])
-    role          = SelectField('Perfil',
+    role          = SelectField('Perfil / área',
                                 choices=[('user', 'Usuário'), ('editor', 'Editor'),
-                                         ('viewer', 'Visualizador'), ('admin', 'Administrador'),
                                          ('rh', 'RH'), ('patrimonio', 'Patrimônio'),
-                                         ('seguranca_dados', 'Segurança de Dados')])
+                                         ('controladoria', 'Controladoria')])
+    is_admin      = BooleanField('Administrador (acesso gerencial)')
     status        = SelectField('Status',
                                 choices=[('active', 'Ativo'), ('inactive', 'Inativo'),
                                          ('blocked', 'Bloqueado')])
@@ -68,11 +68,11 @@ class InviteUserForm(FlaskForm):
                                 validators=[DataRequired(), Length(max=150)])
     email         = StringField('E-mail corporativo',
                                 validators=[DataRequired(), Email(), Length(max=150)])
-    role          = SelectField('Perfil',
+    role          = SelectField('Perfil / área',
                                 choices=[('user', 'Usuário'), ('editor', 'Editor'),
-                                         ('viewer', 'Visualizador'), ('admin', 'Administrador'),
                                          ('rh', 'RH'), ('patrimonio', 'Patrimônio'),
-                                         ('seguranca_dados', 'Segurança de Dados')])
+                                         ('controladoria', 'Controladoria')])
+    is_admin      = BooleanField('Administrador (acesso gerencial)')
     department_id = SelectField('Departamento', coerce=int, validators=[Optional()])
     submit        = SubmitField('Enviar convite')
 

@@ -42,7 +42,7 @@
         Lista
       </a>
 
-      {% if current_user.role in ('admin', 'editor') %}
+      {% if current_user.is_admin or current_user.role == 'editor' %}
       <a href="{{ url_for('events.create') }}"
          class="px-3 py-1.5 text-xs font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
         + Novo evento
@@ -167,7 +167,7 @@
                 <span x-show="!ev.time && !ev.location" class="italic">Sem horário definido</span>
               </p>
             </div>
-            {% if current_user.role in ('admin', 'editor') %}
+            {% if current_user.is_admin or current_user.role == 'editor' %}
             <a x-show="!ev.id.toString().startsWith('bday_')"
                :href="`/eventos/admin/${ev.id}/editar`"
                class="ml-auto text-xs text-primary-600 hover:text-primary-800 flex-shrink-0">

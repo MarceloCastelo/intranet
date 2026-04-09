@@ -39,7 +39,7 @@
         {% endif %}
         <p class="font-semibold text-gray-900">{{ user.name }}</p>
         <p class="text-sm text-gray-400">{{ user.email }}</p>
-        <p class="mt-1 text-xs text-gray-400 capitalize">{{ user.role }}</p>
+        <p class="mt-1 text-xs text-gray-400 capitalize">{{ user.role }}{% if user.is_admin %} · Administrador{% endif %}</p>
       </div>
 
       {# Ações #}
