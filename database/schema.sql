@@ -23,7 +23,8 @@ CREATE TABLE users (
     name                    VARCHAR(150) NOT NULL,
     email                   VARCHAR(150) NOT NULL UNIQUE,
     password_hash           VARCHAR(255) NOT NULL,
-    role                    ENUM('admin', 'user', 'editor', 'viewer') DEFAULT 'user',
+    role                    ENUM('user', 'editor', 'rh', 'patrimonio', 'controladoria') DEFAULT 'user',
+    is_admin                BOOLEAN NOT NULL DEFAULT FALSE,
     status                  ENUM('active', 'inactive', 'blocked') DEFAULT 'active',
     profile_picture         VARCHAR(500),
     department_id           INT,
@@ -233,48 +234,37 @@ CREATE TABLE news_views (
 );
 
 -- ========================================
--- COMMENTS
+-- COMMENTS (polimórfico: news, event, gallery)
 -- ========================================
 CREATE TABLE comments (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    news_id    INT  NOT NULL,
-    user_id    INT,
-    parent_id  INT NULL,  -- Para respostas a comentários
-    content    TEXT NOT NULL,
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    entity_type VARCHAR(20)  NOT NULL,   -- 'news' | 'event' | 'gallery'
+    entity_id   INT          NOT NULL,
+    user_id     INT,
+    content     TEXT NOT NULL,
     is_approved BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (news_id)
-        REFERENCES news(id)
-        ON DELETE CASCADE,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (user_id)
         REFERENCES users(id)
         ON DELETE SET NULL,
-    
-    FOREIGN KEY (parent_id)
-        REFERENCES comments(id)
-        ON DELETE CASCADE,
-    
-    INDEX idx_comments_news (news_id, created_at)
+
+    INDEX idx_comments_entity (entity_type, entity_id, is_approved, created_at)
 );
 
 -- ========================================
--- REACTIONS
+-- REACTIONS (polimórfico: news, event, gallery)
 -- ========================================
 CREATE TABLE reactions (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    news_id    INT         NOT NULL,
-    user_id    INT         NOT NULL,
-    type       ENUM('like', 'love', 'clap', 'insightful', 'curious') DEFAULT 'like',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    entity_type VARCHAR(20) NOT NULL,   -- 'news' | 'event' | 'gallery'
+    entity_id   INT         NOT NULL,
+    user_id     INT         NOT NULL,
+    emoji       ENUM('like', 'love', 'clap', 'laugh', 'sad') DEFAULT 'like',
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    UNIQUE KEY uq_reaction (news_id, user_id),
-
-    FOREIGN KEY (news_id)
-        REFERENCES news(id)
-        ON DELETE CASCADE,
+    UNIQUE KEY uq_reaction_entity (entity_type, entity_id, user_id),
 
     FOREIGN KEY (user_id)
         REFERENCES users(id)
@@ -628,11 +618,11 @@ CREATE TABLE favorites (
 );
 
 -- ========================================
--- APPROVAL WORKFLOW (Fluxo de aprovação)
+-- APPROVAL WORKFLOW — legado (mantido para compatibilidade)
 -- ========================================
 CREATE TABLE approval_workflow (
     id          INT AUTO_INCREMENT PRIMARY KEY,
-    entity      VARCHAR(50) NOT NULL,  -- 'news', 'page'
+    entity      VARCHAR(50) NOT NULL,
     entity_id   INT NOT NULL,
     requested_by INT,
     approved_by INT NULL,
@@ -640,15 +630,76 @@ CREATE TABLE approval_workflow (
     comments    TEXT,
     requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     approved_at DATETIME NULL,
-    
-    FOREIGN KEY (requested_by)
-        REFERENCES users(id),
-    
-    FOREIGN KEY (approved_by)
-        REFERENCES users(id),
-    
-    INDEX idx_approval_entity (entity, entity_id, status),
+
+    FOREIGN KEY (requested_by) REFERENCES users(id),
+    FOREIGN KEY (approved_by)  REFERENCES users(id),
+
+    INDEX idx_approval_entity  (entity, entity_id, status),
     INDEX idx_approval_pending (status, requested_at)
+);
+
+-- ========================================
+-- CONTENT APPROVALS (fila de aprovação de editores)
+-- ========================================
+CREATE TABLE content_approvals (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    action           ENUM('publish', 'unpublish', 'edit', 'delete') NOT NULL,
+    content_type     ENUM('news', 'page', 'event', 'faq', 'poll', 'gallery', 'extension', 'service', 'banner') NOT NULL,
+    content_id       INT NOT NULL,
+    requested_by_id  INT,
+    requested_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status           ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
+    reviewed_by_id   INT,
+    reviewed_at      DATETIME NULL,
+    review_note      TEXT NULL,
+    snapshot         JSON NULL,
+    content_title    VARCHAR(255) NULL,
+
+    FOREIGN KEY (requested_by_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (reviewed_by_id)  REFERENCES users(id) ON DELETE SET NULL,
+
+    INDEX idx_approvals_status  (status, requested_at),
+    INDEX idx_approvals_content (content_type, content_id)
+);
+
+-- ========================================
+-- SITE MODULES (ativação de módulos da intranet)
+-- ========================================
+CREATE TABLE site_modules (
+    `key`     VARCHAR(50) PRIMARY KEY,
+    name      VARCHAR(100) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- ========================================
+-- OUVIDORIA
+-- ========================================
+CREATE TABLE manifestacoes (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    public_id  VARCHAR(32) NOT NULL,
+    tipo       ENUM('denuncia', 'reclamacao', 'sugestao') NOT NULL,
+    assunto    VARCHAR(200) NOT NULL,
+    descricao  TEXT NOT NULL,
+    status     ENUM('pendente', 'em_andamento', 'concluida', 'arquivada') NOT NULL DEFAULT 'pendente',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_manifestacoes_public_id (public_id),
+    INDEX idx_manifestacoes_public_id (public_id)
+);
+
+CREATE TABLE manifestacao_respostas (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    manifestacao_id  INT NOT NULL,
+    respondente_id   INT,
+    conteudo         TEXT NOT NULL,
+    origem           ENUM('responsavel', 'autor') NOT NULL DEFAULT 'responsavel',
+    status_anterior  VARCHAR(20) NOT NULL,
+    status_novo      VARCHAR(20) NOT NULL,
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (manifestacao_id) REFERENCES manifestacoes(id) ON DELETE CASCADE,
+    FOREIGN KEY (respondente_id)  REFERENCES users(id)         ON DELETE SET NULL
 );
 
 -- ========================================
@@ -758,6 +809,6 @@ CREATE TABLE email_logs (
 CREATE INDEX idx_users_status ON users(status, role);
 CREATE INDEX idx_users_department ON users(department_id, status);
 CREATE INDEX idx_news_author ON news(author_id, created_at);
-CREATE INDEX idx_comments_approved ON comments(news_id, is_approved, created_at);
+CREATE INDEX idx_comments_approved ON comments(entity_type, entity_id, is_approved, created_at);
 CREATE INDEX idx_events_upcoming ON events(event_date, is_active);
 CREATE INDEX idx_polls_expires ON polls(is_active, expires_at);
