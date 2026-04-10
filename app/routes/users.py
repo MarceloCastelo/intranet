@@ -24,7 +24,6 @@ def profile():
             current_user.profile_picture = user_service.save_profile_picture(
                 form.profile_picture.data, current_user.profile_picture
             )
-        from app import db
         db.session.commit()
         flash('Perfil atualizado com sucesso.', 'success')
         return redirect(url_for('users.profile'))
@@ -185,6 +184,12 @@ def set_password(user_id: int):
     if form.validate_on_submit():
         user.set_password(form.password.data)
         user.first_login = bool(form.force_change.data)
+        from app.models.audit import AuditLog
+        db.session.add(AuditLog(
+            user_id=current_user.id, action='update',
+            entity='users', entity_id=user.id,
+            new_values={'action': 'admin_set_password'},
+        ))
         db.session.commit()
         flash(f'Senha de {user.name} atualizada com sucesso.', 'success')
         return redirect(url_for('users.detail', user_id=user.id))

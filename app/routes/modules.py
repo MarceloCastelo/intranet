@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 
 from app import db
@@ -36,7 +36,7 @@ def index():
 @login_required
 @admin_required
 def toggle(key: str):
-    mod = SiteModule.query.get_or_404(key)
+    mod = db.session.get(SiteModule, key) or abort(404)
     mod.is_active = not mod.is_active
     db.session.commit()
     status = 'ativado' if mod.is_active else 'desativado'
@@ -47,6 +47,6 @@ def toggle(key: str):
 def _seed_modules():
     """Insere módulos padrão que ainda não existam no banco."""
     for key, name in _DEFAULT_MODULES:
-        if not SiteModule.query.get(key):
+        if not db.session.get(SiteModule, key):
             db.session.add(SiteModule(key=key, name=name, is_active=True))
     db.session.commit()

@@ -52,7 +52,6 @@ def create():
         news = create_news(form, author_id=current_user.id, force_draft=not current_user.is_admin)
         if not current_user.is_admin and form.is_published.data:
             # Editor marcou "publicar" → cria solicitação de publicação
-            from app.routes.approvals import request_approval
             request_approval('publish', 'news', news.id, news.title,
                              requested_by_id=current_user.id)
             flash('Notícia criada. Solicitação de publicação enviada para aprovação.', 'info')
@@ -193,6 +192,7 @@ def view(slug):
     from app.models.news import News
     from app.services.interaction_service import interaction_context
     news = News.query.filter_by(slug=slug, is_published=True).first_or_404()
-    record_view(news, user_id=current_user.id, ip=request.remote_addr)
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr or '').split(',')[0].strip()
+    record_view(news, user_id=current_user.id, ip=ip)
     ctx = interaction_context('news', news.id, current_user.id)
     return render_template('news/view.html', news=news, **ctx)

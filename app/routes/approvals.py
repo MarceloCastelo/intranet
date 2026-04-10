@@ -79,6 +79,7 @@ def approve(approval_id: int):
     try:
         _execute_action(approval)
     except Exception as exc:
+        db.session.rollback()
         flash(f'Erro ao executar a ação: {exc}', 'danger')
         return redirect(url_for('approvals.index'))
 
