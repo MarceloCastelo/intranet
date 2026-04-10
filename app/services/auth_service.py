@@ -123,8 +123,9 @@ def verify_2fa_code(user: User, code: str) -> bool:
 
     if success:
         token.used_at = datetime.utcnow()
-        if not user.two_factor_enabled:
-            user.two_factor_enabled = True
+        # Conclui o setup obrigatório de primeiro login
+        if user.two_factor_mandatory:
+            user.two_factor_mandatory = False
 
     db.session.commit()
     return success
