@@ -6,7 +6,7 @@
   <h1 class="text-2xl font-bold text-gray-900">Ramais</h1>
   <div class="flex gap-2">
     {# busca #}
-    <form method="GET" class="flex gap-2">
+    <form method="GET" action="{{ url_for('extensions.admin_index' if (current_user.is_admin or current_user.role == 'editor') else 'extensions.index') }}" class="flex gap-2">
       <input type="text" name="q" value="{{ search }}"
              placeholder="Buscar nome ou ramal…"
              class="rounded-md border-gray-300 shadow-sm text-sm
@@ -106,7 +106,7 @@
 <div class="bg-white rounded-lg border border-gray-200 p-14 text-center text-gray-400">
   {% if search %}
     Nenhum ramal encontrado para "<strong>{{ search }}</strong>".
-    <br><a href="{{ url_for('extensions.index') }}" class="mt-2 inline-block text-primary-600 hover:underline text-sm">Limpar busca</a>
+    <br><a href="{{ url_for('extensions.admin_index' if (current_user.is_admin or current_user.role == 'editor') else 'extensions.index') }}" class="mt-2 inline-block text-primary-600 hover:underline text-sm">Limpar busca</a>
   {% else %}
     Nenhum ramal cadastrado.
   {% endif %}

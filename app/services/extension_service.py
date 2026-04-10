@@ -23,8 +23,10 @@ def set_form_choices(form):
 
 # ─── Consultas ────────────────────────────────────────────────────────────────
 
-def list_extensions(search: str = '') -> list:
+def list_extensions(search: str = '', active_only: bool = False) -> list:
     q = PhoneExtension.query
+    if active_only:
+        q = q.filter(PhoneExtension.is_active == True)  # noqa: E712
     if search:
         like = f'%{search}%'
         q = q.filter(

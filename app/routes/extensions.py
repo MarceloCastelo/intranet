@@ -16,9 +16,24 @@ extensions_bp = Blueprint('extensions', __name__, url_prefix='/ramais')
 @login_required
 def index():
     search = request.args.get('q', '').strip()
-    exts   = list_extensions(search=search)
+    exts   = list_extensions(search=search, active_only=True)
 
-    # Agrupa por departamento para exibição
+    grouped = {}
+    for ext in exts:
+        dept_name = ext.department.name if ext.department else 'Sem departamento'
+        grouped.setdefault(dept_name, []).append(ext)
+
+    return render_template('extensions/index.html',
+                           grouped=grouped, search=search, total=len(exts))
+
+
+@extensions_bp.route('/admin')
+@login_required
+@editor_or_admin_required
+def admin_index():
+    search = request.args.get('q', '').strip()
+    exts   = list_extensions(search=search, active_only=False)
+
     grouped = {}
     for ext in exts:
         dept_name = ext.department.name if ext.department else 'Sem departamento'
@@ -42,7 +57,7 @@ def create():
             flash('Ramal cadastrado. Solicitação enviada para aprovação do administrador.', 'info')
         else:
             flash('Ramal cadastrado.', 'success')
-        return redirect(url_for('extensions.index'))
+        return redirect(url_for('extensions.admin_index'))
     return render_template('extensions/form.html', form=form,
                            title='Novo ramal', ext=None)
 
@@ -64,12 +79,12 @@ def edit(ext_id):
             request_approval('edit', 'extension', ext.id, ext.name,
                              requested_by_id=current_user.id, snapshot=snapshot)
             flash('Edição enviada para aprovação do administrador.', 'info')
-            return redirect(url_for('extensions.index'))
+            return redirect(url_for('extensions.admin_index'))
         if not current_user.is_admin:
             form.is_active.data = False
         update_extension(ext, form)
         flash('Ramal atualizado.', 'success')
-        return redirect(url_for('extensions.index'))
+        return redirect(url_for('extensions.admin_index'))
     return render_template('extensions/form.html', form=form,
                            title='Editar ramal', ext=ext)
 
@@ -83,7 +98,7 @@ def delete(ext_id):
         request_approval('delete', 'extension', ext.id, ext.name,
                          requested_by_id=current_user.id)
         flash('Solicitação de exclusão enviada para aprovação do administrador.', 'info')
-        return redirect(url_for('extensions.index'))
+        return redirect(url_for('extensions.admin_index'))
     delete_extension(ext)
     flash('Ramal excluído.', 'success')
-    return redirect(url_for('extensions.index'))
+    return redirect(url_for('extensions.admin_index'))

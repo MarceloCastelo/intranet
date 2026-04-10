@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="mb-6 flex items-center gap-3">
-  <a href="{{ url_for('extensions.index') }}"
+  <a href="{{ url_for('extensions.admin_index') }}"
      class="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
@@ -86,7 +86,7 @@
     <div class="mt-6 flex gap-3">
       {{ form.submit(class="px-5 py-2 text-sm font-medium rounded-md bg-primary-600
                             text-white hover:bg-primary-700 shadow-sm") }}
-      <a href="{{ url_for('extensions.index') }}"
+      <a href="{{ url_for('extensions.admin_index') }}"
          class="px-5 py-2 text-sm font-medium rounded-md border border-gray-300
                 bg-white text-gray-700 hover:bg-gray-50 shadow-sm">
         Cancelar
