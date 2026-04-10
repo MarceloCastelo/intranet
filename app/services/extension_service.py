@@ -42,7 +42,7 @@ def get_extension_or_404(ext_id: int) -> PhoneExtension:
 
 # ─── CRUD ─────────────────────────────────────────────────────────────────────
 
-def create_extension(form, actor_id: int) -> PhoneExtension:
+def create_extension(form, actor_id: int, force_inactive: bool = False) -> PhoneExtension:
     ext = PhoneExtension(
         name           = form.name.data.strip(),
         extension      = form.extension.data.strip(),
@@ -50,7 +50,7 @@ def create_extension(form, actor_id: int) -> PhoneExtension:
         user_id        = form.user_id.data or None,
         notes          = form.notes.data or None,
         order_position = form.order_position.data or 0,
-        is_active      = form.is_active.data,
+        is_active      = False if force_inactive else form.is_active.data,
         created_by     = actor_id,
     )
     db.session.add(ext)

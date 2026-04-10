@@ -25,8 +25,15 @@ STATUS_LABELS = {
 }
 
 TYPE_LABELS = {
-    'news': 'Notícia',
-    'page': 'Página',
+    'news':      'Notícia',
+    'page':      'Página',
+    'event':     'Evento',
+    'faq':       'FAQ',
+    'poll':      'Enquete',
+    'gallery':   'Galeria',
+    'extension': 'Ramal',
+    'service':   'Serviço',
+    'banner':    'Banner',
 }
 
 # ─── Lista de aprovações ──────────────────────────────────────────────────────
@@ -115,12 +122,21 @@ def reject(approval_id: int):
 
 def _execute_action(approval: ContentApproval) -> None:
     """Executa a ação pendente após aprovação do admin."""
-    if approval.content_type == 'news':
-        _execute_news(approval)
-    elif approval.content_type == 'page':
-        _execute_page(approval)
-    else:
+    handlers = {
+        'news':      _execute_news,
+        'page':      _execute_page,
+        'event':     _execute_event,
+        'faq':       _execute_faq,
+        'poll':      _execute_poll,
+        'gallery':   _execute_gallery,
+        'extension': _execute_extension,
+        'service':   _execute_service,
+        'banner':    _execute_banner,
+    }
+    handler = handlers.get(approval.content_type)
+    if not handler:
         raise ValueError(f'Tipo de conteúdo desconhecido: {approval.content_type}')
+    handler(approval)
 
 
 def _execute_news(approval: ContentApproval) -> None:
@@ -231,6 +247,84 @@ def _execute_page(approval: ContentApproval) -> None:
         db.session.add(AuditLog(user_id=approval.reviewed_by_id, action='update',
                                 entity='page', entity_id=page.id,
                                 new_values={'name': page.name}))
+
+
+# ─── Executores: módulos adicionais ──────────────────────────────────────────
+
+def _activate_deactivate_delete(approval: ContentApproval, obj, entity: str, title_attr: str) -> None:
+    """Executor genérico para modelos com is_active (event, faq, poll, gallery, ext, service, banner)."""
+    from app.models.audit import AuditLog
+    if obj is None:
+        raise ValueError(f'{entity} não encontrado (pode ter sido excluído).')
+
+    if approval.action == 'publish':
+        obj.is_active = True
+        db.session.add(AuditLog(user_id=approval.reviewed_by_id, action='publish',
+                                entity=entity, entity_id=obj.id,
+                                new_values={'is_active': True}))
+
+    elif approval.action == 'unpublish':
+        obj.is_active = False
+        db.session.add(AuditLog(user_id=approval.reviewed_by_id, action='unpublish',
+                                entity=entity, entity_id=obj.id,
+                                new_values={'is_active': False}))
+
+    elif approval.action == 'delete':
+        db.session.add(AuditLog(user_id=approval.reviewed_by_id, action='delete',
+                                entity=entity, entity_id=obj.id,
+                                new_values={title_attr: getattr(obj, title_attr, '')}))
+        db.session.delete(obj)
+
+    elif approval.action == 'edit':
+        snap = approval.snapshot or {}
+        for key, value in snap.items():
+            if hasattr(obj, key):
+                setattr(obj, key, value)
+        db.session.add(AuditLog(user_id=approval.reviewed_by_id, action='update',
+                                entity=entity, entity_id=obj.id,
+                                new_values=snap))
+
+
+def _execute_event(approval: ContentApproval) -> None:
+    from app.models.event import Event
+    obj = db.session.get(Event, approval.content_id)
+    _activate_deactivate_delete(approval, obj, 'event', 'title')
+
+
+def _execute_faq(approval: ContentApproval) -> None:
+    from app.models.content import Faq
+    obj = db.session.get(Faq, approval.content_id)
+    _activate_deactivate_delete(approval, obj, 'faq', 'question')
+
+
+def _execute_poll(approval: ContentApproval) -> None:
+    from app.models.content import Poll
+    obj = db.session.get(Poll, approval.content_id)
+    _activate_deactivate_delete(approval, obj, 'poll', 'question')
+
+
+def _execute_gallery(approval: ContentApproval) -> None:
+    from app.models.content import Gallery
+    obj = db.session.get(Gallery, approval.content_id)
+    _activate_deactivate_delete(approval, obj, 'gallery', 'title')
+
+
+def _execute_extension(approval: ContentApproval) -> None:
+    from app.models.communication import PhoneExtension
+    obj = db.session.get(PhoneExtension, approval.content_id)
+    _activate_deactivate_delete(approval, obj, 'extension', 'name')
+
+
+def _execute_service(approval: ContentApproval) -> None:
+    from app.models.communication import Service
+    obj = db.session.get(Service, approval.content_id)
+    _activate_deactivate_delete(approval, obj, 'service', 'title')
+
+
+def _execute_banner(approval: ContentApproval) -> None:
+    from app.models.content import Banner
+    obj = db.session.get(Banner, approval.content_id)
+    _activate_deactivate_delete(approval, obj, 'banner', 'title')
 
 
 # ─── Função auxiliar para criar solicitação (usada pelas rotas de conteúdo) ──

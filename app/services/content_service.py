@@ -49,7 +49,7 @@ def get_banner_or_404(banner_id: int) -> Banner:
     return db.get_or_404(Banner, banner_id)
 
 
-def create_banner(form, actor_id: int) -> Banner:
+def create_banner(form, actor_id: int, force_inactive: bool = False) -> Banner:
     banner = Banner(
         title          = form.title.data or None,
         description    = form.description.data or None,
@@ -57,7 +57,7 @@ def create_banner(form, actor_id: int) -> Banner:
         link_text      = form.link_text.data or None,
         target_blank   = form.target_blank.data,
         order_position = form.order_position.data or 0,
-        is_active      = form.is_active.data,
+        is_active      = False if force_inactive else form.is_active.data,
         show_on_home   = form.show_on_home.data,
         start_date     = form.start_date.data or None,
         end_date       = form.end_date.data or None,
@@ -141,13 +141,13 @@ def delete_faq_category(cat: FaqCategory) -> None:
     db.session.commit()
 
 
-def create_faq(form, actor_id: int) -> Faq:
+def create_faq(form, actor_id: int, force_inactive: bool = False) -> Faq:
     faq = Faq(
         category_id    = form.category_id.data or None,
         question       = form.question.data.strip(),
         answer         = form.answer.data.strip(),
         order_position = form.order_position.data or 0,
-        is_active      = form.is_active.data,
+        is_active      = False if force_inactive else form.is_active.data,
         created_by     = actor_id,
     )
     db.session.add(faq)
@@ -219,7 +219,7 @@ def get_event_or_404(event_id: int) -> Event:
     return db.get_or_404(Event, event_id)
 
 
-def create_event(form, actor_id: int) -> Event:
+def create_event(form, actor_id: int, force_inactive: bool = False) -> Event:
     event = Event(
         title        = form.title.data.strip(),
         description  = {'text': form.description.data} if form.description.data else None,
@@ -229,7 +229,7 @@ def create_event(form, actor_id: int) -> Event:
         location     = form.location.data or None,
         location_url = form.location_url.data or None,
         event_type   = form.event_type.data,
-        is_active    = form.is_active.data,
+        is_active    = False if force_inactive else form.is_active.data,
         created_by   = actor_id,
     )
     db.session.add(event)

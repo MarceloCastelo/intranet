@@ -17,7 +17,7 @@
         Buscar
       </button>
     </form>
-    {% if current_user.is_admin %}
+    {% if current_user.is_admin or current_user.role == 'editor' %}
     <a href="{{ url_for('extensions.create') }}"
        class="px-4 py-2 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
       + Novo ramal
@@ -81,7 +81,7 @@
               <span class="text-xs text-gray-400 italic">Inativo</span>
               {% endif %}
             </td>
-            {% if current_user.is_admin %}
+            {% if current_user.is_admin or current_user.role == 'editor' %}
             <td class="px-5 py-3 text-right flex items-center justify-end gap-3">
               <a href="{{ url_for('extensions.edit', ext_id=ext.id) }}"
                  class="text-primary-600 hover:text-primary-800 text-xs font-medium">Editar</a>

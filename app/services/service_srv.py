@@ -46,7 +46,7 @@ def get_service_or_404(svc_id: int) -> Service:
     return db.get_or_404(Service, svc_id)
 
 
-def create_service(form, actor_id: int) -> Service:
+def create_service(form, actor_id: int, force_inactive: bool = False) -> Service:
     icon = None
     if form.icon_url.data and form.icon_url.data.filename:
         icon = _save_icon(form.icon_url.data)
@@ -60,7 +60,7 @@ def create_service(form, actor_id: int) -> Service:
         icon_url       = icon,
         target_blank   = form.target_blank.data,
         order_position = form.order_position.data or 0,
-        is_active      = form.is_active.data,
+        is_active      = False if force_inactive else form.is_active.data,
         created_by     = actor_id,
     )
     db.session.add(svc)

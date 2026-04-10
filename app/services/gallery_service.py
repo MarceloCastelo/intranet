@@ -35,10 +35,11 @@ def _save_gallery_image(file_storage, gallery_id: int):
 
 # ─── Galerias ─────────────────────────────────────────────────────────────────
 
-def list_galleries(page: int = 1):
-    return (Gallery.query
-            .order_by(Gallery.created_at.desc())
-            .paginate(page=page, per_page=20, error_out=False))
+def list_galleries(page: int = 1, active_only: bool = False):
+    q = Gallery.query
+    if active_only:
+        q = q.filter(Gallery.is_active == True)  # noqa: E712
+    return q.order_by(Gallery.created_at.desc()).paginate(page=page, per_page=20, error_out=False)
 
 
 def active_galleries():
@@ -52,11 +53,11 @@ def get_gallery_or_404(gallery_id: int) -> Gallery:
     return db.get_or_404(Gallery, gallery_id)
 
 
-def create_gallery(form, actor_id: int) -> Gallery:
+def create_gallery(form, actor_id: int, force_inactive: bool = False) -> Gallery:
     gallery = Gallery(
         title       = form.title.data.strip(),
         description = form.description.data or None,
-        is_active   = form.is_active.data,
+        is_active   = False if force_inactive else form.is_active.data,
         created_by  = actor_id,
     )
     db.session.add(gallery)

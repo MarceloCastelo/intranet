@@ -30,12 +30,12 @@ def get_poll_or_404(poll_id: int) -> Poll:
 
 # ─── CRUD ─────────────────────────────────────────────────────────────────────
 
-def create_poll(form, actor_id: int) -> Poll:
+def create_poll(form, actor_id: int, force_inactive: bool = False) -> Poll:
     poll = Poll(
         question    = form.question.data.strip(),
         description = form.description.data or None,
         is_multiple = form.is_multiple.data,
-        is_active   = form.is_active.data,
+        is_active   = False if force_inactive else form.is_active.data,
         expires_at  = form.expires_at.data or None,
         created_by  = actor_id,
     )

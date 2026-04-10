@@ -2,6 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.forms.content import FaqCategoryForm, FaqForm
+from app.routes.approvals import request_approval
 from app.services.content_service import (all_faq_categories, create_faq,
                                            create_faq_category, delete_faq,
                                            delete_faq_category,
@@ -88,8 +89,13 @@ def create():
     form = FaqForm()
     _set_category_choices(form)
     if form.validate_on_submit():
-        create_faq(form, actor_id=current_user.id)
-        flash('FAQ criada.', 'success')
+        faq = create_faq(form, actor_id=current_user.id, force_inactive=not current_user.is_admin)
+        if not current_user.is_admin:
+            request_approval('publish', 'faq', faq.id, faq.question,
+                             requested_by_id=current_user.id)
+            flash('FAQ criada. Solicitação enviada para aprovação do administrador.', 'info')
+        else:
+            flash('FAQ criada.', 'success')
         return redirect(url_for('faq.index'))
     return render_template('faq/form.html', form=form, title='Nova FAQ', faq=None)
 
@@ -102,6 +108,16 @@ def edit(faq_id):
     form = FaqForm(obj=faq)
     _set_category_choices(form)
     if form.validate_on_submit():
+        if not current_user.is_admin and faq.is_active:
+            snapshot = {
+                'question':    form.question.data.strip(),
+                'answer':      form.answer.data.strip(),
+                'category_id': form.category_id.data or None,
+            }
+            request_approval('edit', 'faq', faq.id, faq.question,
+                             requested_by_id=current_user.id, snapshot=snapshot)
+            flash('Edição enviada para aprovação do administrador.', 'info')
+            return redirect(url_for('faq.index'))
         update_faq(faq, form)
         flash('FAQ atualizada.', 'success')
         return redirect(url_for('faq.index'))
@@ -113,6 +129,11 @@ def edit(faq_id):
 @editor_or_admin_required
 def delete(faq_id):
     faq = get_faq_or_404(faq_id)
+    if not current_user.is_admin:
+        request_approval('delete', 'faq', faq.id, faq.question,
+                         requested_by_id=current_user.id)
+        flash('Solicitação de exclusão enviada para aprovação do administrador.', 'info')
+        return redirect(url_for('faq.index'))
     delete_faq(faq)
     flash('FAQ excluída.', 'success')
     return redirect(url_for('faq.index'))

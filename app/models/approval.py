@@ -9,7 +9,10 @@ class ContentApproval(db.Model):
 
     id               = db.Column(db.Integer, primary_key=True)
     action           = db.Column(db.Enum('publish', 'unpublish', 'edit', 'delete'), nullable=False)
-    content_type     = db.Column(db.Enum('news', 'page'), nullable=False)
+    content_type     = db.Column(
+        db.Enum('news', 'page', 'event', 'faq', 'poll', 'gallery', 'extension', 'service', 'banner'),
+        nullable=False,
+    )
     content_id       = db.Column(db.Integer, nullable=False)
 
     # Quem solicitou
