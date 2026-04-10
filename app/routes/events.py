@@ -83,6 +83,8 @@ def edit(event_id):
                              requested_by_id=current_user.id, snapshot=snapshot)
             flash('Edição enviada para aprovação do administrador.', 'info')
             return redirect(url_for('events.index'))
+        if not current_user.is_admin:
+            form.is_active.data = False
         update_event(event, form)
         flash('Evento atualizado.', 'success')
         return redirect(url_for('events.index'))

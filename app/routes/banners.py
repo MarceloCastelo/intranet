@@ -56,6 +56,8 @@ def edit(banner_id):
                              requested_by_id=current_user.id, snapshot=snapshot)
             flash('Edição enviada para aprovação do administrador.', 'info')
             return redirect(url_for('banners.index'))
+        if not current_user.is_admin:
+            form.is_active.data = False
         update_banner(banner, form)
         flash('Banner atualizado.', 'success')
         return redirect(url_for('banners.index'))

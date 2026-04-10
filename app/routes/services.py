@@ -61,6 +61,8 @@ def edit(svc_id):
                              requested_by_id=current_user.id, snapshot=snapshot)
             flash('Edição enviada para aprovação do administrador.', 'info')
             return redirect(url_for('services.admin'))
+        if not current_user.is_admin:
+            form.is_active.data = False
         update_service(svc, form)
         flash('Serviço atualizado.', 'success')
         return redirect(url_for('services.admin'))

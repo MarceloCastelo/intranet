@@ -80,6 +80,8 @@ def edit(poll_id):
                              requested_by_id=current_user.id, snapshot=snapshot)
             flash('Edição enviada para aprovação do administrador.', 'info')
             return redirect(url_for('polls.detail', poll_id=poll.id))
+        if not current_user.is_admin:
+            form.is_active.data = False
         update_poll(poll, form)
         flash('Enquete atualizada.', 'success')
         return redirect(url_for('polls.detail', poll_id=poll.id))

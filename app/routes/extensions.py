@@ -65,6 +65,8 @@ def edit(ext_id):
                              requested_by_id=current_user.id, snapshot=snapshot)
             flash('Edição enviada para aprovação do administrador.', 'info')
             return redirect(url_for('extensions.index'))
+        if not current_user.is_admin:
+            form.is_active.data = False
         update_extension(ext, form)
         flash('Ramal atualizado.', 'success')
         return redirect(url_for('extensions.index'))

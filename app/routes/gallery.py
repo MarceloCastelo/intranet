@@ -18,8 +18,16 @@ gallery_bp = Blueprint('gallery', __name__, url_prefix='/galeria')
 @login_required
 def index():
     page       = request.args.get('page', 1, type=int)
-    active_only = not (current_user.is_admin or current_user.role == 'editor')
-    pagination = list_galleries(page=page, active_only=active_only)
+    pagination = list_galleries(page=page, active_only=True)
+    return render_template('gallery/index.html', pagination=pagination)
+
+
+@gallery_bp.route('/admin')
+@login_required
+@editor_or_admin_required
+def admin_index():
+    page       = request.args.get('page', 1, type=int)
+    pagination = list_galleries(page=page, active_only=False)
     return render_template('gallery/index.html', pagination=pagination)
 
 
@@ -34,7 +42,7 @@ def create():
             request_approval('publish', 'gallery', gallery.id, gallery.title,
                              requested_by_id=current_user.id)
             flash('Galeria criada. Solicitação enviada para aprovação do administrador.', 'info')
-            return redirect(url_for('gallery.index'))
+            return redirect(url_for('gallery.admin_index'))
         flash('Galeria criada. Agora adicione as imagens.', 'success')
         return redirect(url_for('gallery.upload', gallery_id=gallery.id))
     return render_template('gallery/form.html', form=form, title='Nova galeria', gallery=None)
@@ -54,6 +62,8 @@ def edit(gallery_id):
                              requested_by_id=current_user.id, snapshot=snapshot)
             flash('Edição enviada para aprovação do administrador.', 'info')
             return redirect(url_for('gallery.detail', gallery_id=gallery.id))
+        if not current_user.is_admin:
+            form.is_active.data = False
         update_gallery(gallery, form)
         flash('Galeria atualizada.', 'success')
         return redirect(url_for('gallery.detail', gallery_id=gallery.id))
@@ -69,10 +79,10 @@ def delete(gallery_id):
         request_approval('delete', 'gallery', gallery.id, gallery.title,
                          requested_by_id=current_user.id)
         flash('Solicitação de exclusão enviada para aprovação do administrador.', 'info')
-        return redirect(url_for('gallery.index'))
+        return redirect(url_for('gallery.admin_index'))
     delete_gallery(gallery)
     flash('Galeria excluída.', 'success')
-    return redirect(url_for('gallery.index'))
+    return redirect(url_for('gallery.admin_index'))
 
 
 @gallery_bp.route('/<int:gallery_id>')

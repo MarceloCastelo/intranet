@@ -60,14 +60,15 @@
 {% endif %}
 
 {% if pagination.pages > 1 %}
+{% set gallery_list_ep = 'gallery.admin_index' if (current_user.is_admin or current_user.role == 'editor') else 'gallery.index' %}
 <div class="mt-6 flex justify-end gap-1 text-sm">
   {% if pagination.has_prev %}
-    <a href="{{ url_for('gallery.index', page=pagination.prev_num) }}"
+    <a href="{{ url_for(gallery_list_ep, page=pagination.prev_num) }}"
        class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">‹</a>
   {% endif %}
   {% for p in pagination.iter_pages(left_edge=1,right_edge=1,left_current=2,right_current=2) %}
     {% if p %}
-      <a href="{{ url_for('gallery.index', page=p) }}"
+      <a href="{{ url_for(gallery_list_ep, page=p) }}"
          class="px-3 py-1 rounded border
                 {{ 'bg-primary-600 text-white border-primary-600' if p == pagination.page else 'border-gray-300 hover:bg-gray-50' }}">
         {{ p }}
@@ -77,7 +78,7 @@
     {% endif %}
   {% endfor %}
   {% if pagination.has_next %}
-    <a href="{{ url_for('gallery.index', page=pagination.next_num) }}"
+    <a href="{{ url_for(gallery_list_ep, page=pagination.next_num) }}"
        class="px-3 py-1 rounded border border-gray-300 hover:bg-gray-50">›</a>
   {% endif %}
 </div>

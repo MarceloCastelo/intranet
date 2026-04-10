@@ -118,6 +118,8 @@ def edit(faq_id):
                              requested_by_id=current_user.id, snapshot=snapshot)
             flash('Edição enviada para aprovação do administrador.', 'info')
             return redirect(url_for('faq.index'))
+        if not current_user.is_admin:
+            form.is_active.data = False
         update_faq(faq, form)
         flash('FAQ atualizada.', 'success')
         return redirect(url_for('faq.index'))
