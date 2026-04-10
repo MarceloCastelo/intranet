@@ -89,7 +89,10 @@ def delete_poll(poll: Poll) -> None:
 
 def user_voted(poll_id: int, user_id: int) -> bool:
     return db.session.query(
-        PollVote.query.filter_by(poll_id=poll_id, user_id=user_id).exists()
+        db.exists().where(
+            PollVote.poll_id == poll_id,
+            PollVote.user_id == user_id,
+        )
     ).scalar()
 
 

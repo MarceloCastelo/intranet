@@ -24,6 +24,8 @@ def get_comments(entity_type: str, entity_id: int) -> list[Comment]:
 
 
 def add_comment(entity_type: str, entity_id: int, user_id: int, body: str) -> Comment:
+    if entity_type not in VALID_ENTITIES:
+        abort(400)
     body = body.strip()
     if not body or len(body) > 2000:
         abort(400)
@@ -34,10 +36,10 @@ def add_comment(entity_type: str, entity_id: int, user_id: int, body: str) -> Co
     return c
 
 
-def delete_comment(comment_id: int, actor_id: int, actor_role: str) -> None:
-    c = Comment.query.get_or_404(comment_id)
+def delete_comment(comment_id: int, actor_id: int, is_admin: bool) -> None:
+    c = db.get_or_404(Comment, comment_id)
     # Admin pode excluir qualquer comentário; demais usuários só os próprios
-    if actor_role != 'admin' and c.user_id != actor_id:
+    if not is_admin and c.user_id != actor_id:
         abort(403)
     db.session.delete(c)
     db.session.commit()

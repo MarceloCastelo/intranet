@@ -9,7 +9,6 @@ from flask import current_app
 from app import db
 from app.models.content import Banner, Faq, FaqCategory
 from app.models.event import Event
-from app.models.communication import File
 from app.models.user import User
 
 

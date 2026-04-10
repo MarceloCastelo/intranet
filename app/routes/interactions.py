@@ -35,7 +35,7 @@ def comment():
 @interactions_bp.route('/comentarios/<int:comment_id>/excluir', methods=['POST'])
 @login_required
 def delete_comment_view(comment_id: int):
-    delete_comment(comment_id, current_user.id, current_user.role)
+    delete_comment(comment_id, current_user.id, current_user.is_admin)
     return jsonify(ok=True)
 
 

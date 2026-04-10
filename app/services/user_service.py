@@ -179,18 +179,14 @@ def invite_user(form, actor_id: int) -> User:
     )
     db.session.add(token)
 
+    set_password_url = url_for('auth.reset_password', token=raw_token, _external=True)
+    if not send_invite(user, set_password_url):
+        db.session.rollback()
+        raise RuntimeError('Não foi possível enviar o e-mail de convite. Verifique as configurações de SMTP.')
+
     _audit(actor_id, 'create', user.id,
            new={'name': user.name, 'email': user.email, 'via': 'invite'})
     db.session.commit()
-
-    set_password_url = url_for('auth.reset_password', token=raw_token, _external=True)
-    if not send_invite(user, set_password_url):
-        # Reverte a criação do usuário se o e-mail não pôde ser enviado
-        db.session.delete(token)
-        db.session.delete(user)
-        db.session.commit()
-        raise RuntimeError('Não foi possível enviar o e-mail de convite. Verifique as configurações de SMTP.')
-
     return user
 
 
@@ -212,6 +208,7 @@ def reset_password_admin(user: User, actor_id: int) -> None:
     from app.services.auth_service import request_password_reset
     request_password_reset(user.email)
     _audit(actor_id, 'update', user.id, new={'action': 'admin_password_reset'})
+    db.session.commit()
 
 
 def unlock_user(user: User, actor_id: int) -> None:

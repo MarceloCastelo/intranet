@@ -68,9 +68,11 @@ def get_dashboard_data() -> dict:
     )
 
     # ── Novos usuários nos últimos 30 dias ───────────────────
+    from datetime import timedelta
+    cutoff_30d = datetime.now() - timedelta(days=30)
     new_users = (
         db.session.query(func.count(User.id))
-        .filter(User.created_at >= datetime(today.year, today.month, 1))
+        .filter(User.created_at >= cutoff_30d)
         .scalar()
     )
 

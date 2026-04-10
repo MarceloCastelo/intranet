@@ -9,7 +9,8 @@ from app.models.communication import Service
 
 def _save_icon(file_storage, old_path: str | None = None) -> str:
     """Salva o arquivo de ícone e retorna o caminho relativo."""
-    upload_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'uploads', 'services')
+    from flask import current_app
+    upload_dir = os.path.join(current_app.root_path, '..', 'uploads', 'services')
     os.makedirs(upload_dir, exist_ok=True)
 
     ext      = secure_filename(file_storage.filename).rsplit('.', 1)[-1].lower()
@@ -17,7 +18,7 @@ def _save_icon(file_storage, old_path: str | None = None) -> str:
     file_storage.save(os.path.join(upload_dir, filename))
 
     if old_path:
-        old_abs = os.path.join(os.path.dirname(__file__), '..', '..', old_path.lstrip('/'))
+        old_abs = os.path.join(current_app.root_path, '..', old_path.lstrip('/'))
         if os.path.isfile(old_abs):
             os.remove(old_abs)
 
