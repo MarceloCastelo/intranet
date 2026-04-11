@@ -434,6 +434,7 @@
       {% endif %}
 
       {# ── Auditoria (somente admin) ─────────────────────────── #}
+      {% if current_user.is_admin %}
       <a href="{{ url_for('audit.index') }}"
          class="flex items-center gap-3 px-3 py-2 rounded-md
                 {{ 'bg-primary-700' if audit_active else 'hover:bg-primary-800' }}">
@@ -443,6 +444,7 @@
         </svg>
         Auditoria
       </a>
+      {% endif %}
 
       {# ── Aprovações de conteúdo (somente admin) ──────────── #}
       {% if current_user.is_admin %}
