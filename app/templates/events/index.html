@@ -2,6 +2,9 @@
 {% block title %}Eventos{% endblock %}
 {% block content %}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <h1 class="text-xl font-semibold text-gray-900">Eventos</h1>
+  <div class="flex flex-wrap gap-3">
+    <a href="{{ url_for('events.calendar_view') }}"
        class="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center gap-1.5">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"

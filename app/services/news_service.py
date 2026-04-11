@@ -7,10 +7,13 @@ from datetime import datetime
 from PIL import Image
 from flask import current_app
 from sqlalchemy import or_
+from werkzeug.exceptions import BadRequest
 
 from app import db
 from app.models.audit import AuditLog
 from app.models.news import Category, News, Tag
+
+_ALLOWED_IMAGE_EXTS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
@@ -41,10 +44,12 @@ def _unique_slug(base: str, exclude_id: int | None = None) -> str:
 def _save_featured_image(file_storage) -> str | None:
     if not file_storage or not file_storage.filename:
         return None
+    ext = os.path.splitext(file_storage.filename)[1].lstrip('.').lower()
+    if ext not in _ALLOWED_IMAGE_EXTS:
+        raise BadRequest(f'Tipo de arquivo não permitido: .{ext}')
     upload_dir = os.path.join(current_app.root_path, '..', 'uploads', 'news')
     os.makedirs(upload_dir, exist_ok=True)
-    ext = os.path.splitext(file_storage.filename)[1].lower()
-    filename = f"{uuid.uuid4().hex}{ext}"
+    filename = f"{uuid.uuid4().hex}.{ext}"
     path = os.path.join(upload_dir, filename)
     img = Image.open(file_storage)
     img.thumbnail((1200, 800))

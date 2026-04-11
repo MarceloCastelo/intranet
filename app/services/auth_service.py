@@ -2,9 +2,7 @@
 Auth service — toda a lógica de autenticação, 2FA e gestão de senhas.
 """
 import logging
-import random
 import secrets
-import string
 from datetime import datetime, timedelta
 
 from flask import current_app, request
@@ -91,7 +89,7 @@ def generate_2fa_code(user: User) -> str:
     # Invalida tokens 2fa anteriores não usados
     UserToken.query.filter_by(user_id=user.id, type='2fa_email', used_at=None).delete()
 
-    code    = ''.join(random.choices(string.digits, k=6))
+    code    = ''.join(secrets.choice('0123456789') for _ in range(6))
     token   = UserToken(
         user_id    = user.id,
         token      = code,

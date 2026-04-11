@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 
 from flask import current_app
 from PIL import Image
+from werkzeug.exceptions import BadRequest
 from werkzeug.utils import secure_filename
 
 from app import db
@@ -18,6 +19,8 @@ from app.services.email_service import send_invite
 
 logger = logging.getLogger(__name__)
 
+_ALLOWED_AVATAR_EXTS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
 def _save_profile_picture(file_storage, old_path: str | None = None) -> str:
@@ -25,7 +28,9 @@ def _save_profile_picture(file_storage, old_path: str | None = None) -> str:
     upload_dir = os.path.join(current_app.root_path, '..', 'uploads', 'avatars')
     os.makedirs(upload_dir, exist_ok=True)
 
-    ext      = secure_filename(file_storage.filename).rsplit('.', 1)[-1].lower()
+    ext = secure_filename(file_storage.filename).rsplit('.', 1)[-1].lower()
+    if ext not in _ALLOWED_AVATAR_EXTS:
+        raise BadRequest(f'Tipo de arquivo não permitido para foto de perfil: .{ext}')
     filename = f"{uuid.uuid4().hex}.{ext}"
     dest     = os.path.join(upload_dir, filename)
 

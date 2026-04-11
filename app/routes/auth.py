@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import (Blueprint, flash, redirect, render_template,
                    request, session, url_for)
@@ -97,6 +97,15 @@ def resend_2fa():
     user = _get_pending_user()
     if not user:
         return redirect(url_for('auth.login'))
+
+    # Rate limit: no máximo 1 reenvio a cada 60 segundos
+    last_resend = session.get('2fa_last_resend')
+    now = datetime.now(timezone.utc).timestamp()
+    if last_resend and (now - last_resend) < 60:
+        flash('Aguarde 60 segundos antes de solicitar novo código.', 'warning')
+        return redirect(url_for('auth.two_factor'))
+
+    session['2fa_last_resend'] = now
     auth_service.generate_2fa_code(user)
     flash('Novo código enviado para seu e-mail.', 'info')
     return redirect(url_for('auth.two_factor'))

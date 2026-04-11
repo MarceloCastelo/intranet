@@ -1,19 +1,23 @@
 import os
 import uuid
 
+from werkzeug.exceptions import BadRequest
 from werkzeug.utils import secure_filename
 
 from app import db
 from app.models.communication import Service
 
+_ALLOWED_ICON_EXTS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'}
+
 
 def _save_icon(file_storage, old_path: str | None = None) -> str:
     """Salva o arquivo de ícone e retorna o caminho relativo."""
     from flask import current_app
+    ext = secure_filename(file_storage.filename).rsplit('.', 1)[-1].lower()
+    if ext not in _ALLOWED_ICON_EXTS:
+        raise BadRequest(f'Tipo de arquivo não permitido: .{ext}')
     upload_dir = os.path.join(current_app.root_path, '..', 'uploads', 'services')
     os.makedirs(upload_dir, exist_ok=True)
-
-    ext      = secure_filename(file_storage.filename).rsplit('.', 1)[-1].lower()
     filename = f"{uuid.uuid4().hex}.{ext}"
     file_storage.save(os.path.join(upload_dir, filename))
 

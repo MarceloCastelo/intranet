@@ -3,20 +3,25 @@ import uuid
 
 from PIL import Image
 from flask import current_app
+from werkzeug.exceptions import BadRequest
 
 from app import db
 from app.models.content import Gallery, GalleryItem
 
+_ALLOWED_IMAGE_EXTS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
 
 def _save_gallery_image(file_storage, gallery_id: int):
     """Salva imagem original + thumbnail. Retorna (image_path, thumb_path)."""
+    ext = os.path.splitext(file_storage.filename)[1].lstrip('.').lower() or 'jpg'
+    if ext not in _ALLOWED_IMAGE_EXTS:
+        raise BadRequest(f'Tipo de arquivo não permitido: .{ext}')
     upload_dir = os.path.join(current_app.root_path, '..', 'uploads', 'gallery', str(gallery_id))
     thumb_dir  = os.path.join(upload_dir, 'thumbs')
     os.makedirs(upload_dir, exist_ok=True)
     os.makedirs(thumb_dir,  exist_ok=True)
 
-    ext      = os.path.splitext(file_storage.filename)[1].lower() or '.jpg'
-    filename = f"{uuid.uuid4().hex}{ext}"
+    filename = f"{uuid.uuid4().hex}.{ext}"
 
     full_path  = os.path.join(upload_dir, filename)
     thumb_path = os.path.join(thumb_dir,  filename)

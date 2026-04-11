@@ -32,6 +32,15 @@ class Config:
         days=int(os.environ.get("SESSION_LIFETIME_DAYS", 7))
     )
 
+    # Cookies de sessão
+    _secure_cookies = os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true"
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE  = "Lax"
+    SESSION_COOKIE_SECURE    = _secure_cookies
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_SECURE   = _secure_cookies
+
     # Upload
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", 16 * 1024 * 1024))
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "uploads")

@@ -3,24 +3,41 @@ import uuid
 from datetime import date
 from types import SimpleNamespace
 
+import bleach
 from PIL import Image
 from flask import current_app
+from werkzeug.exceptions import BadRequest
 
 from app import db
 from app.models.content import Banner, Faq, FaqCategory
 from app.models.event import Event
 from app.models.user import User
 
+_ALLOWED_IMAGE_EXTS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+# Tags HTML permitidas no corpo de respostas do FAQ (editor de texto rico)
+_FAQ_ALLOWED_TAGS = [
+    'p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li',
+    'h1', 'h2', 'h3', 'h4', 'blockquote', 'a', 'code', 'pre',
+]
+_FAQ_ALLOWED_ATTRS = {'a': ['href', 'title', 'target']}
+
+
+def _sanitize_answer(html: str) -> str:
+    """Remove tags/atributos perigosos preservando formatação do editor rico."""
+    return bleach.clean(html, tags=_FAQ_ALLOWED_TAGS, attributes=_FAQ_ALLOWED_ATTRS, strip=True)
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
 def _save_image(file_storage, subfolder: str, size: tuple = (1200, 500)) -> str | None:
     if not file_storage or not file_storage.filename:
         return None
+    ext = os.path.splitext(file_storage.filename)[1].lstrip('.').lower()
+    if ext not in _ALLOWED_IMAGE_EXTS:
+        raise BadRequest(f'Tipo de arquivo não permitido: .{ext}')
     upload_dir = os.path.join(current_app.root_path, '..', 'uploads', subfolder)
     os.makedirs(upload_dir, exist_ok=True)
-    ext = os.path.splitext(file_storage.filename)[1].lower()
-    filename = f"{uuid.uuid4().hex}{ext}"
+    filename = f"{uuid.uuid4().hex}.{ext}"
     path = os.path.join(upload_dir, filename)
     img = Image.open(file_storage)
     img.thumbnail(size)
@@ -144,7 +161,7 @@ def create_faq(form, actor_id: int, force_inactive: bool = False) -> Faq:
     faq = Faq(
         category_id    = form.category_id.data or None,
         question       = form.question.data.strip(),
-        answer         = form.answer.data.strip(),
+        answer         = _sanitize_answer(form.answer.data.strip()),
         order_position = form.order_position.data or 0,
         is_active      = False if force_inactive else form.is_active.data,
         created_by     = actor_id,
@@ -157,7 +174,7 @@ def create_faq(form, actor_id: int, force_inactive: bool = False) -> Faq:
 def update_faq(faq: Faq, form) -> Faq:
     faq.category_id    = form.category_id.data or None
     faq.question       = form.question.data.strip()
-    faq.answer         = form.answer.data.strip()
+    faq.answer         = _sanitize_answer(form.answer.data.strip())
     faq.order_position = form.order_position.data or 0
     faq.is_active      = form.is_active.data
     db.session.commit()
