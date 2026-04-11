@@ -2,19 +2,20 @@
 {% block title %}Canal de Ética e Ouvidoria{% endblock %}
 
 {% block body %}
-<div class="min-h-full flex flex-col bg-gray-50" x-data="{ tab: 'enviar' }">
+<div class="min-h-full flex flex-col bg-black" x-data="{ tab: 'enviar' }">
 
   {# Header #}
-  <header class="bg-white border-b border-gray-200 shadow-sm">
+  <header class="bg-black border-b border-neutral-800">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
       <a href="{{ url_for('main.index') }}"
-         class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition">
+         class="inline-flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
         </svg>
         Voltar ao menu
       </a>
-      <span class="text-sm font-medium text-gray-700">{{ config.APP_NAME }}</span>
+      <img src="{{ url_for('static', filename='images/pedragon2_branca.png') }}"
+           alt="{{ config.APP_NAME }}" class="h-8 w-auto">
     </div>
   </header>
 
@@ -23,7 +24,7 @@
 
       {# Título #}
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-amber-100 text-amber-600 mb-4">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-amber-500/20 text-amber-400 mb-4">
           <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
                   d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293
@@ -32,9 +33,9 @@
                      48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/>
           </svg>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900">Canal de Ética e Ouvidoria</h1>
-        <p class="mt-2 text-sm text-gray-500 max-w-xl mx-auto">
-          Registre sua manifestação de forma segura e anônima. Guarde o <strong>ID único</strong>
+        <h1 class="text-2xl font-bold text-white">Canal de Ética e Ouvidoria</h1>
+        <p class="mt-2 text-sm text-neutral-400 max-w-xl mx-auto">
+          Registre sua manifestação de forma segura e anônima. Guarde o <strong class="text-white">ID único</strong>
           fornecido ao final para consultar o andamento posteriormente.
         </p>
       </div>
@@ -43,27 +44,27 @@
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
           <div class="mb-4 rounded-md px-4 py-3 text-sm
-            {% if category == 'danger' %}bg-red-50 text-red-700 border border-red-200
-            {% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200
-            {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+            {% if category == 'danger' %}bg-red-950 text-red-300 border border-red-800
+            {% elif category == 'success' %}bg-green-950 text-green-300 border border-green-800
+            {% else %}bg-blue-950 text-blue-300 border border-blue-800{% endif %}">
             {{ message }}
           </div>
         {% endfor %}
       {% endwith %}
 
       {# Abas #}
-      <div class="flex gap-1 bg-gray-200 rounded-lg p-1 mb-6">
+      <div class="flex gap-1 bg-neutral-900 rounded-lg p-1 mb-6 border border-neutral-800">
         <button @click="tab = 'enviar'"
                 :class="tab === 'enviar'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'"
+                  ? 'bg-amber-500 text-black shadow-sm'
+                  : 'text-neutral-400 hover:text-white'"
                 class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition">
           Nova manifestação
         </button>
         <button @click="tab = 'acompanhar'"
                 :class="tab === 'acompanhar'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'"
+                  ? 'bg-amber-500 text-black shadow-sm'
+                  : 'text-neutral-400 hover:text-white'"
                 class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition">
           Acompanhar manifestação
         </button>
@@ -71,17 +72,17 @@
 
       {# Aba: Enviar #}
       <div x-show="tab === 'enviar'" x-cloak>
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8">
+        <div class="bg-neutral-900 rounded-xl border border-neutral-800 shadow-sm p-6 sm:p-8">
 
           {# Aviso de anonimato #}
-          <div class="flex gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-            <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <div class="flex gap-3 bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6">
+            <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round"
                     d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
             </svg>
-            <div class="text-sm text-amber-800">
-              <p class="font-semibold">Anonimato garantido</p>
-              <p class="mt-0.5 text-amber-700">Nenhum dado de identificação é coletado. O controle é feito exclusivamente pelo ID único gerado ao enviar.</p>
+            <div class="text-sm">
+              <p class="font-semibold text-amber-400">Anonimato garantido</p>
+              <p class="mt-0.5 text-amber-300/70">Nenhum dado de identificação é coletado. O controle é feito exclusivamente pelo ID único gerado ao enviar.</p>
             </div>
           </div>
 
@@ -91,45 +92,45 @@
             <div class="space-y-5">
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Tipo de manifestação <span class="text-red-500">*</span>
+                <label class="block text-sm font-medium text-white mb-1">
+                  Tipo de manifestação <span class="text-red-400">*</span>
                 </label>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {% for key, (label, badge) in tipo_labels.items() %}
-                  <label class="relative flex items-center gap-3 p-3 border rounded-lg cursor-pointer
-                                hover:border-amber-400 transition has-[:checked]:border-amber-500
-                                has-[:checked]:bg-amber-50">
+                  <label class="relative flex items-center gap-3 p-3 border border-neutral-700 rounded-lg cursor-pointer
+                                hover:border-amber-500 transition has-[:checked]:border-amber-500
+                                has-[:checked]:bg-amber-500/10">
                     <input type="radio" name="tipo" value="{{ key }}" required
-                           class="accent-amber-600">
-                    <span class="text-sm font-medium text-gray-800">{{ label }}</span>
+                           class="accent-amber-500">
+                    <span class="text-sm font-medium text-neutral-200">{{ label }}</span>
                   </label>
                   {% endfor %}
                 </div>
               </div>
 
               <div>
-                <label for="assunto" class="block text-sm font-medium text-gray-700 mb-1">
-                  Assunto <span class="text-red-500">*</span>
+                <label for="assunto" class="block text-sm font-medium text-white mb-1">
+                  Assunto <span class="text-red-400">*</span>
                 </label>
                 <input type="text" id="assunto" name="assunto" maxlength="200" required
                        placeholder="Resumo em até 200 caracteres"
-                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                              focus:outline-none focus:ring-2 focus:ring-amber-400">
+                       class="w-full bg-neutral-800 border border-neutral-700 rounded-md px-3 py-2 text-sm text-white
+                              placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500">
               </div>
 
               <div>
-                <label for="descricao" class="block text-sm font-medium text-gray-700 mb-1">
-                  Descrição detalhada <span class="text-red-500">*</span>
+                <label for="descricao" class="block text-sm font-medium text-white mb-1">
+                  Descrição detalhada <span class="text-red-400">*</span>
                 </label>
                 <textarea id="descricao" name="descricao" rows="6" required
                           placeholder="Descreva a situação com o máximo de detalhes possível (mínimo 20 caracteres)"
-                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm
-                                 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"></textarea>
+                          class="w-full bg-neutral-800 border border-neutral-700 rounded-md px-3 py-2 text-sm text-white
+                                 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"></textarea>
               </div>
 
               <button type="submit"
-                      class="w-full py-2.5 px-4 rounded-lg bg-amber-600 text-white font-medium text-sm
-                             hover:bg-amber-700 transition focus:outline-none focus:ring-2 focus:ring-amber-500">
+                      class="w-full py-2.5 px-4 rounded-lg bg-amber-500 text-black font-semibold text-sm
+                             hover:bg-amber-400 transition focus:outline-none focus:ring-2 focus:ring-amber-500">
                 Enviar manifestação
               </button>
 
@@ -140,20 +141,20 @@
 
       {# Aba: Acompanhar #}
       <div x-show="tab === 'acompanhar'" x-cloak>
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8">
-          <p class="text-sm text-gray-600 mb-5">
-            Insira o <strong>ID único</strong> fornecido no momento do envio para consultar o status da sua manifestação.
+        <div class="bg-neutral-900 rounded-xl border border-neutral-800 shadow-sm p-6 sm:p-8">
+          <p class="text-sm text-neutral-400 mb-5">
+            Insira o <strong class="text-white">ID único</strong> fornecido no momento do envio para consultar o status da sua manifestação.
           </p>
           <form method="POST" action="{{ url_for('ouvidoria.acompanhar') }}" novalidate>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="flex gap-3">
               <input type="text" name="public_id" required
                      placeholder="ex: 3f7a2b1c9e4d5f6a8b0c1d2e3f4a5b6c"
-                     class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm font-mono
-                            focus:outline-none focus:ring-2 focus:ring-amber-400">
+                     class="flex-1 bg-neutral-800 border border-neutral-700 rounded-md px-3 py-2 text-sm font-mono
+                            text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500">
               <button type="submit"
-                      class="px-5 py-2 rounded-md bg-amber-600 text-white text-sm font-medium
-                             hover:bg-amber-700 transition">
+                      class="px-5 py-2 rounded-md bg-amber-500 text-black text-sm font-semibold
+                             hover:bg-amber-400 transition">
                 Consultar
               </button>
             </div>
@@ -164,8 +165,8 @@
     </div>
   </main>
 
-  <footer class="py-6 text-center">
-    <p class="text-xs text-gray-400">&copy; 2026 {{ config.APP_NAME }}. Todos os direitos reservados.</p>
+  <footer class="py-6 text-center border-t border-neutral-900">
+    <p class="text-xs text-neutral-600">&copy; 2026 {{ config.APP_NAME }}. Todos os direitos reservados.</p>
   </footer>
 
 </div>
