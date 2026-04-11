@@ -23,10 +23,10 @@
                 fixed inset-y-0 z-30 lg:static lg:translate-x-0">
 
     {# Logo #}
-    <div class="flex items-center h-16 px-6 border-b border-primary-800">
-      <span class="text-lg font-bold tracking-wide truncate">
-        {{ config.APP_NAME }}
-      </span>
+    <div class="flex items-center h-16 px-4 border-b border-primary-800">
+      <img src="{{ url_for('static', filename='images/logo-predragon-branca.PNG') }}"
+           alt="{{ config.APP_NAME }}"
+           class="h-9 w-auto object-contain">
     </div>
 
     {# Nav #}
