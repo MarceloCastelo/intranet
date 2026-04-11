@@ -50,7 +50,7 @@
     {# pré-visualização #}
     <div x-show="previews.length > 0" class="mt-4">
       <p class="text-sm text-gray-600 mb-2" x-text="previews.length + ' foto(s) selecionada(s)'"></p>
-      <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+      <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
         <template x-for="(src, i) in previews" :key="i">
           <img :src="src" class="w-full h-16 object-cover rounded-lg border border-gray-200">
         </template>

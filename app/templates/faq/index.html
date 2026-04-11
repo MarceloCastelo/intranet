@@ -23,6 +23,7 @@
       <span class="ml-1 font-normal normal-case text-gray-400">({{ cat.faqs | length }})</span>
     </h2>
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 text-sm">
         <tbody class="divide-y divide-gray-100">
           {% for faq in cat.faqs | sort(attribute='order_position') %}
@@ -47,6 +48,7 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </div>
   {% endfor %}

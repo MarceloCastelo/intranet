@@ -11,10 +11,15 @@
 
 <div class="flex h-full">
 
+  {# ── Overlay mobile (fecha a sidebar ao clicar fora) ────── #}
+  <div id="sidebar-overlay"
+       class="hidden fixed inset-0 z-20 bg-black/40 lg:hidden"
+       onclick="closeSidebar()"></div>
+
   {# ── Sidebar ─────────────────────────────────────────────── #}
   <aside id="sidebar"
          class="flex flex-col w-64 bg-primary-900 text-white shrink-0
-                translate-x-0 transition-transform duration-200
+                -translate-x-full transition-transform duration-200
                 fixed inset-y-0 z-30 lg:static lg:translate-x-0">
 
     {# Logo #}
@@ -527,7 +532,7 @@
 
     {# Topbar mobile #}
     <header class="lg:hidden flex items-center h-14 px-4 bg-white border-b shadow-sm">
-      <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')"
+      <button onclick="openSidebar()"
               class="text-gray-500 hover:text-gray-700">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
@@ -561,5 +566,15 @@
 {% block scripts %}{% endblock %}
 <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+  function openSidebar() {
+    document.getElementById('sidebar').classList.remove('-translate-x-full');
+    document.getElementById('sidebar-overlay').classList.remove('hidden');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.add('-translate-x-full');
+    document.getElementById('sidebar-overlay').classList.add('hidden');
+  }
+</script>
 </body>
 </html>
