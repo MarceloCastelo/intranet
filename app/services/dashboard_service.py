@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 from sqlalchemy import extract, func
 
-from app import db
+from app import cache, db
 from app.models.event import Event
 from app.models.news import News
 from app.models.user import User
@@ -17,6 +17,7 @@ def _date_pt(d: date) -> str:
     return f"{_DAYS_PT[d.weekday()]}, {d.day:02d} de {_MONTHS_PT[d.month - 1]} de {d.year}"
 
 
+@cache.cached(timeout=60, key_prefix='dashboard_data')
 def get_dashboard_data() -> dict:
     today = date.today()
 

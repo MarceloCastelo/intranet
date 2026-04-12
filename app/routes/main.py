@@ -1,7 +1,10 @@
-from flask import Blueprint, redirect, render_template, request, url_for
+from datetime import datetime
+
+from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
-from app.models.user import Department, User
+from app import db
+from app.models.user import Department, Session as DbSession, User
 from app.services.content_service import active_banners
 from app.services.dashboard_service import get_dashboard_data
 
@@ -44,3 +47,18 @@ def directory():
                            departments=departments,
                            search=search,
                            department_id=department_id)
+
+
+# ─── Heartbeat ───────────────────────────────────────────────────────────────
+
+@main_bp.route('/api/heartbeat')
+@login_required
+def heartbeat():
+    """Atualiza last_seen_at da sessão ativa (chamado pelo JS a cada 60s)."""
+    db_session_id = session.get('db_session_id')
+    if db_session_id:
+        db_sess = db.session.get(DbSession, db_session_id)
+        if db_sess and db_sess.user_id == current_user.id:
+            db_sess.last_seen_at = datetime.utcnow()
+            db.session.commit()
+    return jsonify({'ok': True})

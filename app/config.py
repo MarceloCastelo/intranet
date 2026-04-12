@@ -51,3 +51,14 @@ class Config:
     # Aplicação
     APP_NAME = os.environ.get("APP_NAME", "Portal Corporativo")
     APP_URL = os.environ.get("APP_URL", "http://localhost")
+
+    # Cache (Redis)
+    CACHE_TYPE                  = os.environ.get("CACHE_TYPE", "RedisCache")
+    CACHE_REDIS_URL             = os.environ.get("REDIS_URL", "redis://redis:6379/0")
+    CACHE_DEFAULT_TIMEOUT       = int(os.environ.get("CACHE_DEFAULT_TIMEOUT", 60))
+    CACHE_KEY_PREFIX            = os.environ.get("CACHE_KEY_PREFIX", "portal:")
+
+    # Compressão gzip
+    COMPRESS_REGISTER           = True
+    COMPRESS_LEVEL              = 6     # 1 (rápido) – 9 (melhor compressão)
+    COMPRESS_MIN_SIZE           = 500   # bytes — não comprime respostas menores

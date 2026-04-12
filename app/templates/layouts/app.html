@@ -567,6 +567,14 @@
 <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
+  // ── Heartbeat: registra permanência a cada 60s ──────────────────────────
+  (function () {
+    function ping() {
+      fetch('/api/heartbeat', { credentials: 'same-origin' }).catch(function () {});
+    }
+    setInterval(ping, 60000);
+  })();
+
   function openSidebar() {
     document.getElementById('sidebar').classList.remove('-translate-x-full');
     document.getElementById('sidebar-overlay').classList.remove('hidden');

@@ -1,15 +1,19 @@
 from flask import Flask, abort, request as flask_request
-from flask_sqlalchemy import SQLAlchemy
+from flask_caching import Cache
+from flask_compress import Compress
 from flask_login import LoginManager, current_user
-from flask_wtf import CSRFProtect
 from flask_mail import Mail
 from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import CSRFProtect
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 mail = Mail()
 migrate = Migrate()
+cache = Cache()
+compress = Compress()
 
 
 def create_app():
@@ -24,6 +28,8 @@ def create_app():
     csrf.init_app(app)
     mail.init_app(app)
     migrate.init_app(app, db)
+    cache.init_app(app)
+    compress.init_app(app)
 
     # Login manager
     login_manager.login_view = "auth.login"

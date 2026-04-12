@@ -161,16 +161,24 @@ class Permission(db.Model):
 class Session(db.Model):
     __tablename__ = 'sessions'
 
-    id         = db.Column(db.Integer, primary_key=True)
-    user_id    = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    token      = db.Column(db.String(255), nullable=False, unique=True)
-    ip_address = db.Column(db.String(45))
-    user_agent = db.Column(db.Text)
-    expires_at = db.Column(db.DateTime, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id           = db.Column(db.Integer, primary_key=True)
+    user_id      = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    token        = db.Column(db.String(255), nullable=False, unique=True)
+    ip_address   = db.Column(db.String(45))
+    user_agent   = db.Column(db.Text)
+    expires_at   = db.Column(db.DateTime, nullable=False)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+    last_seen_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', back_populates='sessions')
 
     __table_args__ = (
         db.Index('idx_sessions_user', 'user_id', 'expires_at'),
     )
+
+    @property
+    def duration_seconds(self) -> int:
+        """Segundos entre o início da sessão e o último heartbeat."""
+        if self.last_seen_at and self.created_at:
+            return max(0, int((self.last_seen_at - self.created_at).total_seconds()))
+        return 0

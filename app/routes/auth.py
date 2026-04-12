@@ -1,6 +1,7 @@
-from datetime import datetime, timezone
+import secrets
+from datetime import datetime, timedelta, timezone
 
-from flask import (Blueprint, flash, redirect, render_template,
+from flask import (Blueprint, current_app, flash, redirect, render_template,
                    request, session, url_for)
 from flask_login import current_user, login_required, login_user, logout_user
 
@@ -8,7 +9,7 @@ from app import db
 from app.forms.auth import (ChangePasswordForm, ForgotPasswordForm,
                              LoginForm, ResetPasswordForm, SetPasswordForm,
                              TwoFactorForm)
-from app.models.user import User
+from app.models.user import Session as DbSession, User
 from app.services import auth_service
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -215,6 +216,22 @@ def _complete_login(user: User, remember: bool = False) -> None:
     login_user(user, remember=remember)
     session.pop('pending_user_id', None)
     session.pop('remember_me', None)
+
+    # Registra sessão no banco para tracking de permanência
+    lifetime = current_app.config.get('PERMANENT_SESSION_LIFETIME', timedelta(days=7))
+    if isinstance(lifetime, int):
+        lifetime = timedelta(seconds=lifetime)
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr or '').split(',')[0].strip()
+    db_sess = DbSession(
+        user_id    = user.id,
+        token      = secrets.token_hex(32),
+        ip_address = ip,
+        user_agent = request.headers.get('User-Agent', '')[:512],
+        expires_at = datetime.utcnow() + lifetime,
+    )
+    db.session.add(db_sess)
+    db.session.commit()
+    session['db_session_id'] = db_sess.id
 
 
 def _next_safe() -> str:

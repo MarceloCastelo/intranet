@@ -26,6 +26,17 @@ services:
       - portal_net
 
   # ----------------------------------------------------------
+  # Redis (cache de aplicação)
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: portal_redis
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru
+    networks:
+      - portal_net
+
+  # ----------------------------------------------------------
   # Flask + Gunicorn
   # ----------------------------------------------------------
   app:
@@ -33,12 +44,16 @@ services:
     container_name: portal_app
     restart: unless-stopped
     env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
     volumes:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - portal_net
 
