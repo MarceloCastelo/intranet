@@ -2,18 +2,18 @@
 {% block title %}Acompanhar Manifestação{% endblock %}
 
 {% block body %}
-<div class="min-h-full flex flex-col bg-black">
+<div class="min-h-full flex flex-col bg-gray-50">
 
-  <header class="bg-black border-b border-neutral-800">
+  <header class="bg-white border-b border-gray-200">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
       <a href="{{ url_for('ouvidoria.index') }}"
-         class="inline-flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition">
+         class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
         </svg>
         Voltar
       </a>
-      <img src="{{ url_for('static', filename='images/pedragon2_branca.png') }}"
+      <img src="{{ url_for('static', filename='images/pedragon2_preta.png') }}"
            alt="{{ config.APP_NAME }}" class="h-8 w-auto">
     </div>
   </header>
@@ -21,8 +21,8 @@
   <main class="flex-1 py-10 px-4">
     <div class="max-w-2xl mx-auto">
 
-      <h1 class="text-2xl font-bold text-white mb-2">Acompanhar manifestação</h1>
-      <p class="text-sm text-neutral-400 mb-6">Informe seu ID único para consultar e continuar o diálogo.</p>
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Acompanhar manifestação</h1>
+      <p class="text-sm text-gray-500 mb-6">Informe seu ID único para consultar e continuar o diálogo.</p>
 
       {# Formulário de busca #}
       <form method="POST" action="{{ url_for('ouvidoria.acompanhar') }}" class="mb-6" novalidate>
@@ -31,11 +31,11 @@
           <input type="text" name="public_id"
                  value="{{ pid or '' }}"
                  placeholder="Cole aqui o ID da sua manifestação"
-                 class="flex-1 bg-neutral-900 border border-neutral-700 rounded-md px-3 py-2 text-sm font-mono
-                        text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                 class="flex-1 bg-white border border-gray-300 rounded-md px-3 py-2 text-sm font-mono
+                        text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500">
           <button type="submit"
-                  class="px-5 py-2 rounded-md bg-amber-500 text-black text-sm font-semibold
-                         hover:bg-amber-400 transition">
+                  class="px-5 py-2 rounded-md bg-primary-600 text-white text-sm font-semibold
+                         hover:bg-primary-700 transition">
             Buscar
           </button>
         </div>
@@ -45,27 +45,27 @@
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
           <div class="mb-4 rounded-md px-4 py-3 text-sm
-            {% if category == 'danger' %}bg-red-950 text-red-300 border border-red-800
-            {% elif category == 'warning' %}bg-yellow-950 text-yellow-300 border border-yellow-800
-            {% elif category == 'success' %}bg-green-950 text-green-300 border border-green-800
-            {% else %}bg-blue-950 text-blue-300 border border-blue-800{% endif %}">
+            {% if category == 'danger' %}bg-red-50 text-red-700 border border-red-200
+            {% elif category == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200
+            {% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200
+            {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
             {{ message }}
           </div>
         {% endfor %}
       {% endwith %}
 
       {% if erro %}
-      <div class="bg-red-950 border border-red-800 rounded-lg px-4 py-3 text-sm text-red-300 mb-6">
+      <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 mb-6">
         {{ erro }}
       </div>
       {% endif %}
 
       {# Resultado #}
       {% if m %}
-      <div class="bg-neutral-900 border border-neutral-800 rounded-xl shadow-sm overflow-hidden">
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
 
         {# Cabeçalho da manifestação #}
-        <div class="px-5 py-4 bg-neutral-800/50 border-b border-neutral-800">
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
           <div class="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <div class="flex items-center gap-2 mb-1">
@@ -76,10 +76,10 @@
                   {{ status_info[0] }}
                 </span>
               </div>
-              <p class="font-semibold text-white text-sm">{{ m.assunto }}</p>
-              <p class="text-xs text-neutral-500 mt-0.5">Enviado em {{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+              <p class="font-semibold text-gray-900 text-sm">{{ m.assunto }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Enviado em {{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
             </div>
-            <code class="text-xs font-mono text-neutral-500 break-all max-w-[14rem]">{{ m.public_id }}</code>
+            <code class="text-xs font-mono text-gray-400 break-all max-w-[14rem]">{{ m.public_id }}</code>
           </div>
         </div>
 
@@ -89,10 +89,10 @@
           {# Mensagem inicial (descrição) #}
           <div class="flex justify-end">
             <div class="max-w-[80%]">
-              <div class="bg-amber-500/20 text-amber-200 rounded-2xl rounded-tr-sm px-4 py-3 text-sm">
+              <div class="bg-primary-100 text-primary-800 rounded-2xl rounded-tr-sm px-4 py-3 text-sm">
                 {{ m.descricao }}
               </div>
-              <p class="text-xs text-neutral-500 text-right mt-1">
+              <p class="text-xs text-gray-400 text-right mt-1">
                 {{ m.created_at.strftime('%d/%m/%Y %H:%M') }} · Você
               </p>
             </div>
@@ -104,10 +104,10 @@
             {# Autor → balão direita (âmbar) #}
             <div class="flex justify-end">
               <div class="max-w-[80%]">
-                <div class="bg-amber-500/20 text-amber-200 rounded-2xl rounded-tr-sm px-4 py-3 text-sm whitespace-pre-wrap">
+                <div class="bg-primary-100 text-primary-800 rounded-2xl rounded-tr-sm px-4 py-3 text-sm whitespace-pre-wrap">
                   {{ resp.conteudo }}
                 </div>
-                <p class="text-xs text-neutral-500 text-right mt-1">
+                <p class="text-xs text-gray-400 text-right mt-1">
                   {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }} · Você
                 </p>
               </div>
@@ -117,17 +117,17 @@
             {# Responsável → balão esquerda (escuro) #}
             <div class="flex justify-start">
               <div class="max-w-[80%]">
-                <div class="bg-neutral-800 text-neutral-200 rounded-2xl rounded-tl-sm px-4 py-3 text-sm whitespace-pre-wrap">
+                <div class="bg-gray-100 text-gray-700 rounded-2xl rounded-tl-sm px-4 py-3 text-sm whitespace-pre-wrap">
                   {{ resp.conteudo }}
                 </div>
                 <div class="flex items-center gap-2 mt-1">
-                  <p class="text-xs text-neutral-500">
+                  <p class="text-xs text-gray-400">
                     {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }} · Equipe responsável
                   </p>
                   {% if resp.status_anterior != resp.status_novo %}
-                  <span class="text-xs text-neutral-500">
+                  <span class="text-xs text-gray-400">
                     · status →
-                    <span class="font-medium text-neutral-300">
+                    <span class="font-medium text-gray-700">
                       {{ status_labels.get(resp.status_novo, (resp.status_novo, ''))[0] }}
                     </span>
                   </span>
@@ -139,7 +139,7 @@
           {% endfor %}
 
           {% if not m.respostas %}
-          <p class="text-sm text-neutral-500 text-center py-4">
+          <p class="text-sm text-gray-400 text-center py-4">
             Aguardando resposta da equipe responsável.
           </p>
           {% endif %}
@@ -147,7 +147,7 @@
 
         {# Formulário de resposta do autor #}
         {% if m.status not in ('concluida', 'arquivada') %}
-        <div class="border-t border-neutral-800 px-5 py-4 bg-neutral-800/30">
+        <div class="border-t border-gray-200 px-5 py-4 bg-gray-50">
           <form method="POST"
                 action="{{ url_for('ouvidoria.autor_mensagem', public_id=m.public_id) }}"
                 novalidate>
@@ -155,18 +155,18 @@
             <div class="flex gap-3 items-end">
               <textarea name="conteudo" rows="2" required
                         placeholder="Escreva sua mensagem…"
-                        class="flex-1 bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-white
-                               placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+                        class="flex-1 bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900
+                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"></textarea>
               <button type="submit"
-                      class="shrink-0 px-4 py-2 rounded-xl bg-amber-500 text-black text-sm
-                             font-semibold hover:bg-amber-400 transition">
+                      class="shrink-0 px-4 py-2 rounded-xl bg-primary-600 text-white text-sm
+                             font-semibold hover:bg-primary-700 transition">
                 Enviar
               </button>
             </div>
           </form>
         </div>
         {% else %}
-        <div class="border-t border-neutral-800 px-5 py-4 text-center text-sm text-neutral-500 bg-neutral-800/30">
+        <div class="border-t border-gray-200 px-5 py-4 text-center text-sm text-gray-400 bg-gray-50">
           Esta manifestação foi encerrada e não aceita mais mensagens.
         </div>
         {% endif %}
@@ -177,8 +177,8 @@
     </div>
   </main>
 
-  <footer class="py-6 text-center border-t border-neutral-900">
-    <p class="text-xs text-neutral-600">&copy; 2026 {{ config.APP_NAME }}. Todos os direitos reservados.</p>
+  <footer class="py-6 text-center border-t border-gray-200">
+    <p class="text-xs text-gray-400">&copy; 2026 {{ config.APP_NAME }}. Todos os direitos reservados.</p>
   </footer>
 
 </div>

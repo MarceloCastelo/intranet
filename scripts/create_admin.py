@@ -25,7 +25,8 @@ with app.app_context():
         u = User(
             name='Administrador',
             email='admin@adtsa.com.br',
-            role='admin',
+            role='user',
+            is_admin=True,
             status='active',
             department_id=dep.id,
             first_login=False,
