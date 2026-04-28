@@ -26,6 +26,7 @@ class User(UserMixin, db.Model):
 
     id              = db.Column(db.Integer, primary_key=True)
     name            = db.Column(db.String(150), nullable=False)
+    cpf             = db.Column(db.String(11), nullable=False, unique=True)
     email           = db.Column(db.String(150), nullable=False, unique=True)
     password_hash   = db.Column(db.String(255), nullable=False)
     role            = db.Column(db.Enum('user', 'editor', 'rh', 'patrimonio', 'controladoria'), default='user')
@@ -35,9 +36,7 @@ class User(UserMixin, db.Model):
     department_id   = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'))
     birth_date      = db.Column(db.Date)
 
-    # 2FA
-    two_factor_enabled    = db.Column(db.Boolean, default=False)
-    two_factor_mandatory  = db.Column(db.Boolean, default=True)
+    # Primeiro acesso
     first_login           = db.Column(db.Boolean, default=True)
 
     # Segurança
@@ -59,13 +58,13 @@ class User(UserMixin, db.Model):
                                        cascade='all, delete-orphan')
     tokens           = db.relationship('UserToken', back_populates='user',
                                        cascade='all, delete-orphan')
-    two_factor_logs  = db.relationship('TwoFactorLog', back_populates='user')
     sessions         = db.relationship('Session', back_populates='user',
                                        cascade='all, delete-orphan')
 
     __table_args__ = (
         db.Index('idx_users_status',     'status', 'role'),
         db.Index('idx_users_department', 'department_id', 'status'),
+        db.Index('idx_users_cpf',        'cpf'),
     )
 
     def set_password(self, password: str) -> None:
@@ -78,8 +77,16 @@ class User(UserMixin, db.Model):
     def is_locked(self) -> bool:
         return bool(self.locked_until and self.locked_until > datetime.utcnow())
 
+    @property
+    def cpf_formatted(self) -> str:
+        """Retorna o CPF formatado como XXX.XXX.XXX-XX."""
+        c = self.cpf or ''
+        if len(c) == 11:
+            return f'{c[:3]}.{c[3:6]}.{c[6:9]}-{c[9:]}'
+        return c
+
     def __repr__(self):
-        return f'<User {self.email}>'
+        return f'<User {self.cpf} {self.email}>'
 
 
 class PasswordHistory(db.Model):
@@ -129,7 +136,7 @@ class TwoFactorLog(db.Model):
     failure_reason = db.Column(db.String(255))
     created_at     = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user = db.relationship('User', back_populates='two_factor_logs')
+    user = db.relationship('User', foreign_keys=[user_id])
 
     __table_args__ = (
         db.Index('idx_2fa_logs_user', 'user_id', 'created_at'),

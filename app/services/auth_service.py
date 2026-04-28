@@ -10,8 +10,8 @@ from werkzeug.security import check_password_hash
 
 from app import db
 from app.models.audit import AuditLog
-from app.models.user import PasswordHistory, TwoFactorLog, User, UserToken
-from app.services.email_service import send_2fa_code, send_password_reset
+from app.models.user import PasswordHistory, User, UserToken
+from app.services.email_service import send_password_reset
 
 logger = logging.getLogger(__name__)
 
@@ -35,16 +35,16 @@ def _log_audit(user_id, action: str, entity: str, entity_id: int,
 
 # ─── Login ───────────────────────────────────────────────────────────────────
 
-def attempt_login(email: str, password: str):
+def attempt_login(cpf: str, password: str):
     """
-    Valida credenciais.
+    Valida credenciais pelo CPF.
 
     Retorna:
         (user, error_key)
         user      — objeto User em caso de sucesso, None caso contrário
         error_key — chave de erro string ou None
     """
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(cpf=cpf).first()
 
     if not user:
         return None, 'invalid_credentials'
@@ -80,53 +80,6 @@ def _register_failed_attempt(user: User) -> None:
         user.locked_until   = datetime.utcnow() + timedelta(minutes=lockout_min)
         user.login_attempts = 0
     db.session.commit()
-
-
-# ─── 2FA ─────────────────────────────────────────────────────────────────────
-
-def generate_2fa_code(user: User) -> str:
-    """Cria um código numérico de 6 dígitos, persiste em user_tokens e envia por e-mail."""
-    # Invalida tokens 2fa anteriores não usados
-    UserToken.query.filter_by(user_id=user.id, type='2fa_email', used_at=None).delete()
-
-    code    = ''.join(secrets.choice('0123456789') for _ in range(6))
-    token   = UserToken(
-        user_id    = user.id,
-        token      = code,
-        type       = '2fa_email',
-        expires_at = datetime.utcnow() + timedelta(minutes=10),
-    )
-    db.session.add(token)
-    db.session.commit()
-    send_2fa_code(user, code)
-    return code
-
-
-def verify_2fa_code(user: User, code: str) -> bool:
-    ip = _client_ip()
-    token = UserToken.query.filter_by(
-        user_id=user.id, token=code, type='2fa_email', used_at=None
-    ).first()
-
-    success = bool(token and token.expires_at > datetime.utcnow())
-
-    log = TwoFactorLog(
-        user_id        = user.id,
-        success        = success,
-        ip_address     = ip,
-        user_agent     = request.headers.get('User-Agent'),
-        failure_reason = None if success else 'invalid_or_expired_code',
-    )
-    db.session.add(log)
-
-    if success:
-        token.used_at = datetime.utcnow()
-        # Conclui o setup obrigatório de primeiro login
-        if user.two_factor_mandatory:
-            user.two_factor_mandatory = False
-
-    db.session.commit()
-    return success
 
 
 # ─── Senhas ───────────────────────────────────────────────────────────────────
@@ -176,9 +129,9 @@ def change_password(user: User, new_password: str, changed_by_id: int | None = N
 
 # ─── Recuperação de senha ─────────────────────────────────────────────────────
 
-def request_password_reset(email: str) -> bool:
-    """Gera token e envia e-mail. Retorna True mesmo se o e-mail não existir (evita enumeração)."""
-    user = User.query.filter_by(email=email).first()
+def request_password_reset(cpf: str) -> bool:
+    """Gera token e envia e-mail. Retorna True mesmo se o CPF não existir (evita enumeração)."""
+    user = User.query.filter_by(cpf=cpf).first()
     if not user or user.status != 'active':
         return True  # resposta genérica intencional
 

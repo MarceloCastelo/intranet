@@ -16,9 +16,10 @@ users_bp = Blueprint('users', __name__, url_prefix='/admin/usuarios')
 @users_bp.route('/perfil', methods=['GET', 'POST'])
 @login_required
 def profile():
-    form = ProfileForm(obj=current_user)
+    form = ProfileForm(user_id=current_user.id, obj=current_user)
     if form.validate_on_submit():
         current_user.name       = form.name.data.strip()
+        current_user.email      = form.email.data.strip().lower()
         current_user.birth_date = form.birth_date.data
         if form.profile_picture.data and form.profile_picture.data.filename:
             current_user.profile_picture = user_service.save_profile_picture(

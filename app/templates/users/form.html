@@ -26,8 +26,16 @@
           {% for e in form.name.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
         </div>
 
+        {# CPF #}
+        <div>
+          {{ form.cpf.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.cpf(placeholder="000.000.000-00", class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+          {% for e in form.cpf.errors %}<p class="mt-1 text-xs text-red-600">{{ e }}</p>{% endfor %}
+        </div>
+
         {# E-mail #}
-        <div class="sm:col-span-2">
+        <div>
           {{ form.email.label(class="block text-sm font-medium text-gray-700") }}
           {{ form.email(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
               focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
@@ -60,12 +68,6 @@
           {{ form.birth_date.label(class="block text-sm font-medium text-gray-700") }}
           {{ form.birth_date(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
               focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
-        </div>
-
-        {# 2FA #}
-        <div class="sm:col-span-2 flex items-center gap-3">
-          {{ form.two_factor_mandatory(class="rounded border-gray-300 text-primary-600 focus:ring-primary-500") }}
-          {{ form.two_factor_mandatory.label(class="text-sm font-medium text-gray-700") }}
         </div>
 
         {# Administrador #}

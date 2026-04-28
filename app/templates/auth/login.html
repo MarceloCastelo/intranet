@@ -58,16 +58,16 @@
       <form method="POST" action="{{ url_for('auth.login') }}" novalidate class="space-y-5">
         {{ form.hidden_tag() }}
 
-        {# E-mail #}
+        {# CPF #}
         <div>
-          {{ form.email.label(class="block text-sm font-medium text-gray-700 mb-1") }}
-          {{ form.email(
-              placeholder="seu@email.com",
+          {{ form.cpf.label(class="block text-sm font-medium text-gray-700 mb-1") }}
+          {{ form.cpf(
+              placeholder="000.000.000-00",
               class="block w-full rounded-lg border px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400
                      focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition
-                     " + ("border-red-400 bg-red-50" if form.email.errors else "border-gray-300 bg-gray-50")
+                     " + ("border-red-400 bg-red-50" if form.cpf.errors else "border-gray-300 bg-gray-50")
           ) }}
-          {% for e in form.email.errors %}
+          {% for e in form.cpf.errors %}
             <p class="mt-1 text-xs text-red-600 flex items-center gap-1">{{ e }}</p>
           {% endfor %}
         </div>

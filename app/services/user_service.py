@@ -67,7 +67,9 @@ def list_users(search: str = '', role: str = '', status: str = '',
     q = User.query
     if search:
         like = f'%{search}%'
-        q = q.filter((User.name.ilike(like)) | (User.email.ilike(like)))
+        q = q.filter(
+            (User.name.ilike(like)) | (User.email.ilike(like)) | (User.cpf.ilike(like))
+        )
     if role:
         q = q.filter(User.role == role)
     if status:
@@ -84,19 +86,22 @@ def create_user(form, actor_id: int) -> User:
 
     # Verifica duplicidade antes de inserir
     email = form.email.data.strip().lower()
+    cpf   = form.cpf.data  # já normalizado pelo validator
     if User.query.filter_by(email=email).first():
         raise ValueError('e-mail já cadastrado')
+    if User.query.filter_by(cpf=cpf).first():
+        raise ValueError('CPF já cadastrado')
 
     user = User(
-        name                 = form.name.data.strip(),
-        email                = email,
-        role                 = form.role.data,
-        is_admin             = bool(form.is_admin.data),
-        status               = form.status.data,
-        department_id        = dept_id,
-        birth_date           = form.birth_date.data,
-        two_factor_mandatory = form.two_factor_mandatory.data,
-        first_login          = True,
+        name          = form.name.data.strip(),
+        cpf           = cpf,
+        email         = email,
+        role          = form.role.data,
+        is_admin      = bool(form.is_admin.data),
+        status        = form.status.data,
+        department_id = dept_id,
+        birth_date    = form.birth_date.data,
+        first_login   = True,
     )
     # Senha temporária aleatória — o usuário a trocará no primeiro login
     user.set_password(secrets.token_urlsafe(24))
@@ -117,10 +122,12 @@ def create_user(form, actor_id: int) -> User:
 
 
 def update_user(user: User, form, actor_id: int) -> User:
-    old = {'name': user.name, 'email': user.email,
+    old = {'name': user.name, 'cpf': user.cpf, 'email': user.email,
            'role': user.role, 'status': user.status}
 
     new_email = form.email.data.strip().lower()
+    new_cpf   = form.cpf.data  # já normalizado pelo validator
+
     if new_email != user.email:
         conflict = User.query.filter(
             User.email == new_email, User.id != user.id
@@ -128,14 +135,21 @@ def update_user(user: User, form, actor_id: int) -> User:
         if conflict:
             raise ValueError('e-mail já cadastrado')
 
-    user.name                 = form.name.data.strip()
-    user.email                = new_email
-    user.role                 = form.role.data
-    user.is_admin             = bool(form.is_admin.data)
-    user.status               = form.status.data
-    user.department_id        = form.department_id.data or None
-    user.birth_date           = form.birth_date.data
-    user.two_factor_mandatory = form.two_factor_mandatory.data
+    if new_cpf != user.cpf:
+        conflict = User.query.filter(
+            User.cpf == new_cpf, User.id != user.id
+        ).first()
+        if conflict:
+            raise ValueError('CPF já cadastrado')
+
+    user.name          = form.name.data.strip()
+    user.cpf           = new_cpf
+    user.email         = new_email
+    user.role          = form.role.data
+    user.is_admin      = bool(form.is_admin.data)
+    user.status        = form.status.data
+    user.department_id = form.department_id.data or None
+    user.birth_date    = form.birth_date.data
 
     if form.profile_picture.data:
         user.profile_picture = _save_profile_picture(
@@ -143,7 +157,7 @@ def update_user(user: User, form, actor_id: int) -> User:
         )
 
     _audit(actor_id, 'update', user.id, old=old,
-           new={'name': user.name, 'email': user.email,
+           new={'name': user.name, 'cpf': user.cpf, 'email': user.email,
                 'role': user.role, 'status': user.status})
     db.session.commit()
     return user
@@ -157,19 +171,22 @@ def invite_user(form, actor_id: int) -> User:
 
     dept_id = form.department_id.data or None
     email   = form.email.data.strip().lower()
+    cpf     = form.cpf.data  # já normalizado pelo validator
 
     if User.query.filter_by(email=email).first():
         raise ValueError('e-mail já cadastrado')
+    if User.query.filter_by(cpf=cpf).first():
+        raise ValueError('CPF já cadastrado')
 
     user = User(
         name          = form.name.data.strip(),
+        cpf           = cpf,
         email         = email,
         role          = form.role.data,
         is_admin      = bool(form.is_admin.data),
         status        = 'active',
         department_id = dept_id,
         first_login   = True,
-        two_factor_mandatory = True,
     )
     user.set_password(secrets.token_urlsafe(24))
     db.session.add(user)

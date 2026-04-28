@@ -24,16 +24,15 @@ with app.app_context():
     else:
         u = User(
             name='Administrador',
+            cpf='00000000000',
             email='admin@adtsa.com.br',
             role='user',
             is_admin=True,
             status='active',
             department_id=dep.id,
             first_login=False,
-            two_factor_mandatory=False,
-            two_factor_enabled=False,
         )
         u.set_password('Admin@1234')
         db.session.add(u)
         db.session.commit()
-        print(f'Admin criado: {u.email}  /  senha: Admin@1234')
+        print(f'Admin criado: CPF {u.cpf}  /  senha: Admin@1234')

@@ -18,9 +18,12 @@ CREATE TABLE departments (
 -- ========================================
 -- USERS (COM 2FA OBRIGATÓRIO NO PRIMEIRO LOGIN)
 -- ========================================
+-- USERS
+-- ========================================
 CREATE TABLE users (
     id                      INT AUTO_INCREMENT PRIMARY KEY,
     name                    VARCHAR(150) NOT NULL,
+    cpf                     VARCHAR(11)  NOT NULL UNIQUE,
     email                   VARCHAR(150) NOT NULL UNIQUE,
     password_hash           VARCHAR(255) NOT NULL,
     role                    ENUM('user', 'editor', 'rh', 'patrimonio', 'controladoria') DEFAULT 'user',
@@ -29,18 +32,16 @@ CREATE TABLE users (
     profile_picture         VARCHAR(500),
     department_id           INT,
     birth_date              DATE,
-    
-    -- 2FA por e-mail
-    two_factor_enabled      BOOLEAN DEFAULT FALSE,
-    two_factor_mandatory    BOOLEAN DEFAULT TRUE,
+
+    -- Primeiro acesso
     first_login             BOOLEAN DEFAULT TRUE,
-    
+
     -- Segurança
     last_login_at           DATETIME NULL,
     last_login_ip           VARCHAR(45) NULL,
     login_attempts          INT DEFAULT 0,
     locked_until            DATETIME NULL,
-    
+
     created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -809,6 +810,7 @@ CREATE TABLE email_logs (
 -- ========================================
 CREATE INDEX idx_users_status ON users(status, role);
 CREATE INDEX idx_users_department ON users(department_id, status);
+CREATE INDEX idx_users_cpf ON users(cpf);
 CREATE INDEX idx_news_author ON news(author_id, created_at);
 CREATE INDEX idx_comments_approved ON comments(entity_type, entity_id, is_approved, created_at);
 CREATE INDEX idx_events_upcoming ON events(event_date, is_active);

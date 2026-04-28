@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from flask import (Blueprint, current_app, flash, redirect, render_template,
                    request, session, url_for)
@@ -7,8 +7,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from app import db
 from app.forms.auth import (ChangePasswordForm, ForgotPasswordForm,
-                             LoginForm, ResetPasswordForm, SetPasswordForm,
-                             TwoFactorForm)
+                             LoginForm, ResetPasswordForm, SetPasswordForm)
 from app.models.user import Session as DbSession, User
 from app.services import auth_service
 
@@ -21,7 +20,7 @@ _ERROR_MESSAGES = {
     'account_inactive':    'Conta desativada. Contate o administrador.',
     'account_blocked':     'Conta bloqueada. Contate o administrador.',
     'account_locked':      'Conta temporariamente bloqueada por tentativas excessivas.',
-    'invalid_credentials': 'E-mail ou senha inválidos.',
+    'invalid_credentials': 'CPF ou senha inválidos.',
     'password_reused':     'Esta senha já foi usada recentemente. Escolha outra.',
     'token_invalid':       'Link inválido ou expirado.',
 }
@@ -40,26 +39,21 @@ def login():
 
     form = LoginForm()
     if form.validate_on_submit():
-        user, error = auth_service.attempt_login(form.email.data, form.password.data)
+        user, error = auth_service.attempt_login(form.cpf.data, form.password.data)
 
         if error:
             _flash_error(error)
             return render_template('auth/login.html', form=form)
 
-        # Guarda ID temporário na sessão para o fluxo de 2FA
+        # Guarda ID temporário na sessão para fluxos seguintes
         session['pending_user_id'] = user.id
         session['remember_me']     = form.remember.data
 
-        # Primeiro login → forçar troca de senha antes do 2FA
+        # Primeiro login → forçar troca de senha
         if user.first_login:
             return redirect(url_for('auth.set_password'))
 
-        # 2FA obrigatório
-        if user.two_factor_mandatory or user.two_factor_enabled:
-            auth_service.generate_2fa_code(user)
-            return redirect(url_for('auth.two_factor'))
-
-        # Sem 2FA (viewer sem obrigatoriedade)
+        # Login completo
         _complete_login(user, form.remember.data)
         return redirect(_next_safe())
 
@@ -74,44 +68,6 @@ def logout():
     return redirect(url_for('auth.login'))
 
 
-# ─── 2FA ─────────────────────────────────────────────────────────────────────
-
-@auth_bp.route('/2fa', methods=['GET', 'POST'])
-def two_factor():
-    user = _get_pending_user()
-    if not user:
-        return redirect(url_for('auth.login'))
-
-    form = TwoFactorForm()
-    if form.validate_on_submit():
-        if auth_service.verify_2fa_code(user, form.code.data.strip()):
-            remember = session.pop('remember_me', False)
-            _complete_login(user, remember)
-            return redirect(_next_safe())
-        flash('Código inválido ou expirado.', 'danger')
-
-    return render_template('auth/two_factor.html', form=form, email=user.email)
-
-
-@auth_bp.route('/2fa/reenviar')
-def resend_2fa():
-    user = _get_pending_user()
-    if not user:
-        return redirect(url_for('auth.login'))
-
-    # Rate limit: no máximo 1 reenvio a cada 60 segundos
-    last_resend = session.get('2fa_last_resend')
-    now = datetime.now(timezone.utc).timestamp()
-    if last_resend and (now - last_resend) < 60:
-        flash('Aguarde 60 segundos antes de solicitar novo código.', 'warning')
-        return redirect(url_for('auth.two_factor'))
-
-    session['2fa_last_resend'] = now
-    auth_service.generate_2fa_code(user)
-    flash('Novo código enviado para seu e-mail.', 'info')
-    return redirect(url_for('auth.two_factor'))
-
-
 # ─── Primeiro login: definir senha ───────────────────────────────────────────
 
 @auth_bp.route('/definir-senha', methods=['GET', 'POST'])
@@ -120,7 +76,7 @@ def set_password():
     if not user:
         return redirect(url_for('auth.login'))
     if not user.first_login:
-        return redirect(url_for('auth.two_factor'))
+        return redirect(url_for('main.home'))
 
     form = SetPasswordForm()
     if form.validate_on_submit():
@@ -129,10 +85,7 @@ def set_password():
             _flash_error(error)
             return render_template('auth/set_password.html', form=form)
 
-        flash('Senha definida com sucesso. Verifique seu e-mail para continuar.', 'success')
-        if user.two_factor_mandatory or user.two_factor_enabled:
-            auth_service.generate_2fa_code(user)
-            return redirect(url_for('auth.two_factor'))
+        flash('Senha definida com sucesso!', 'success')
         _complete_login(user, session.pop('remember_me', False))
         return redirect(_next_safe())
 
@@ -172,8 +125,8 @@ def forgot_password():
 
     form = ForgotPasswordForm()
     if form.validate_on_submit():
-        auth_service.request_password_reset(form.email.data)
-        flash('Se o e-mail estiver cadastrado, você receberá as instruções em breve.', 'info')
+        auth_service.request_password_reset(form.cpf.data)
+        flash('Se o CPF estiver cadastrado, você receberá as instruções no e-mail cadastrado.', 'info')
         return redirect(url_for('auth.login'))
 
     return render_template('auth/forgot_password.html', form=form)

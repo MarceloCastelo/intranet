@@ -4,6 +4,7 @@ from wtforms import (BooleanField, DateField, PasswordField, SelectField,
                      StringField, SubmitField)
 from wtforms.validators import (DataRequired, Email, EqualTo, Length,
                                 Optional, ValidationError)
+import re
 
 from app.models.user import User
 
@@ -17,11 +18,27 @@ def _validate_corporate_email(field):
         raise ValidationError(f'Apenas e-mails @{CORPORATE_DOMAIN} são permitidos.')
 
 
+def _validate_cpf(form, field):
+    """Valida formato e dígitos verificadores do CPF."""
+    raw = re.sub(r'\D', '', field.data or '')
+    if len(raw) != 11 or len(set(raw)) == 1:
+        raise ValidationError('CPF inválido.')
+    total = sum(int(raw[i]) * (10 - i) for i in range(9))
+    d1 = 0 if (total * 10 % 11) >= 10 else (total * 10 % 11)
+    total = sum(int(raw[i]) * (11 - i) for i in range(10))
+    d2 = 0 if (total * 10 % 11) >= 10 else (total * 10 % 11)
+    if int(raw[9]) != d1 or int(raw[10]) != d2:
+        raise ValidationError('CPF inválido.')
+    field.data = raw  # normaliza para só dígitos
+
+
 class UserForm(FlaskForm):
     """Formulário compartilhado entre criar e editar usuário."""
 
     name          = StringField('Nome completo',
                                 validators=[DataRequired(), Length(max=150)])
+    cpf           = StringField('CPF',
+                                validators=[DataRequired(), _validate_cpf])
     email         = StringField('E-mail corporativo',
                                 validators=[DataRequired(), Email(), Length(max=150)])
     role          = SelectField('Perfil / área',
@@ -34,8 +51,6 @@ class UserForm(FlaskForm):
                                          ('blocked', 'Bloqueado')])
     department_id = SelectField('Departamento', coerce=int, validators=[Optional()])
     birth_date    = DateField('Data de nascimento', validators=[Optional()])
-
-    two_factor_mandatory = BooleanField('2FA obrigatório')
 
     profile_picture = FileField('Foto de perfil',
                                 validators=[
@@ -52,6 +67,13 @@ class UserForm(FlaskForm):
         dept_choices = [(0, '— Sem departamento —')] + [(d.id, d.name) for d in departments]
         self.department_id.choices = dept_choices
 
+    def validate_cpf(self, field):
+        query = User.query.filter_by(cpf=field.data)
+        if self._user_id:
+            query = query.filter(User.id != self._user_id)
+        if query.first():
+            raise ValidationError('Este CPF já está cadastrado.')
+
     def validate_email(self, field):
         _validate_corporate_email(field)
         query = User.query.filter_by(email=field.data)
@@ -66,6 +88,8 @@ class InviteUserForm(FlaskForm):
 
     name          = StringField('Nome completo',
                                 validators=[DataRequired(), Length(max=150)])
+    cpf           = StringField('CPF',
+                                validators=[DataRequired(), _validate_cpf])
     email         = StringField('E-mail corporativo',
                                 validators=[DataRequired(), Email(), Length(max=150)])
     role          = SelectField('Perfil / área',
@@ -78,6 +102,17 @@ class InviteUserForm(FlaskForm):
 
     def __init__(self, departments, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        dept_choices = [(0, '— Sem departamento —')] + [(d.id, d.name) for d in departments]
+        self.department_id.choices = dept_choices
+
+    def validate_cpf(self, field):
+        if User.query.filter_by(cpf=field.data).first():
+            raise ValidationError('Este CPF já está cadastrado.')
+
+    def validate_email(self, field):
+        _validate_corporate_email(field)
+        if User.query.filter_by(email=field.data).first():
+            raise ValidationError('Este e-mail já está cadastrado.')
         dept_choices = [(0, '— Sem departamento —')] + [(d.id, d.name) for d in departments]
         self.department_id.choices = dept_choices
 
@@ -101,6 +136,8 @@ class ProfileForm(FlaskForm):
     """Formulário de perfil para o próprio usuário editar."""
     name       = StringField('Nome completo *',
                              validators=[DataRequired(), Length(max=150)])
+    email      = StringField('E-mail *',
+                             validators=[DataRequired(), Email(), Length(max=150)])
     birth_date = DateField('Data de nascimento', validators=[Optional()])
     profile_picture = FileField('Foto de perfil',
                                 validators=[
@@ -109,3 +146,16 @@ class ProfileForm(FlaskForm):
                                                 'Apenas imagens PNG, JPG ou WEBP.'),
                                 ])
     submit = SubmitField('Salvar perfil')
+
+    def __init__(self, user_id=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._user_id = user_id
+
+    def validate_email(self, field):
+        email = (field.data or '').strip().lower()
+        field.data = email
+        query = User.query.filter_by(email=email)
+        if self._user_id:
+            query = query.filter(User.id != self._user_id)
+        if query.first():
+            raise ValidationError('Este e-mail já está cadastrado.')
