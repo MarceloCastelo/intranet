@@ -19,13 +19,13 @@ with app.app_context():
         db.session.flush()
 
     # Usuário admin
-    if User.query.filter_by(email='admin@adtsa.com.br').first():
+    if User.query.filter_by(email='admin@pedragon.com.br').first():
         print('Usuário admin já existe.')
     else:
         u = User(
             name='Administrador',
             cpf='00000000000',
-            email='admin@adtsa.com.br',
+            email='admin@pedragon.com.br',
             role='user',
             is_admin=True,
             status='active',

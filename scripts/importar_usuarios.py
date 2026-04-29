@@ -37,6 +37,9 @@ def gerar_email(cpf: str) -> str:
     return f'{cpf}@{EMAIL_DOMAIN}'
 
 
+BATCH_SIZE = 100  # registros por commit
+
+
 def importar():
     app = create_app()
 
@@ -44,6 +47,30 @@ def importar():
         criados = 0
         ignorados = 0
         erros = 0
+
+        # Carrega CPFs e e-mails existentes de uma só vez — evita N queries
+        cpfs_existentes = {r[0] for r in db.session.execute(
+            db.text('SELECT cpf FROM users WHERE cpf IS NOT NULL')
+        )}
+        emails_existentes = {r[0] for r in db.session.execute(
+            db.text('SELECT email FROM users WHERE email IS NOT NULL')
+        )}
+
+        lote: list = []
+
+        def _commit_lote():
+            nonlocal criados, erros
+            try:
+                db.session.bulk_save_objects(lote)
+                db.session.commit()
+                criados += len(lote)
+            except Exception as exc:
+                db.session.rollback()
+                print(f'[ERRO LOTE] {exc}')
+                erros += len(lote)
+            finally:
+                lote.clear()
+                db.session.expire_all()
 
         with open(CSV_PATH, newline='', encoding='utf-8') as f:
             reader = csv.DictReader(f)
@@ -64,16 +91,14 @@ def importar():
                     erros += 1
                     continue
 
-                # Verifica duplicata por CPF
-                if User.query.filter_by(cpf=cpf).first():
+                if cpf in cpfs_existentes:
                     print(f'[LINHA {linha}] CPF {cpf} já existe, pulando.')
                     ignorados += 1
                     continue
 
                 email = gerar_email(cpf)
 
-                # Verifica duplicata por e-mail (improvável, mas seguro)
-                if User.query.filter_by(email=email).first():
+                if email in emails_existentes:
                     print(f'[LINHA {linha}] E-mail {email} já existe, pulando.')
                     ignorados += 1
                     continue
@@ -87,21 +112,18 @@ def importar():
                     status='active',
                     first_login=True,
                 )
-                # Senha inicial = CPF sem formatação
                 usuario.set_password(cpf)
 
-                db.session.add(usuario)
+                lote.append(usuario)
+                cpfs_existentes.add(cpf)
+                emails_existentes.add(email)
+                print(f'[OK] {nome} ({cpf})')
 
-                try:
-                    db.session.flush()  # valida constraints antes do commit final
-                    criados += 1
-                    print(f'[OK] {nome} ({cpf})')
-                except Exception as exc:
-                    db.session.rollback()
-                    print(f'[ERRO] {nome} ({cpf}): {exc}')
-                    erros += 1
+                if len(lote) >= BATCH_SIZE:
+                    _commit_lote()
 
-            db.session.commit()
+        if lote:
+            _commit_lote()
 
         print()
         print('=' * 50)
