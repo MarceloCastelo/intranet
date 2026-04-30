@@ -46,6 +46,7 @@ class UserForm(FlaskForm):
                                          ('rh', 'RH'), ('patrimonio', 'Patrimônio'),
                                          ('controladoria', 'Controladoria')])
     is_admin      = BooleanField('Administrador (acesso gerencial)')
+    power_bi_access = BooleanField('Acesso ao Power BI (Business Intelligence)')
     status        = SelectField('Status',
                                 choices=[('active', 'Ativo'), ('inactive', 'Inativo'),
                                          ('blocked', 'Bloqueado')])

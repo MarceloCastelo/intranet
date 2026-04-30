@@ -36,6 +36,9 @@ class User(UserMixin, db.Model):
     department_id   = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'))
     birth_date      = db.Column(db.Date)
 
+    # Acesso Power BI
+    power_bi_access = db.Column(db.Boolean, nullable=False, default=False)
+
     # Primeiro acesso
     first_login           = db.Column(db.Boolean, default=True)
 

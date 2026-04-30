@@ -93,15 +93,16 @@ def create_user(form, actor_id: int) -> User:
         raise ValueError('CPF já cadastrado')
 
     user = User(
-        name          = form.name.data.strip(),
-        cpf           = cpf,
-        email         = email,
-        role          = form.role.data,
-        is_admin      = bool(form.is_admin.data),
-        status        = form.status.data,
-        department_id = dept_id,
-        birth_date    = form.birth_date.data,
-        first_login   = True,
+        name            = form.name.data.strip(),
+        cpf             = cpf,
+        email           = email,
+        role            = form.role.data,
+        is_admin        = bool(form.is_admin.data),
+        power_bi_access = bool(form.power_bi_access.data),
+        status          = form.status.data,
+        department_id   = dept_id,
+        birth_date      = form.birth_date.data,
+        first_login     = True,
     )
     # Usa a senha definida pelo admin; no primeiro login o usuário é obrigado a trocá-la
     user.set_password(form.password.data)
@@ -142,14 +143,15 @@ def update_user(user: User, form, actor_id: int) -> User:
         if conflict:
             raise ValueError('CPF já cadastrado')
 
-    user.name          = form.name.data.strip()
-    user.cpf           = new_cpf
-    user.email         = new_email
-    user.role          = form.role.data
-    user.is_admin      = bool(form.is_admin.data)
-    user.status        = form.status.data
-    user.department_id = form.department_id.data or None
-    user.birth_date    = form.birth_date.data
+    user.name            = form.name.data.strip()
+    user.cpf             = new_cpf
+    user.email           = new_email
+    user.role            = form.role.data
+    user.is_admin        = bool(form.is_admin.data)
+    user.power_bi_access = bool(form.power_bi_access.data)
+    user.status          = form.status.data
+    user.department_id   = form.department_id.data or None
+    user.birth_date      = form.birth_date.data
 
     if form.profile_picture.data:
         user.profile_picture = _save_profile_picture(

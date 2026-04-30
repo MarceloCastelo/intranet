@@ -52,6 +52,9 @@ class Config:
     APP_NAME = os.environ.get("APP_NAME", "Portal Corporativo")
     APP_URL = os.environ.get("APP_URL", "http://localhost")
 
+    # Business Intelligence
+    POWER_BI_URL = os.environ.get("POWER_BI_URL", "")
+
     # Cache (Redis)
     CACHE_TYPE                  = os.environ.get("CACHE_TYPE", "RedisCache")
     CACHE_REDIS_URL             = os.environ.get("REDIS_URL", "redis://redis:6379/0")

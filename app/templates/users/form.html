@@ -81,6 +81,17 @@
           </div>
         </div>
 
+        {# Power BI #}
+        <div class="sm:col-span-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 flex items-start gap-3">
+          {{ form.power_bi_access(class="mt-0.5 rounded border-blue-400 text-blue-600 focus:ring-blue-500") }}
+          <div>
+            {{ form.power_bi_access.label(class="text-sm font-medium text-blue-800") }}
+            <p class="text-xs text-blue-600 mt-0.5">
+              Exibe no menu lateral o link de acesso ao Business Intelligence (Power BI) da empresa.
+            </p>
+          </div>
+        </div>
+
         {# Senha — exibida apenas na criação #}
         {% if not user %}
         <div>
