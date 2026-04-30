@@ -6,7 +6,7 @@
 
   {# Header #}
   <header class="bg-white border-b border-gray-200">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between">
       <a href="{{ url_for('main.index') }}"
          class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -15,26 +15,17 @@
         Voltar ao menu
       </a>
       <img src="{{ url_for('static', filename='images/pedragon2_preta.png') }}"
-           alt="{{ config.APP_NAME }}" class="h-16 w-auto">
+           alt="{{ config.APP_NAME }}" class="h-10 w-auto">
     </div>
   </header>
 
-  <main class="flex-1 py-10 px-4">
+  <main class="flex-1 py-4 px-4">
     <div class="max-w-3xl mx-auto">
 
       {# Título #}
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary-100 text-primary-600 mb-4">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293
-                     3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172
-                     48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394
-                     48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"/>
-          </svg>
-        </div>
-        <h1 class="text-2xl font-bold text-gray-900">Canal de Ética e Ouvidoria</h1>
-        <p class="mt-2 text-sm text-gray-500 max-w-xl mx-auto">
+      <div class="text-center mb-4">
+        <h1 class="text-xl font-bold text-gray-900">Canal de Ética e Ouvidoria</h1>
+        <p class="mt-1 text-sm text-gray-500 max-w-xl mx-auto">
           Registre sua manifestação de forma segura e anônima. Guarde o <strong class="text-gray-900">Protocolo</strong>
           fornecido após envio para consultas posteriores.
         </p>
@@ -53,7 +44,7 @@
       {% endwith %}
 
       {# Abas #}
-      <div class="flex gap-1 bg-gray-100 rounded-lg p-1 mb-6 border border-gray-200">
+      <div class="flex gap-1 bg-gray-100 rounded-lg p-1 mb-3 border border-gray-200">
         <button @click="tab = 'enviar'"
                 :class="tab === 'enviar'
                   ? 'bg-primary-600 text-white shadow-sm'
@@ -72,10 +63,10 @@
 
       {# Aba: Enviar #}
       <div x-show="tab === 'enviar'" x-cloak>
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
 
           {# Aviso de anonimato #}
-          <div class="flex gap-3 bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
+          <div class="flex gap-3 bg-primary-50 border border-primary-200 rounded-lg p-3 mb-4">
             <svg class="w-5 h-5 text-primary-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round"
                     d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
@@ -89,7 +80,7 @@
           <form method="POST" action="{{ url_for('ouvidoria.enviar') }}" novalidate>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <div class="space-y-5">
+            <div class="space-y-3">
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -122,7 +113,7 @@
                 <label for="descricao" class="block text-sm font-medium text-gray-700 mb-1">
                   Descrição detalhada <span class="text-red-500">*</span>
                 </label>
-                <textarea id="descricao" name="descricao" rows="6" required
+                <textarea id="descricao" name="descricao" rows="3" required
                           placeholder="Descreva a situação com o máximo de detalhes possível (mínimo 20 caracteres)"
                           class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900
                                  placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-y"></textarea>
@@ -141,9 +132,9 @@
 
       {# Aba: Acompanhar #}
       <div x-show="tab === 'acompanhar'" x-cloak>
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8">
-          <p class="text-sm text-gray-500 mb-5">
-            Insira o <strong class="text-gray-900">ID único</strong> fornecido no momento do envio para consultar o status da sua manifestação.
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <p class="text-sm text-gray-500 mb-4">
+            Insira o <strong class="text-gray-900">Protocolo</strong> fornecido no momento do envio para consultar o status da sua manifestação.
           </p>
           <form method="POST" action="{{ url_for('ouvidoria.acompanhar') }}" novalidate>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -165,7 +156,7 @@
     </div>
   </main>
 
-  <footer class="py-6 text-center border-t border-gray-200">
+  <footer class="py-3 text-center border-t border-gray-200">
     <p class="text-xs text-gray-400">&copy; 2026 {{ config.APP_NAME }}. Todos os direitos reservados.</p>
   </footer>
 
