@@ -8,7 +8,7 @@ import re
 
 from app.models.user import User
 
-CORPORATE_DOMAIN = 'adtsa.com.br'
+CORPORATE_DOMAIN = 'pedragon.com.br'
 
 
 def _validate_corporate_email(field):
@@ -59,6 +59,14 @@ class UserForm(FlaskForm):
                                                 'Apenas imagens PNG, JPG ou WEBP.'),
                                 ])
 
+    password         = PasswordField('Senha',
+                                     validators=[Optional(), Length(min=6, max=128,
+                                                 message='A senha deve ter no mínimo 6 caracteres.')])
+    password_confirm = PasswordField('Confirmar senha',
+                                     validators=[Optional(),
+                                                 EqualTo('password',
+                                                         message='As senhas não conferem.')])
+
     submit = SubmitField('Salvar')
 
     def __init__(self, departments, user_id=None, *args, **kwargs):
@@ -81,6 +89,11 @@ class UserForm(FlaskForm):
             query = query.filter(User.id != self._user_id)
         if query.first():
             raise ValidationError('Este e-mail já está cadastrado.')
+
+    def validate_password(self, field):
+        # Senha obrigatória somente na criação (user_id=None)
+        if self._user_id is None and not field.data:
+            raise ValidationError('A senha é obrigatória para novos usuários.')
 
 
 class InviteUserForm(FlaskForm):

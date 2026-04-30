@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 from app import db
@@ -30,6 +30,8 @@ def home():
 @main_bp.route('/colaboradores')
 @login_required
 def directory():
+    if not current_user.is_admin:
+        abort(403)
     search = request.args.get('q', '').strip()
     department_id = request.args.get('department_id', 0, type=int)
 

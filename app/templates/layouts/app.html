@@ -348,7 +348,7 @@
       {% endif %}{# /services #}
 
       {# ── Colaboradores (sem submenu) ───────────────────────── #}
-      {% if active_modules.get('directory', True) %}
+      {% if active_modules.get('directory', True) and current_user.is_admin %}
       <a href="{{ url_for('main.directory') }}"
          class="flex items-center gap-3 px-3 py-2 rounded-md
                 {{ 'bg-primary-700' if ep == 'main.directory' else 'hover:bg-primary-800' }}">

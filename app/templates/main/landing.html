@@ -1,12 +1,12 @@
 {% extends "base_auth.html" %}
-{% block title %}Bem-vindo{% endblock %}
+{% block title %}Portal Pedragon{% endblock %}
 
 {% block body %}
 <div class="min-h-full flex">
 
   {# ── Painel esquerdo — marca ───────────────────────────── #}
   <div class="hidden lg:flex lg:w-1/2 xl:w-3/5
-              bg-primary-900 flex-col items-center justify-center relative overflow-hidden">
+              bg-primary-900 flex-col items-center justify-start relative overflow-hidden pt-[calc(50vh_-_16rem)]">
 
     {# Círculos decorativos #}
     <div class="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-primary-800 opacity-50"></div>
@@ -17,9 +17,9 @@
     <div class="relative z-10 flex flex-col items-center text-center px-12">
       <img src="{{ url_for('static', filename='images/pedragon2_branca.png') }}"
            alt="{{ config.APP_NAME }}"
-           class="w-72 xl:w-96 object-contain mb-10 drop-shadow-lg">
+           class="w-72 xl:w-96 object-contain mb-0 drop-shadow-lg">
       <p class="text-primary-300 text-sm xl:text-base max-w-xs leading-relaxed">
-        Conectando Pessoas, Processos e Informações
+        Conectando Pessoas, Processos e Informações em um só lugar
       </p>
     </div>
   </div>
@@ -36,7 +36,7 @@
 
     <div class="w-full max-w-sm">
 
-      <h1 class="text-2xl font-bold text-gray-900 mb-1">Bem-vindo</h1>
+      <h1 class="text-2xl font-bold text-gray-900 mb-1">Seja bem-vindo ao Portal Intranet do Grupo Pedragon</h1>
       <p class="text-sm text-gray-500 mb-8">Selecione o portal que deseja acessar</p>
 
       <div class="space-y-4">

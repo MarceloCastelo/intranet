@@ -103,8 +103,8 @@ def create_user(form, actor_id: int) -> User:
         birth_date    = form.birth_date.data,
         first_login   = True,
     )
-    # Senha temporária aleatória — o usuário a trocará no primeiro login
-    user.set_password(secrets.token_urlsafe(24))
+    # Usa a senha definida pelo admin; no primeiro login o usuário é obrigado a trocá-la
+    user.set_password(form.password.data)
 
     if form.profile_picture.data:
         user.profile_picture = _save_profile_picture(form.profile_picture.data)
