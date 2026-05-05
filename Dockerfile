@@ -40,8 +40,8 @@ COPY --from=frontend /build/app/static/css/output.css ./app/static/css/output.cs
 # Garantir que diretórios de runtime existam
 RUN mkdir -p logs uploads
 
-# Usuário não-root por segurança
-RUN adduser --disabled-password --gecos "" appuser && \
+# Usuário não-root por segurança (UID/GID fixos para compatibilidade com bind mounts)
+RUN adduser --disabled-password --gecos "" --uid 1000 appuser && \
     chown -R appuser:appuser /app
 
 USER appuser
