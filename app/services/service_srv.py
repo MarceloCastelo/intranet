@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest
 from werkzeug.utils import secure_filename
 
@@ -53,7 +54,7 @@ def get_service_or_404(svc_id: int) -> Service:
 
 def create_service(form, actor_id: int, force_inactive: bool = False) -> Service:
     icon = None
-    if form.icon_url.data and form.icon_url.data.filename:
+    if isinstance(form.icon_url.data, FileStorage) and form.icon_url.data.filename:
         icon = _save_icon(form.icon_url.data)
 
     svc = Service(
@@ -74,7 +75,7 @@ def create_service(form, actor_id: int, force_inactive: bool = False) -> Service
 
 
 def update_service(svc: Service, form) -> Service:
-    if form.icon_url.data and form.icon_url.data.filename:
+    if isinstance(form.icon_url.data, FileStorage) and form.icon_url.data.filename:
         svc.icon_url = _save_icon(form.icon_url.data, svc.icon_url)
 
     svc.title          = form.title.data.strip()
