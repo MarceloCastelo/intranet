@@ -76,6 +76,7 @@ services:
       - app
     networks:
       - portal_net
+      - pedragon_shared_net
 
   # ----------------------------------------------------------
   # Certbot (emissão e renovação automática de certificados)
@@ -98,3 +99,5 @@ volumes:
 networks:
   portal_net:
     driver: bridge
+  pedragon_shared_net:
+    external: true
