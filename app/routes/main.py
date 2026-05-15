@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import Blueprint, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 from app import db
@@ -64,3 +64,30 @@ def heartbeat():
             db_sess.last_seen_at = datetime.utcnow()
             db.session.commit()
     return jsonify({'ok': True})
+
+
+# ─── Power BI ─────────────────────────────────────────────────────────────────
+
+def _can_access_powerbi():
+    return current_user.is_admin or current_user.power_bi_access
+
+
+@main_bp.route('/powerbi')
+@login_required
+def powerbi():
+    if not _can_access_powerbi():
+        abort(403)
+    return render_template('main/powerbi.html')
+
+
+@main_bp.route('/powerbi/embed-url')
+@login_required
+def powerbi_embed_url():
+    """Retorna a URL do relatório apenas para usuários autorizados.
+    A URL nunca é exposta diretamente no HTML."""
+    if not _can_access_powerbi():
+        abort(403)
+    url = current_app.config.get('POWER_BI_URL', '')
+    if not url:
+        abort(404)
+    return jsonify({'url': url})

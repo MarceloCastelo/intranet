@@ -1,0 +1,77 @@
+{% extends "layouts/app.html" %}
+{% block title %}Business Intelligence{% endblock %}
+
+{% block content %}
+<div class="flex flex-col" style="height: calc(100vh - 4rem);">
+
+  {# Cabeçalho #}
+  <div class="flex items-center gap-3 mb-4">
+    <svg class="w-6 h-6 text-primary-700 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5
+               20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125
+               1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125
+               1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125
+               1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125
+               1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
+    </svg>
+    <h1 class="text-xl font-bold text-gray-900">Business Intelligence</h1>
+  </div>
+
+  {# Área do iframe #}
+  <div id="pbi-container" class="relative flex-1 rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-gray-50">
+
+    {# Loading #}
+    <div id="pbi-loading" class="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10 bg-gray-50">
+      <svg class="w-8 h-8 animate-spin text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+      <span class="text-sm text-gray-500">Carregando relatório...</span>
+    </div>
+
+    {# Mensagem de erro #}
+    <div id="pbi-error" class="absolute inset-0 hidden flex-col items-center justify-center gap-2 z-10 bg-gray-50">
+      <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+      </svg>
+      <p class="text-sm text-gray-600">Não foi possível carregar o relatório.</p>
+    </div>
+
+    <iframe id="pbi-frame"
+            class="w-full h-full border-0 hidden"
+            allowfullscreen
+            title="Business Intelligence"></iframe>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const frame   = document.getElementById('pbi-frame');
+    const loading = document.getElementById('pbi-loading');
+    const error   = document.getElementById('pbi-error');
+
+    fetch('{{ url_for("main.powerbi_embed_url") }}', {
+      credentials: 'same-origin',
+      headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('forbidden');
+        return res.json();
+      })
+      .then(function (data) {
+        frame.src = data.url;
+        frame.onload = function () {
+          loading.classList.add('hidden');
+          frame.classList.remove('hidden');
+        };
+      })
+      .catch(function () {
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+        error.classList.add('flex');
+      });
+  })();
+</script>
+{% endblock %}

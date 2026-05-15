@@ -32,6 +32,7 @@ CREATE TABLE users (
     profile_picture         VARCHAR(500),
     department_id           INT,
     birth_date              DATE,
+    power_bi_access         TINYINT(1) NOT NULL DEFAULT 0,
 
     -- Primeiro acesso
     first_login             BOOLEAN DEFAULT TRUE,

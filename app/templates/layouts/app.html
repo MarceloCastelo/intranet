@@ -385,7 +385,7 @@
 
       {# ── Power BI ─────────────────────────────────────────── #}
       {% if current_user.power_bi_access or current_user.is_admin %}
-      <a href="{{ config.POWER_BI_URL | default('#', true) }}" target="_blank" rel="noopener noreferrer"
+      <a href="{{ url_for('main.powerbi') }}"
          class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-primary-800">
         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
