@@ -1,0 +1,20 @@
+# docker-compose.override.yml
+# Aplicado AUTOMATICAMENTE em desenvolvimento local (docker-compose up).
+# NÃO copiar para o servidor de produção.
+#
+# Diferenças em relação ao compose de produção:
+#   - Nginx escuta em HTTP na porta 8080 (sem TLS)
+#   - Usa nginx.dev.conf (sem referências a certificados Let's Encrypt)
+#   - Serviço certbot desabilitado
+
+services:
+  nginx:
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./uploads:/app/uploads:ro
+
+  certbot:
+    profiles:
+      - production   # nunca sobe automaticamente em dev
