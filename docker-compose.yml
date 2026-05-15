@@ -65,14 +65,29 @@ services:
     container_name: portal_nginx
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./uploads:/app/uploads:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
     depends_on:
       - app
     networks:
       - portal_net
+
+  # ----------------------------------------------------------
+  # Certbot (emissão e renovação automática de certificados)
+  # ----------------------------------------------------------
+  certbot:
+    image: certbot/certbot:latest
+    container_name: portal_certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # Verifica renovação a cada 12 horas
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
 
 # ----------------------------------------------------------
 # Volumes & Networks
