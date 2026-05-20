@@ -134,13 +134,14 @@ def forgot_password():
 
 @auth_bp.route('/resetar-senha/<token>', methods=['GET', 'POST'])
 def reset_password(token: str):
-    if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
-
     user, token_obj = auth_service.consume_reset_token(token)
     if not user:
         _flash_error('token_invalid')
         return redirect(url_for('auth.forgot_password'))
+
+    # Se há um usuário logado que não é o dono do token, bloqueia
+    if current_user.is_authenticated and current_user.id != user.id:
+        return redirect(url_for('main.home'))
 
     form = ResetPasswordForm()
     if form.validate_on_submit():
@@ -150,7 +151,9 @@ def reset_password(token: str):
             return render_template('auth/reset_password.html', form=form, token=token)
 
         auth_service.mark_token_used(token_obj)
-        flash('Senha redefinida com sucesso. Faça login.', 'success')
+        flash('Senha redefinida com sucesso.', 'success')
+        if current_user.is_authenticated:
+            return redirect(url_for('users.profile'))
         return redirect(url_for('auth.login'))
 
     return render_template('auth/reset_password.html', form=form, token=token)

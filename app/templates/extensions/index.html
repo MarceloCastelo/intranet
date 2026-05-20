@@ -48,7 +48,7 @@
         <tbody class="divide-y divide-gray-100">
           {% for ext in exts %}
           <tr class="hover:bg-gray-50">
-            <td class="px-5 py-3 w-8">
+            <td class="px-5 py-3 w-8 align-middle">
               {% if ext.user and ext.user.profile_picture %}
               <img src="{{ ext.user.profile_picture }}" alt=""
                    class="w-7 h-7 rounded-full object-cover">
@@ -59,13 +59,13 @@
               </div>
               {% endif %}
             </td>
-            <td class="px-3 py-3 font-medium text-gray-900">
+            <td class="px-3 py-3 font-medium text-gray-900 w-full align-middle">
               {{ ext.name }}
               {% if ext.notes %}
               <span class="ml-1.5 text-xs text-gray-400 font-normal">{{ ext.notes }}</span>
               {% endif %}
             </td>
-            <td class="px-5 py-3">
+            <td class="px-5 py-3 whitespace-nowrap align-middle">
               <a href="tel:{{ ext.extension }}"
                  class="inline-flex items-center gap-1.5 text-primary-700 font-mono
                         font-semibold text-sm hover:text-primary-900">
@@ -77,20 +77,22 @@
                 {{ ext.extension }}
               </a>
             </td>
-            <td class="px-5 py-3 w-20">
+            <td class="px-5 py-3 w-20 align-middle">
               {% if not ext.is_active %}
               <span class="text-xs text-gray-400 italic">Inativo</span>
               {% endif %}
             </td>
             {% if current_user.is_admin or current_user.role == 'editor' %}
-            <td class="px-5 py-3 text-right flex items-center justify-end gap-3">
-              <a href="{{ url_for('extensions.edit', ext_id=ext.id) }}"
-                 class="text-primary-600 hover:text-primary-800 text-xs font-medium">Editar</a>
-              <form method="POST" action="{{ url_for('extensions.delete', ext_id=ext.id) }}"
-                    onsubmit="return confirm('Excluir este ramal?')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Excluir</button>
-              </form>
+            <td class="px-5 py-3 text-right whitespace-nowrap align-middle">
+              <div class="flex items-center justify-end gap-3">
+                <a href="{{ url_for('extensions.edit', ext_id=ext.id) }}"
+                   class="text-primary-600 hover:text-primary-800 text-xs font-medium">Editar</a>
+                <form method="POST" action="{{ url_for('extensions.delete', ext_id=ext.id) }}"
+                      onsubmit="return confirm('Excluir este ramal?')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="text-red-500 hover:text-red-700 text-xs">Excluir</button>
+                </form>
+              </div>
             </td>
             {% endif %}
           </tr>

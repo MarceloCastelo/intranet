@@ -139,10 +139,6 @@ def edit(user_id: int):
 @admin_required
 def change_status(user_id: int):
     user = db.session.get(User, user_id) or abort(404)
-    if user.id == current_user.id:
-        flash('Você não pode alterar seu próprio status.', 'warning')
-        return redirect(url_for('users.detail', user_id=user.id))
-
     new_status = request.form.get('status')
     if new_status not in ('active', 'inactive', 'blocked'):
         abort(400)
@@ -177,10 +173,6 @@ def reset_password(user_id: int):
 @admin_required
 def set_password(user_id: int):
     user = db.session.get(User, user_id) or abort(404)
-    if user.id == current_user.id:
-        flash('Use a tela de perfil para alterar sua própria senha.', 'warning')
-        return redirect(url_for('users.detail', user_id=user.id))
-
     form = AdminSetPasswordForm()
     if form.validate_on_submit():
         user.set_password(form.password.data)
@@ -205,13 +197,15 @@ def set_password(user_id: int):
 @admin_required
 def delete(user_id: int):
     user = db.session.get(User, user_id) or abort(404)
-    if user.id == current_user.id:
-        flash('Você não pode excluir sua própria conta.', 'warning')
-        return redirect(url_for('users.detail', user_id=user.id))
     name = user.name
+    is_self = user.id == current_user.id
     db.session.delete(user)
     db.session.commit()
     flash(f'Usuário "{name}" excluído permanentemente.', 'success')
+    if is_self:
+        from flask_login import logout_user
+        logout_user()
+        return redirect(url_for('auth.login'))
     return redirect(url_for('users.index'))
 
 

@@ -230,7 +230,7 @@ def toggle_status(user: User, new_status: str, actor_id: int) -> None:
 def reset_password_admin(user: User, actor_id: int) -> None:
     """Admin força reset: gera token e envia e-mail."""
     from app.services.auth_service import request_password_reset
-    request_password_reset(user.email)
+    request_password_reset(user.cpf)
     _audit(actor_id, 'update', user.id, new={'action': 'admin_password_reset'})
     db.session.commit()
 

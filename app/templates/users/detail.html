@@ -51,8 +51,7 @@
           Editar dados
         </a>
 
-        {% if user.id != current_user.id %}
-          {# Definir senha diretamente #}
+        {# Definir senha diretamente #}
           <a href="{{ url_for('users.set_password', user_id=user.id) }}"
              class="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 text-gray-700">
             Definir nova senha
@@ -108,7 +107,6 @@
               Excluir usuário permanentemente
             </button>
           </form>
-        {% endif %}
       </div>
     </div>
 

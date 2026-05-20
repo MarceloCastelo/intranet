@@ -18,3 +18,7 @@ services:
   certbot:
     profiles:
       - production   # nunca sobe automaticamente em dev
+
+networks:
+  pedragon_shared_net:
+    driver: bridge
