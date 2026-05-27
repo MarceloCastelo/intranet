@@ -1,10 +1,11 @@
 from datetime import datetime
 
-from flask import Blueprint, abort, current_app, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 from app import db
 from app.models.user import Department, Session as DbSession, User
+from app.models.content import SiteConfig
 from app.services.content_service import active_banners
 from app.services.dashboard_service import get_dashboard_data
 
@@ -77,7 +78,8 @@ def _can_access_powerbi():
 def powerbi():
     if not _can_access_powerbi():
         abort(403)
-    return render_template('main/powerbi.html')
+    current_url = SiteConfig.get('power_bi_url') or current_app.config.get('POWER_BI_URL', '')
+    return render_template('main/powerbi.html', current_url=current_url)
 
 
 @main_bp.route('/powerbi/embed-url')
@@ -87,7 +89,20 @@ def powerbi_embed_url():
     A URL nunca é exposta diretamente no HTML."""
     if not _can_access_powerbi():
         abort(403)
-    url = current_app.config.get('POWER_BI_URL', '')
+    url = SiteConfig.get('power_bi_url') or current_app.config.get('POWER_BI_URL', '')
     if not url:
         abort(404)
     return jsonify({'url': url})
+
+
+@main_bp.route('/powerbi/update-url', methods=['POST'])
+@login_required
+def powerbi_update_url():
+    """Permite que admins atualizem a URL do Power BI."""
+    if not current_user.is_admin:
+        abort(403)
+    url = request.form.get('url', '').strip()
+    SiteConfig.set('power_bi_url', url)
+    db.session.commit()
+    flash('URL do Power BI atualizada com sucesso.', 'success')
+    return redirect(url_for('main.powerbi'))

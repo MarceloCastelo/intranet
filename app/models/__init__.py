@@ -10,7 +10,7 @@ from app.models.content import (
     Banner, FaqCategory, Faq,
     Poll, PollOption, PollVote,
     Gallery, GalleryItem,
-    ContentVersion, SiteModule,
+    ContentVersion, SiteModule, SiteConfig,
 )
 from app.models.event import Event
 from app.models.communication import (

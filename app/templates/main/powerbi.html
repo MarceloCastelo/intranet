@@ -16,6 +16,49 @@
                1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
     </svg>
     <h1 class="text-xl font-bold text-gray-900">Business Intelligence</h1>
+
+    {% if current_user.is_admin %}
+    <div class="ml-auto" x-data="{ open: false }">
+      <button @click="open = !open"
+              title="Alterar URL do relatório"
+              class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-700 border border-gray-300 hover:border-primary-400 rounded-lg px-3 py-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+        </svg>
+        Alterar link
+      </button>
+
+      {# Modal de edição de URL #}
+      <div x-show="open" x-cloak
+           class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+           @keydown.escape.window="open = false">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6" @click.stop>
+          <h2 class="text-base font-semibold text-gray-900 mb-4">Alterar URL do Power BI</h2>
+          <form method="POST" action="{{ url_for('main.powerbi_update_url') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="block text-sm font-medium text-gray-700 mb-1">URL do relatório</label>
+            <input type="url" name="url"
+                   value="{{ current_url or '' }}"
+                   placeholder="https://app.powerbi.com/reportEmbed?..."
+                   required
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+            <p class="text-xs text-gray-400 mt-1">Cole a URL de incorporação gerada no Power BI.</p>
+            <div class="flex justify-end gap-3 mt-5">
+              <button type="button" @click="open = false"
+                      class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg">
+                Cancelar
+              </button>
+              <button type="submit"
+                      class="px-4 py-2 text-sm font-medium text-white bg-primary-700 hover:bg-primary-800 rounded-lg">
+                Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   {# Área do iframe #}
