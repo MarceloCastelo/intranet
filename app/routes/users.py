@@ -60,7 +60,7 @@ def index():
 @admin_required
 def create():
     departments = user_service.all_departments()
-    form = UserForm(departments=departments)
+    form = UserForm(departments=departments, states=user_service.all_states())
 
     if form.validate_on_submit():
         email = form.email.data.strip().lower()
@@ -81,7 +81,7 @@ def create():
 @admin_required
 def invite():
     departments = user_service.all_departments()
-    form = InviteUserForm(departments=departments)
+    form = InviteUserForm(departments=departments, states=user_service.all_states())
 
     if form.validate_on_submit():
         try:
@@ -114,11 +114,12 @@ def detail(user_id: int):
 def edit(user_id: int):
     user = db.session.get(User, user_id) or abort(404)
     departments = user_service.all_departments()
-    form = UserForm(departments=departments, user_id=user.id, obj=user)
+    form = UserForm(departments=departments, states=user_service.all_states(), user_id=user.id, obj=user)
 
     # Pré-popula department_id no GET
     if request.method == 'GET':
         form.department_id.data = user.department_id or 0
+        form.state_id.data      = user.state_id or 0
 
     if form.validate_on_submit():
         try:
@@ -263,4 +264,58 @@ def delete_department(dept_id: int):
     flash(f'Departamento "{name}" excluído.', 'success')
     return redirect(url_for('users.departments'))
 
+
+# ─── Estados ──────────────────────────────────────────────────────────────────
+
+@users_bp.route('/estados')
+@login_required
+@admin_required
+def states():
+    unit_states = user_service.all_states()
+    return render_template('users/states.html', states=unit_states)
+
+
+@users_bp.route('/estados/novo', methods=['POST'])
+@login_required
+@admin_required
+def create_state():
+    name = request.form.get('name', '').strip()
+    if not name:
+        flash('Nome do estado não pode ser vazio.', 'warning')
+    else:
+        state = user_service.create_state(name, current_user.id)
+        flash(f'Estado "{state.name}" criado.', 'success')
+    return redirect(url_for('users.states'))
+
+
+@users_bp.route('/estados/<int:state_id>/editar', methods=['POST'])
+@login_required
+@admin_required
+def edit_state(state_id: int):
+    from app.models.user import UnitState
+    state = db.session.get(UnitState, state_id) or abort(404)
+    name = request.form.get('name', '').strip()
+    if not name:
+        flash('Nome não pode ser vazio.', 'warning')
+    else:
+        state.name = name
+        db.session.commit()
+        flash(f'Estado renomeado para "{name}".', 'success')
+    return redirect(url_for('users.states'))
+
+
+@users_bp.route('/estados/<int:state_id>/excluir', methods=['POST'])
+@login_required
+@admin_required
+def delete_state(state_id: int):
+    from app.models.user import UnitState
+    state = db.session.get(UnitState, state_id) or abort(404)
+    if state.users.count() > 0:
+        flash(f'Não é possível excluir "{state.name}": há usuários vinculados.', 'warning')
+        return redirect(url_for('users.states'))
+    name = state.name
+    db.session.delete(state)
+    db.session.commit()
+    flash(f'Estado "{name}" excluído.', 'success')
+    return redirect(url_for('users.states'))
 

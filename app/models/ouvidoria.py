@@ -20,6 +20,7 @@ class Manifestacao(db.Model):
     tipo       = db.Column(db.Enum('denuncia', 'reclamacao', 'sugestao'), nullable=False)
     assunto    = db.Column(db.String(200), nullable=False)
     descricao  = db.Column(db.Text, nullable=False)
+    state_id   = db.Column(db.Integer, db.ForeignKey('unit_states.id', ondelete='SET NULL'), nullable=True)
     status     = db.Column(
         db.Enum('pendente', 'em_andamento', 'concluida', 'arquivada'),
         nullable=False, default='pendente'
@@ -28,6 +29,8 @@ class Manifestacao(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Sem colunas de identificação do autor — anonimato garantido
+
+    unit_state = db.relationship('UnitState', foreign_keys=[state_id])
 
     respostas = db.relationship(
         'ManifestacaoResposta',

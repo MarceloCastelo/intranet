@@ -7,7 +7,7 @@ from flask_login import current_user
 ROLE_LABELS = {
     'user':          'Usuário',
     'editor':        'Editor',
-    'rh':            'RH',
+    'rh':            'Diretoria',
     'patrimonio':    'Patrimônio',
     'controladoria': 'Controladoria',
 }

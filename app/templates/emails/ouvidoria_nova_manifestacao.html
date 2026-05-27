@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<body style="font-family:Arial,sans-serif;background:#f9fafb;padding:32px;">
+  <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:8px;padding:32px;border:1px solid #e5e7eb;">
+
+    <h2 style="color:#b91c1c;margin-top:0;">Nova manifestação recebida</h2>
+
+    <p>Olá, <strong>{{ user.name }}</strong>!</p>
+    <p>
+      Uma nova <strong>{{ tipo_label }}</strong> foi registrada no Canal de Ética e Ouvidoria
+      {% if state_name %}para o estado de <strong>{{ state_name }}</strong>{% endif %}.
+    </p>
+
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;">
+      <tr>
+        <td style="padding:6px 10px;background:#f3f4f6;border-radius:4px;color:#6b7280;width:120px;">Protocolo</td>
+        <td style="padding:6px 10px;font-family:monospace;font-size:12px;color:#374151;">{{ public_id }}</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 10px;color:#6b7280;">Tipo</td>
+        <td style="padding:6px 10px;color:#374151;"><strong>{{ tipo_label }}</strong></td>
+      </tr>
+      <tr>
+        <td style="padding:6px 10px;background:#f3f4f6;border-radius:4px;color:#6b7280;">Assunto</td>
+        <td style="padding:6px 10px;color:#374151;">{{ assunto }}</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 10px;color:#6b7280;">Data</td>
+        <td style="padding:6px 10px;color:#374151;">{{ data }}</td>
+      </tr>
+    </table>
+
+    <div style="text-align:center;margin:24px 0;">
+      <a href="{{ admin_url }}"
+         style="background:#b91c1c;color:#fff;padding:12px 24px;border-radius:6px;
+                text-decoration:none;font-weight:bold;display:inline-block;">
+        Ver manifestação no painel
+      </a>
+    </div>
+
+    <p style="color:#6b7280;font-size:13px;">
+      Este é um aviso automático. Acesse o painel para visualizar os detalhes completos e responder.
+    </p>
+
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+    <p style="color:#9ca3af;font-size:12px;text-align:center;">{{ app_name }} — Canal de Ética e Ouvidoria</p>
+  </div>
+</body>
+</html>

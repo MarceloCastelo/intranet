@@ -6,7 +6,7 @@ from wtforms.validators import (DataRequired, Email, EqualTo, Length,
                                 Optional, ValidationError)
 import re
 
-from app.models.user import User
+from app.models.user import UnitState, User
 
 CORPORATE_DOMAIN = 'pedragon.com.br'
 
@@ -43,14 +43,16 @@ class UserForm(FlaskForm):
                                 validators=[DataRequired(), Email(), Length(max=150)])
     role          = SelectField('Perfil / área',
                                 choices=[('user', 'Usuário'), ('editor', 'Editor'),
-                                         ('rh', 'RH'), ('patrimonio', 'Patrimônio'),
+                                         ('rh', 'Diretoria'), ('patrimonio', 'Patrimônio'),
                                          ('controladoria', 'Controladoria')])
     is_admin      = BooleanField('Administrador (acesso gerencial)')
     power_bi_access = BooleanField('Acesso ao Power BI (Business Intelligence)')
+    ouvidoria_all_states = BooleanField('Visualizar denúncias de todos os estados')
     status        = SelectField('Status',
                                 choices=[('active', 'Ativo'), ('inactive', 'Inativo'),
                                          ('blocked', 'Bloqueado')])
     department_id = SelectField('Departamento', coerce=int, validators=[Optional()])
+    state_id      = SelectField('Estado (unidade)', coerce=int, validators=[Optional()])
     birth_date    = DateField('Data de nascimento', validators=[Optional()])
 
     profile_picture = FileField('Foto de perfil',
@@ -70,11 +72,13 @@ class UserForm(FlaskForm):
 
     submit = SubmitField('Salvar')
 
-    def __init__(self, departments, user_id=None, *args, **kwargs):
+    def __init__(self, departments, states=None, user_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._user_id = user_id
         dept_choices = [(0, '— Sem departamento —')] + [(d.id, d.name) for d in departments]
         self.department_id.choices = dept_choices
+        state_choices = [(0, '— Sem estado —')] + [(s.id, s.name) for s in (states or [])]
+        self.state_id.choices = state_choices
 
     def validate_cpf(self, field):
         query = User.query.filter_by(cpf=field.data)
@@ -108,27 +112,23 @@ class InviteUserForm(FlaskForm):
                                 validators=[DataRequired(), Email(), Length(max=150)])
     role          = SelectField('Perfil / área',
                                 choices=[('user', 'Usuário'), ('editor', 'Editor'),
-                                         ('rh', 'RH'), ('patrimonio', 'Patrimônio'),
+                                         ('rh', 'Diretoria'), ('patrimonio', 'Patrimônio'),
                                          ('controladoria', 'Controladoria')])
     is_admin      = BooleanField('Administrador (acesso gerencial)')
     department_id = SelectField('Departamento', coerce=int, validators=[Optional()])
+    state_id      = SelectField('Estado (unidade)', coerce=int, validators=[Optional()])
     submit        = SubmitField('Enviar convite')
 
-    def __init__(self, departments, *args, **kwargs):
+    def __init__(self, departments, states=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         dept_choices = [(0, '— Sem departamento —')] + [(d.id, d.name) for d in departments]
         self.department_id.choices = dept_choices
+        state_choices = [(0, '— Sem estado —')] + [(s.id, s.name) for s in (states or [])]
+        self.state_id.choices = state_choices
 
     def validate_cpf(self, field):
         if User.query.filter_by(cpf=field.data).first():
             raise ValidationError('Este CPF já está cadastrado.')
-
-    def validate_email(self, field):
-        _validate_corporate_email(field)
-        if User.query.filter_by(email=field.data).first():
-            raise ValidationError('Este e-mail já está cadastrado.')
-        dept_choices = [(0, '— Sem departamento —')] + [(d.id, d.name) for d in departments]
-        self.department_id.choices = dept_choices
 
     def validate_email(self, field):
         _validate_corporate_email(field)

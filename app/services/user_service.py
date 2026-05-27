@@ -14,7 +14,7 @@ from werkzeug.utils import secure_filename
 
 from app import db
 from app.models.audit import AuditLog, Notification
-from app.models.user import Department, User, UserToken
+from app.models.user import Department, UnitState, User, UserToken
 from app.services.email_service import send_invite
 
 logger = logging.getLogger(__name__)
@@ -99,8 +99,10 @@ def create_user(form, actor_id: int) -> User:
         role            = form.role.data,
         is_admin        = bool(form.is_admin.data),
         power_bi_access = bool(form.power_bi_access.data),
+        ouvidoria_all_states = bool(form.ouvidoria_all_states.data),
         status          = form.status.data,
         department_id   = dept_id,
+        state_id        = form.state_id.data or None,
         birth_date      = form.birth_date.data,
         first_login     = True,
     )
@@ -149,8 +151,10 @@ def update_user(user: User, form, actor_id: int) -> User:
     user.role            = form.role.data
     user.is_admin        = bool(form.is_admin.data)
     user.power_bi_access = bool(form.power_bi_access.data)
+    user.ouvidoria_all_states = bool(form.ouvidoria_all_states.data)
     user.status          = form.status.data
     user.department_id   = form.department_id.data or None
+    user.state_id        = form.state_id.data or None
     user.birth_date      = form.birth_date.data
 
     if form.profile_picture.data:
@@ -188,6 +192,8 @@ def invite_user(form, actor_id: int) -> User:
         is_admin      = bool(form.is_admin.data),
         status        = 'active',
         department_id = dept_id,
+        state_id      = form.state_id.data or None,
+        ouvidoria_all_states = bool(form.ouvidoria_all_states.data),
         first_login   = True,
     )
     user.set_password(secrets.token_urlsafe(24))
@@ -257,4 +263,18 @@ def create_department(name: str, actor_id: int) -> Department:
     db.session.commit()
     return dept
 
+
+# ─── Estados ──────────────────────────────────────────────────────────────────
+
+def all_states():
+    return UnitState.query.order_by(UnitState.name).all()
+
+
+def create_state(name: str, actor_id: int) -> UnitState:
+    state = UnitState(name=name.strip())
+    db.session.add(state)
+    db.session.flush()
+    _audit(actor_id, 'create', state.id, new={'name': state.name})
+    db.session.commit()
+    return state
 

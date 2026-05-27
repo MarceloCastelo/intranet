@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<body style="font-family:Arial,sans-serif;background:#f9fafb;padding:32px;">
+  <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:8px;padding:32px;border:1px solid #e5e7eb;">
+
+    <h2 style="color:#1d4ed8;margin-top:0;">Nova mensagem do denunciante</h2>
+
+    <p>Olá, <strong>{{ user.name }}</strong>!</p>
+    <p>
+      O autor de uma manifestação enviou uma nova mensagem
+      {% if state_name %}do estado de <strong>{{ state_name }}</strong>{% endif %}
+      aguardando sua atenção.
+    </p>
+
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;">
+      <tr>
+        <td style="padding:6px 10px;background:#f3f4f6;border-radius:4px;color:#6b7280;width:120px;">Protocolo</td>
+        <td style="padding:6px 10px;font-family:monospace;font-size:12px;color:#374151;">{{ public_id }}</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 10px;color:#6b7280;">Tipo</td>
+        <td style="padding:6px 10px;color:#374151;"><strong>{{ tipo_label }}</strong></td>
+      </tr>
+      <tr>
+        <td style="padding:6px 10px;background:#f3f4f6;border-radius:4px;color:#6b7280;">Assunto</td>
+        <td style="padding:6px 10px;color:#374151;">{{ assunto }}</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 10px;color:#6b7280;">Data da mensagem</td>
+        <td style="padding:6px 10px;color:#374151;">{{ data }}</td>
+      </tr>
+    </table>
+
+    <div style="text-align:center;margin:24px 0;">
+      <a href="{{ admin_url }}"
+         style="background:#1d4ed8;color:#fff;padding:12px 24px;border-radius:6px;
+                text-decoration:none;font-weight:bold;display:inline-block;">
+        Responder no painel
+      </a>
+    </div>
+
+    <p style="color:#6b7280;font-size:13px;">
+      Este é um aviso automático. Acesse o painel para visualizar a mensagem completa e responder ao autor.
+    </p>
+
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+    <p style="color:#9ca3af;font-size:12px;text-align:center;">{{ app_name }} — Canal de Ética e Ouvidoria</p>
+  </div>
+</body>
+</html>

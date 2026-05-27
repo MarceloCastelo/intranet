@@ -50,8 +50,9 @@
       {% set srv_admin     = ep.startswith('services.') and not srv_public %}
       {% set srv_active    = srv_public or srv_admin %}
       {% set usr_active    = ep.startswith('users.') %}
-      {% set usr_manage    = usr_active and ep != 'users.departments' %}
+      {% set usr_manage    = usr_active and ep not in ('users.departments', 'users.states') %}
       {% set usr_dept      = ep == 'users.departments' %}
+      {% set usr_state     = ep == 'users.states' %}
       {% set audit_active    = ep.startswith('audit.') %}
       {% set ouv_active      = ep.startswith('ouvidoria.') and 'admin' in ep %}
 
@@ -450,6 +451,11 @@
              class="flex items-center px-3 py-1.5 rounded-md text-primary-200 text-sm
                     {{ 'bg-primary-600 text-white' if usr_dept else 'hover:bg-primary-800 hover:text-white' }}">
             Departamentos
+          </a>
+          <a href="{{ url_for('users.states') }}"
+             class="flex items-center px-3 py-1.5 rounded-md text-primary-200 text-sm
+                    {{ 'bg-primary-600 text-white' if usr_state else 'hover:bg-primary-800 hover:text-white' }}">
+            Estados
           </a>
         </div>
       </div>

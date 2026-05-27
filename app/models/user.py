@@ -6,6 +6,19 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app import db
 
 
+class UnitState(db.Model):
+    __tablename__ = 'unit_states'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    name       = db.Column(db.String(100), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    users = db.relationship('User', back_populates='unit_state', lazy='dynamic')
+
+    def __repr__(self):
+        return f'<UnitState {self.name}>'
+
+
 class Department(db.Model):
     __tablename__ = 'departments'
 
@@ -34,10 +47,14 @@ class User(UserMixin, db.Model):
     status          = db.Column(db.Enum('active', 'inactive', 'blocked'), default='active')
     profile_picture = db.Column(db.String(500))
     department_id   = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'))
+    state_id        = db.Column(db.Integer, db.ForeignKey('unit_states.id', ondelete='SET NULL'))
     birth_date      = db.Column(db.Date)
 
     # Acesso Power BI
     power_bi_access = db.Column(db.Boolean, nullable=False, default=False)
+
+    # Ouvidoria — visualizar todos os estados (apenas para role='rh')
+    ouvidoria_all_states = db.Column(db.Boolean, nullable=False, default=False)
 
     # Primeiro acesso
     first_login           = db.Column(db.Boolean, default=True)
@@ -53,6 +70,7 @@ class User(UserMixin, db.Model):
 
     # Relacionamentos
     department       = db.relationship('Department', back_populates='users')
+    unit_state       = db.relationship('UnitState', back_populates='users')
     permissions      = db.relationship('Permission', back_populates='user',
                                        foreign_keys='Permission.user_id',
                                        cascade='all, delete-orphan')
@@ -68,6 +86,7 @@ class User(UserMixin, db.Model):
         db.Index('idx_users_status',     'status', 'role'),
         db.Index('idx_users_department', 'department_id', 'status'),
         db.Index('idx_users_cpf',        'cpf'),
+        db.Index('idx_users_state',      'state_id'),
     )
 
     def set_password(self, password: str) -> None:

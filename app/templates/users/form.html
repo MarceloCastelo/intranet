@@ -45,7 +45,7 @@
         {# Perfil #}
         <div>
           {{ form.role.label(class="block text-sm font-medium text-gray-700") }}
-          {{ form.role(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+          {{ form.role(id="role_field", class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
               focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
         </div>
 
@@ -60,6 +60,13 @@
         <div>
           {{ form.department_id.label(class="block text-sm font-medium text-gray-700") }}
           {{ form.department_id(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+              focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
+        </div>
+
+        {# Estado #}
+        <div>
+          {{ form.state_id.label(class="block text-sm font-medium text-gray-700") }}
+          {{ form.state_id(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
               focus:ring-primary-500 focus:border-primary-500 sm:text-sm") }}
         </div>
 
@@ -88,6 +95,27 @@
             {{ form.power_bi_access.label(class="text-sm font-medium text-blue-800") }}
             <p class="text-xs text-blue-600 mt-0.5">
               Exibe no menu lateral o link de acesso ao Business Intelligence (Power BI) da empresa.
+            </p>
+          </div>
+        </div>
+
+        {# Ouvidoria — todos os estados (apenas para perfil Adm. denúncias) #}
+        <div class="sm:col-span-2 rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 flex items-start gap-3"
+             x-data x-show="document.getElementById('role_field')?.value === 'rh'"
+             x-init="() => {
+               const roleEl = document.getElementById('role_field');
+               if (roleEl) {
+                 $el.style.display = roleEl.value === 'rh' ? '' : 'none';
+                 roleEl.addEventListener('change', () => {
+                   $el.style.display = roleEl.value === 'rh' ? '' : 'none';
+                 });
+               }
+             }">
+          {{ form.ouvidoria_all_states(class="mt-0.5 rounded border-purple-400 text-purple-600 focus:ring-purple-500") }}
+          <div>
+            {{ form.ouvidoria_all_states.label(class="text-sm font-medium text-purple-800") }}
+            <p class="text-xs text-purple-600 mt-0.5">
+              Permite que este perfil de Diretoria visualize e responda manifestações de todos os estados, sem restrição.
             </p>
           </div>
         </div>

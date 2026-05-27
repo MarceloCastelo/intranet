@@ -40,7 +40,14 @@
         <p class="font-semibold text-gray-900">{{ user.name }}</p>
         <p class="text-sm text-gray-400">{{ user.cpf_formatted }}</p>
         <p class="text-xs text-gray-400">{{ user.email }}</p>
-        <p class="mt-1 text-xs text-gray-400 capitalize">{{ user.role }}{% if user.is_admin %} · Administrador{% endif %}</p>
+        <p class="mt-1 text-xs text-gray-400 capitalize">
+          {% if user.role == 'rh' %}Diretoria
+          {% elif user.role == 'editor' %}Editor
+          {% elif user.role == 'patrimonio' %}Patrimônio
+          {% elif user.role == 'controladoria' %}Controladoria
+          {% else %}Usuário{% endif %}
+          {% if user.is_admin %} · Administrador{% endif %}
+        </p>
       </div>
 
       {# Ações #}
@@ -119,6 +126,10 @@
           <div>
             <dt class="text-gray-400">Departamento</dt>
             <dd class="font-medium text-gray-900">{{ user.department.name if user.department else '—' }}</dd>
+          </div>
+          <div>
+            <dt class="text-gray-400">Estado (unidade)</dt>
+            <dd class="font-medium text-gray-900">{{ user.unit_state.name if user.unit_state else '—' }}</dd>
           </div>
           <div>
             <dt class="text-gray-400">Data de nascimento</dt>
