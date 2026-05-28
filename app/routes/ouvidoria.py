@@ -301,16 +301,11 @@ def admin_responder(public_id: str):
 @login_required
 @ouvidoria_required
 def admin_excluir(public_id: str):
-    """Exclui permanentemente uma manifestação. Apenas is_admin ou role='rh'."""
-    if not (current_user.is_admin or current_user.role == 'rh'):
+    """Exclui permanentemente uma manifestação. Apenas is_admin=True."""
+    if not current_user.is_admin:
         abort(403)
 
     m = Manifestacao.query.filter_by(public_id=public_id).first_or_404()
-
-    # RH sem acesso a todos os estados só pode excluir do seu estado
-    if current_user.role == 'rh' and not current_user.ouvidoria_all_states:
-        if not current_user.state_id or m.state_id != current_user.state_id:
-            abort(403)
 
     db.session.delete(m)
     db.session.commit()

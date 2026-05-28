@@ -38,8 +38,9 @@
 
       <div>
         <p class="font-semibold text-gray-900">{{ current_user.name }}</p>
-        <p class="text-xs text-gray-400 mt-0.5 capitalize">
-          {{ current_user.role }}
+        <p class="text-xs text-gray-400 mt-0.5">
+          {% set _rl = {'user': 'Usuário', 'editor': 'Editor', 'rh': 'Diretoria', 'patrimonio': 'Patrimônio', 'controladoria': 'Controladoria'} %}
+          {{ _rl.get(current_user.role, current_user.role) }}
           {% if current_user.department %} · {{ current_user.department.name }}{% endif %}
         </p>
       </div>
