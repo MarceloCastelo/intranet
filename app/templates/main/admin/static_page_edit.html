@@ -1,0 +1,150 @@
+{% extends "layouts/app.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/core@2/dist/tiptap-core.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2/dist/tiptap-starter-kit.umd.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+
+  {# Cabeçalho #}
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ url_for('main.home') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+      </svg>
+    </a>
+    <div>
+      <p class="text-xs text-gray-400 uppercase tracking-wide">Página Inicial</p>
+      <h1 class="text-xl font-bold text-gray-900">{{ title }}</h1>
+    </div>
+    <div class="ml-auto">
+      <a href="{{ url_for('main.terms' if page_key == 'terms' else 'main.privacy') }}"
+         target="_blank"
+         class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-700
+                border border-gray-300 hover:border-primary-400 rounded-lg px-3 py-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638
+                   0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5
+                   12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+        </svg>
+        Visualizar página
+      </a>
+    </div>
+  </div>
+
+  {# Formulário #}
+  <form method="POST" novalidate id="page-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="bg-white rounded-lg border border-gray-200 p-5 space-y-4">
+
+      {# Toolbar do editor #}
+      <div class="flex flex-wrap gap-1 p-2 bg-gray-50 rounded border border-gray-200" id="toolbar">
+        {% for cmd, label in [
+            ('bold','N'), ('italic','I'), ('strike','S'),
+            ('heading-1','H1'), ('heading-2','H2'), ('heading-3','H3'),
+            ('bulletList','• Lista'), ('orderedList','1. Lista'),
+            ('blockquote','❝'), ('codeBlock','</>'), ('horizontalRule','—')
+        ] %}
+        <button type="button" data-cmd="{{ cmd }}"
+                class="px-2 py-1 text-xs rounded border border-gray-300 bg-white
+                       hover:bg-primary-50 hover:border-primary-300 transition-colors toolbar-btn">
+          {{ label }}
+        </button>
+        {% endfor %}
+      </div>
+
+      {# Área visível do editor #}
+      <div id="editor"
+           class="min-h-96 rounded-md border border-gray-300 p-3 text-sm
+                  focus-within:ring-2 focus-within:ring-primary-500
+                  focus-within:border-primary-500 prose prose-sm max-w-none">
+      </div>
+
+      {# Campo hidden que envia o JSON #}
+      <input type="hidden" name="content_json" id="content-json" value="{{ content_json or '' }}">
+    </div>
+
+    {# Botões #}
+    <div class="flex justify-end gap-3 mt-4">
+      <a href="{{ url_for('main.home') }}"
+         class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+        Cancelar
+      </a>
+      <button type="submit"
+              class="px-5 py-2 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700">
+        Salvar
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const { Editor } = window.tiptap || {};
+  const { StarterKit } = window.tiptapStarterKit || {};
+
+  const contentJsonEl = document.getElementById('content-json');
+
+  if (!Editor || !StarterKit) {
+    // Fallback: textarea simples
+    const editorDiv = document.getElementById('editor');
+    const ta = document.createElement('textarea');
+    ta.className = 'w-full h-96 text-sm outline-none resize-none';
+    ta.placeholder = 'Escreva o conteúdo aqui...';
+    try {
+      const parsed = JSON.parse(contentJsonEl.value || '{}');
+      ta.value = parsed?.content?.[0]?.content?.[0]?.text || '';
+    } catch(e) { ta.value = ''; }
+    editorDiv.appendChild(ta);
+    document.getElementById('page-form').addEventListener('submit', () => {
+      contentJsonEl.value = JSON.stringify({
+        type: 'doc', content: [{ type: 'paragraph',
+          content: [{ type: 'text', text: ta.value }] }]
+      });
+    });
+    return;
+  }
+
+  let initialContent = { type: 'doc', content: [{ type: 'paragraph' }] };
+  try {
+    if (contentJsonEl.value) initialContent = JSON.parse(contentJsonEl.value);
+  } catch(e) {}
+
+  const editor = new Editor({
+    element: document.getElementById('editor'),
+    extensions: [StarterKit],
+    content: initialContent,
+  });
+
+  document.getElementById('page-form').addEventListener('submit', () => {
+    contentJsonEl.value = JSON.stringify(editor.getJSON());
+  });
+
+  document.getElementById('toolbar').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-cmd]');
+    if (!btn) return;
+    const cmd = btn.dataset.cmd;
+    const chain = editor.chain().focus();
+    if (cmd === 'bold')            chain.toggleBold().run();
+    else if (cmd === 'italic')     chain.toggleItalic().run();
+    else if (cmd === 'strike')     chain.toggleStrike().run();
+    else if (cmd === 'heading-1')  chain.toggleHeading({ level: 1 }).run();
+    else if (cmd === 'heading-2')  chain.toggleHeading({ level: 2 }).run();
+    else if (cmd === 'heading-3')  chain.toggleHeading({ level: 3 }).run();
+    else if (cmd === 'bulletList')    chain.toggleBulletList().run();
+    else if (cmd === 'orderedList')   chain.toggleOrderedList().run();
+    else if (cmd === 'blockquote')    chain.toggleBlockquote().run();
+    else if (cmd === 'codeBlock')     chain.toggleCodeBlock().run();
+    else if (cmd === 'horizontalRule') chain.setHorizontalRule().run();
+  });
+})();
+</script>
+{% endblock %}

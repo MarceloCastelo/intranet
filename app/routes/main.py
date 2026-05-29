@@ -106,3 +106,53 @@ def powerbi_update_url():
     db.session.commit()
     flash('URL do Power BI atualizada com sucesso.', 'success')
     return redirect(url_for('main.powerbi'))
+
+
+# ─── Páginas estáticas públicas ───────────────────────────────────────────────
+
+@main_bp.route('/termos-de-uso')
+def terms():
+    content_json = SiteConfig.get('terms_content', '')
+    return render_template('main/terms.html', content_json=content_json)
+
+
+@main_bp.route('/politica-de-privacidade')
+def privacy():
+    content_json = SiteConfig.get('privacy_content', '')
+    return render_template('main/privacy.html', content_json=content_json)
+
+
+# ─── Administração — Página Inicial ──────────────────────────────────────────
+
+@main_bp.route('/admin/pagina-inicial/termos', methods=['GET', 'POST'])
+@login_required
+def admin_terms():
+    if not current_user.is_admin:
+        abort(403)
+    if request.method == 'POST':
+        SiteConfig.set('terms_content', request.form.get('content_json', ''))
+        db.session.commit()
+        flash('Termos de Uso atualizados com sucesso.', 'success')
+        return redirect(url_for('main.admin_terms'))
+    content_json = SiteConfig.get('terms_content', '')
+    return render_template('main/admin/static_page_edit.html',
+                           title='Termos de Uso',
+                           page_key='terms',
+                           content_json=content_json)
+
+
+@main_bp.route('/admin/pagina-inicial/privacidade', methods=['GET', 'POST'])
+@login_required
+def admin_privacy():
+    if not current_user.is_admin:
+        abort(403)
+    if request.method == 'POST':
+        SiteConfig.set('privacy_content', request.form.get('content_json', ''))
+        db.session.commit()
+        flash('Política de Privacidade atualizada com sucesso.', 'success')
+        return redirect(url_for('main.admin_privacy'))
+    content_json = SiteConfig.get('privacy_content', '')
+    return render_template('main/admin/static_page_edit.html',
+                           title='Política de Privacidade',
+                           page_key='privacy',
+                           content_json=content_json)

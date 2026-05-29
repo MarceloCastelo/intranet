@@ -1,0 +1,87 @@
+{% extends "base_auth.html" %}
+{% block title %}Termos de Uso{% endblock %}
+
+{% block body %}
+<div class="min-h-full bg-gray-50 flex flex-col">
+
+  {# Cabeçalho #}
+  <header class="bg-white border-b border-gray-200">
+    <div class="max-w-3xl mx-auto px-6 py-4 flex items-center gap-4">
+      <a href="{{ url_for('main.index') }}"
+         class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+        </svg>
+        Voltar
+      </a>
+      <span class="text-gray-300">|</span>
+      <img src="{{ url_for('static', filename='images/pedragon2_preta.png') }}"
+           alt="{{ config.APP_NAME }}" class="h-7 object-contain">
+    </div>
+  </header>
+
+  {# Conteúdo #}
+  <main class="flex-1 max-w-3xl w-full mx-auto px-6 py-10">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Termos de Uso</h1>
+
+    {% if content_json %}
+    <div id="page-content"
+         class="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+    </div>
+    {% else %}
+    <p class="text-gray-400 italic">Nenhum conteúdo publicado ainda.</p>
+    {% endif %}
+  </main>
+
+  {# Rodapé #}
+  <footer class="text-center py-4 text-xs text-gray-400 border-t border-gray-100">
+    &copy; {{ now.year if now is defined else 2026 }} {{ config.APP_NAME }}. Todos os direitos reservados.
+  </footer>
+</div>
+
+{% if content_json %}
+<script>
+(function () {
+  const raw = {{ content_json | tojson }};
+  const container = document.getElementById('page-content');
+  if (!container || !raw) return;
+
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch(e) { container.innerText = raw; return; }
+
+  function renderNode(node) {
+    if (!node) return '';
+    if (node.type === 'doc') return (node.content || []).map(renderNode).join('');
+    if (node.type === 'paragraph') {
+      const inner = (node.content || []).map(renderNode).join('') || '<br>';
+      return `<p>${inner}</p>`;
+    }
+    if (node.type === 'text') {
+      let t = node.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      (node.marks || []).forEach(m => {
+        if (m.type === 'bold')   t = `<strong>${t}</strong>`;
+        if (m.type === 'italic') t = `<em>${t}</em>`;
+        if (m.type === 'strike') t = `<s>${t}</s>`;
+        if (m.type === 'code')   t = `<code>${t}</code>`;
+      });
+      return t;
+    }
+    if (node.type === 'heading') {
+      const l = node.attrs?.level || 2;
+      return `<h${l}>${(node.content||[]).map(renderNode).join('')}</h${l}>`;
+    }
+    if (node.type === 'bulletList')  return `<ul>${(node.content||[]).map(renderNode).join('')}</ul>`;
+    if (node.type === 'orderedList') return `<ol>${(node.content||[]).map(renderNode).join('')}</ol>`;
+    if (node.type === 'listItem')    return `<li>${(node.content||[]).map(renderNode).join('')}</li>`;
+    if (node.type === 'blockquote')  return `<blockquote>${(node.content||[]).map(renderNode).join('')}</blockquote>`;
+    if (node.type === 'codeBlock')   return `<pre><code>${(node.content||[]).map(renderNode).join('')}</code></pre>`;
+    if (node.type === 'horizontalRule') return '<hr>';
+    if (node.type === 'hardBreak')   return '<br>';
+    return (node.content || []).map(renderNode).join('');
+  }
+
+  container.innerHTML = renderNode(parsed);
+})();
+</script>
+{% endif %}
+{% endblock %}
