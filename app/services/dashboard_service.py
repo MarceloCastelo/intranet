@@ -90,4 +90,5 @@ def get_dashboard_data() -> dict:
         'birthdays':       birthdays,
         'today':           today,
         'today_str':       _date_pt(today),
+        'current_month_pt': _MONTHS_PT[today.month - 1].capitalize(),
     }
