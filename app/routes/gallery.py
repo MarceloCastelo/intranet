@@ -3,7 +3,6 @@ from flask import (Blueprint, flash, redirect, render_template, request,
 from flask_login import current_user, login_required
 
 from app.forms.gallery import GalleryForm
-from app.routes.approvals import request_approval
 from app.services.gallery_service import (add_items, create_gallery,
                                            delete_gallery, delete_item,
                                            get_gallery_or_404, get_item_or_404,
@@ -37,12 +36,7 @@ def admin_index():
 def create():
     form = GalleryForm()
     if form.validate_on_submit():
-        gallery = create_gallery(form, actor_id=current_user.id, force_inactive=not current_user.is_admin)
-        if not current_user.is_admin:
-            request_approval('publish', 'gallery', gallery.id, gallery.title,
-                             requested_by_id=current_user.id)
-            flash('Galeria criada. Solicitação enviada para aprovação do administrador.', 'info')
-            return redirect(url_for('gallery.admin_index'))
+        gallery = create_gallery(form, actor_id=current_user.id)
         flash('Galeria criada. Agora adicione as imagens.', 'success')
         return redirect(url_for('gallery.upload', gallery_id=gallery.id))
     return render_template('gallery/form.html', form=form, title='Nova galeria', gallery=None)
@@ -55,15 +49,6 @@ def edit(gallery_id):
     gallery = get_gallery_or_404(gallery_id)
     form    = GalleryForm(obj=gallery)
     if form.validate_on_submit():
-        if not current_user.is_admin and gallery.is_active:
-            snapshot = {'title': form.title.data.strip(),
-                        'description': form.description.data.strip() if form.description.data else None}
-            request_approval('edit', 'gallery', gallery.id, gallery.title,
-                             requested_by_id=current_user.id, snapshot=snapshot)
-            flash('Edição enviada para aprovação do administrador.', 'info')
-            return redirect(url_for('gallery.detail', gallery_id=gallery.id))
-        if not current_user.is_admin:
-            form.is_active.data = False
         update_gallery(gallery, form)
         flash('Galeria atualizada.', 'success')
         return redirect(url_for('gallery.detail', gallery_id=gallery.id))
@@ -75,11 +60,6 @@ def edit(gallery_id):
 @editor_or_admin_required
 def delete(gallery_id):
     gallery = get_gallery_or_404(gallery_id)
-    if not current_user.is_admin:
-        request_approval('delete', 'gallery', gallery.id, gallery.title,
-                         requested_by_id=current_user.id)
-        flash('Solicitação de exclusão enviada para aprovação do administrador.', 'info')
-        return redirect(url_for('gallery.admin_index'))
     delete_gallery(gallery)
     flash('Galeria excluída.', 'success')
     return redirect(url_for('gallery.admin_index'))

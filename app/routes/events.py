@@ -5,7 +5,6 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app.forms.content import EventForm
-from app.routes.approvals import request_approval
 from app.services.content_service import (create_event, delete_event,
                                            events_for_year, get_event_or_404,
                                            list_events, update_event)
@@ -52,13 +51,8 @@ def index():
 def create():
     form = EventForm()
     if form.validate_on_submit():
-        event = create_event(form, actor_id=current_user.id, force_inactive=not current_user.is_admin)
-        if not current_user.is_admin:
-            request_approval('publish', 'event', event.id, event.title,
-                             requested_by_id=current_user.id)
-            flash('Evento criado. Solicitação enviada para aprovação do administrador.', 'info')
-        else:
-            flash('Evento criado.', 'success')
+        event = create_event(form, actor_id=current_user.id)
+        flash('Evento criado.', 'success')
         return redirect(url_for('events.index'))
     return render_template('events/form.html', form=form, title='Novo evento', event=None)
 
@@ -72,19 +66,6 @@ def edit(event_id):
     if request.method == 'GET' and event.description:
         form.description.data = event.description.get('text', '')
     if form.validate_on_submit():
-        if not current_user.is_admin and event.is_active:
-            snapshot = {
-                'title':       form.title.data.strip(),
-                'location':    form.location.data.strip() if form.location.data else None,
-                'event_date':  form.event_date.data.isoformat() if form.event_date.data else None,
-                'description': {'text': form.description.data} if form.description.data else None,
-            }
-            request_approval('edit', 'event', event.id, event.title,
-                             requested_by_id=current_user.id, snapshot=snapshot)
-            flash('Edição enviada para aprovação do administrador.', 'info')
-            return redirect(url_for('events.index'))
-        if not current_user.is_admin:
-            form.is_active.data = False
         update_event(event, form)
         flash('Evento atualizado.', 'success')
         return redirect(url_for('events.index'))
@@ -96,11 +77,6 @@ def edit(event_id):
 @editor_or_admin_required
 def delete(event_id):
     event = get_event_or_404(event_id)
-    if not current_user.is_admin:
-        request_approval('delete', 'event', event.id, event.title,
-                         requested_by_id=current_user.id)
-        flash('Solicitação de exclusão enviada para aprovação do administrador.', 'info')
-        return redirect(url_for('events.index'))
     delete_event(event)
     flash('Evento excluído.', 'success')
     return redirect(url_for('events.index'))

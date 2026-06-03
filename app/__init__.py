@@ -62,7 +62,6 @@ def create_app():
     from app.routes.audit import audit_bp
     from app.routes.ouvidoria import ouvidoria_bp
     from app.routes.modules import modules_bp
-    from app.routes.approvals import approvals_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(users_bp)
@@ -78,7 +77,6 @@ def create_app():
     app.register_blueprint(audit_bp)
     app.register_blueprint(ouvidoria_bp)
     app.register_blueprint(modules_bp)
-    app.register_blueprint(approvals_bp)
 
     # ── Injetar estado dos módulos em todos os templates ────────────────────
     @app.context_processor
@@ -90,16 +88,6 @@ def create_app():
         except Exception:
             return {'active_modules': {}}
 
-    # ── Contador de aprovações pendentes para o sidebar ─────────────────────
-    @app.context_processor
-    def inject_pending_approvals():
-        def pending_approvals_count():
-            try:
-                from app.models.approval import ContentApproval
-                return ContentApproval.query.filter_by(status='pending').count()
-            except Exception:
-                return 0
-        return {'pending_approvals_count': pending_approvals_count}
 
     # ── Proteção de rotas por módulo (non-admin → 404 se módulo desativado) ─
     # Blueprints mapeados 1:1 para chaves de módulo

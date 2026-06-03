@@ -3,7 +3,6 @@ from flask import (Blueprint, flash, jsonify, redirect, render_template,
 from flask_login import current_user, login_required
 
 from app.forms.polls import PollForm
-from app.routes.approvals import request_approval
 from app.services.poll_service import (cast_vote, create_poll, delete_poll,
                                         get_poll_or_404, list_polls,
                                         poll_results, update_poll, user_voted)
@@ -41,13 +40,8 @@ def create():
         form.options.append_entry()
 
     if form.validate_on_submit():
-        poll = create_poll(form, actor_id=current_user.id, force_inactive=not current_user.is_admin)
-        if not current_user.is_admin:
-            request_approval('publish', 'poll', poll.id, poll.question,
-                             requested_by_id=current_user.id)
-            flash('Enquete criada. Solicitação enviada para aprovação do administrador.', 'info')
-        else:
-            flash('Enquete criada.', 'success')
+        poll = create_poll(form, actor_id=current_user.id)
+        flash('Enquete criada.', 'success')
         return redirect(url_for('polls.detail', poll_id=poll.id))
     return render_template('polls/form.html', form=form, title='Nova enquete', poll=None)
 
@@ -71,17 +65,6 @@ def edit(poll_id):
             form.options.append_entry()
 
     if form.validate_on_submit():
-        if not current_user.is_admin and poll.is_active:
-            snapshot = {
-                'question':    form.question.data.strip(),
-                'description': form.description.data.strip() if form.description.data else None,
-            }
-            request_approval('edit', 'poll', poll.id, poll.question,
-                             requested_by_id=current_user.id, snapshot=snapshot)
-            flash('Edição enviada para aprovação do administrador.', 'info')
-            return redirect(url_for('polls.detail', poll_id=poll.id))
-        if not current_user.is_admin:
-            form.is_active.data = False
         update_poll(poll, form)
         flash('Enquete atualizada.', 'success')
         return redirect(url_for('polls.detail', poll_id=poll.id))
@@ -93,11 +76,6 @@ def edit(poll_id):
 @editor_or_admin_required
 def delete(poll_id):
     poll = get_poll_or_404(poll_id)
-    if not current_user.is_admin:
-        request_approval('delete', 'poll', poll.id, poll.question,
-                         requested_by_id=current_user.id)
-        flash('Solicitação de exclusão enviada para aprovação do administrador.', 'info')
-        return redirect(url_for('polls.index'))
     delete_poll(poll)
     flash('Enquete excluída.', 'success')
     return redirect(url_for('polls.index'))

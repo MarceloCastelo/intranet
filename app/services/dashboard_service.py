@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 from sqlalchemy import extract, func
+from sqlalchemy.orm import joinedload
 
 from app import cache, db
 from app.models.event import Event
@@ -41,6 +42,7 @@ def get_dashboard_data() -> dict:
     # ── Últimas 5 notícias publicadas ────────────────────────
     recent_news = (
         News.query
+        .options(joinedload(News.author))
         .filter(News.is_published == True)  # noqa: E712
         .order_by(News.published_at.desc())
         .limit(5)
