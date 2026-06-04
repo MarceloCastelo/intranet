@@ -2,8 +2,86 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block head %}
-<script src="https://cdn.jsdelivr.net/npm/@tiptap/core@2/dist/tiptap-core.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tiptap/starter-kit@2/dist/tiptap-starter-kit.umd.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css">
+<style>
+  /* ────────────────────────────────────────────────────────────
+     Toolbar completamente independente do Quill e do Tailwind.
+     Estilos definidos aqui — sem classes Tailwind nos botões —
+     para não precisar de rebuild do CSS.
+  ──────────────────────────────────────────────────────────── */
+  #editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  #editor-toolbar .tbtn {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.25;
+    color: #374151;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background-color .12s, border-color .12s, color .12s;
+  }
+  #editor-toolbar .tbtn:hover {
+    background-color: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+  }
+  #editor-toolbar .tbtn.is-active {
+    background-color: #dbeafe;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+    font-weight: 700;
+  }
+  #editor-toolbar .tsep {
+    width: 1px;
+    height: 22px;
+    background-color: #e5e7eb;
+    margin: 0 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── Tailwind Preflight fix: restaura estilos dentro da área de edição ── */
+  .ql-editor h1 { font-size: 2em;    font-weight: 700; line-height: 1.2; margin: .5em 0; }
+  .ql-editor h2 { font-size: 1.5em;  font-weight: 700; line-height: 1.3; margin: .5em 0; }
+  .ql-editor h3 { font-size: 1.17em; font-weight: 600; line-height: 1.4; margin: .4em 0; }
+  /* ── Listas: usa marcadores CSS nativos (list-style-type) em vez do
+     sistema .ql-ui::before do Quill v2, que usa position:absolute +
+     margin-left negativo — frágil com o reset do Tailwind Preflight. ── */
+  .ql-editor ol  { padding-left: 1.5em; margin: .4em 0; }
+  .ql-editor li  { list-style: none; padding-left: 0; }
+  .ql-editor li[data-list="bullet"]  { list-style-type: disc; }
+  .ql-editor li[data-list="ordered"] { list-style-type: decimal; }
+  /* Oculta o ::before do .ql-ui para evitar marcador duplo */
+  .ql-editor li > .ql-ui::before { display: none !important; }
+  .ql-editor p  { margin-bottom: .5em; }
+  .ql-editor blockquote {
+    border-left: 4px solid #d1d5db; padding-left: 1em;
+    margin: .5em 0; color: #6b7280; font-style: italic;
+  }
+  .ql-editor pre {
+    background: #f3f4f6; padding: .75em 1em;
+    border-radius: .375rem; font-family: ui-monospace, monospace;
+    white-space: pre-wrap;
+  }
+  .ql-container.ql-snow { border: none; font-size: 0.875rem; }
+  .ql-editor { min-height: 24rem; padding: .75rem; }
+  .ql-editor.ql-blank::before { color: #9ca3af; font-style: normal; }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -41,34 +119,40 @@
   <form method="POST" novalidate id="page-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="bg-white rounded-lg border border-gray-200 p-5 space-y-4">
-
-      {# Toolbar do editor #}
-      <div class="flex flex-wrap gap-1 p-2 bg-gray-50 rounded border border-gray-200" id="toolbar">
-        {% for cmd, label in [
-            ('bold','N'), ('italic','I'), ('strike','S'),
-            ('heading-1','H1'), ('heading-2','H2'), ('heading-3','H3'),
-            ('bulletList','• Lista'), ('orderedList','1. Lista'),
-            ('blockquote','❝'), ('codeBlock','</>'), ('horizontalRule','—')
-        ] %}
-        <button type="button" data-cmd="{{ cmd }}"
-                class="px-2 py-1 text-xs rounded border border-gray-300 bg-white
-                       hover:bg-primary-50 hover:border-primary-300 transition-colors toolbar-btn">
-          {{ label }}
-        </button>
-        {% endfor %}
-      </div>
-
-      {# Área visível do editor #}
-      <div id="editor"
-           class="min-h-96 rounded-md border border-gray-300 p-3 text-sm
-                  focus-within:ring-2 focus-within:ring-primary-500
-                  focus-within:border-primary-500 prose prose-sm max-w-none">
-      </div>
-
-      {# Campo hidden que envia o JSON #}
-      <input type="hidden" name="content_json" id="content-json" value="{{ content_json or '' }}">
+    {# Campo de título da página #}
+    <div class="bg-white rounded-lg border border-gray-200 p-5 mb-4">
+      <label for="page-title" class="block text-sm font-medium text-gray-700 mb-1">Título da página</label>
+      <input type="text" name="page_title" id="page-title"
+             value="{{ page_title or title }}"
+             class="block w-full rounded-md border-gray-300 shadow-sm text-sm
+                    focus:ring-primary-500 focus:border-primary-500"
+             placeholder="Ex: Termos de Uso">
     </div>
+
+    {# Editor — toolbar totalmente custom (sem módulo toolbar do Quill) #}
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div id="editor-toolbar">
+        <button type="button" class="tbtn" data-fmt="bold"                title="Negrito (Ctrl+B)"><b>N</b></button>
+        <button type="button" class="tbtn" data-fmt="italic"              title="Itálico (Ctrl+I)"><i>I</i></button>
+        <button type="button" class="tbtn" data-fmt="strike"              title="Tachado"><s>S</s></button>
+        <div class="tsep"></div>
+        <button type="button" class="tbtn" data-fmt="header" data-val="1" title="Título 1">H1</button>
+        <button type="button" class="tbtn" data-fmt="header" data-val="2" title="Título 2">H2</button>
+        <button type="button" class="tbtn" data-fmt="header" data-val="3" title="Título 3">H3</button>
+        <div class="tsep"></div>
+        <button type="button" class="tbtn" data-fmt="list" data-val="bullet"  title="Lista com marcadores">• Lista</button>
+        <button type="button" class="tbtn" data-fmt="list" data-val="ordered" title="Lista numerada">1. Lista</button>
+        <div class="tsep"></div>
+        <button type="button" class="tbtn" data-fmt="blockquote"          title="Citação">❝ Citação</button>
+        <button type="button" class="tbtn" data-fmt="code-block"          title="Bloco de código">&lt;/&gt; Código</button>
+        <div class="tsep"></div>
+        <button type="button" class="tbtn" id="tbtn-clean"                title="Limpar formatação">✕ Limpar</button>
+      </div>
+      <div id="quill-editor"></div>
+    </div>
+
+    {# Campo hidden que envia o HTML para o servidor #}
+    <input type="hidden" name="content_json" id="content-json" value="{{ content_json or '' }}">
 
     {# Botões #}
     <div class="flex justify-end gap-3 mt-4">
@@ -86,65 +170,109 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
 <script>
 (function () {
-  const { Editor } = window.tiptap || {};
-  const { StarterKit } = window.tiptapStarterKit || {};
-
-  const contentJsonEl = document.getElementById('content-json');
-
-  if (!Editor || !StarterKit) {
-    // Fallback: textarea simples
-    const editorDiv = document.getElementById('editor');
-    const ta = document.createElement('textarea');
-    ta.className = 'w-full h-96 text-sm outline-none resize-none';
-    ta.placeholder = 'Escreva o conteúdo aqui...';
-    try {
-      const parsed = JSON.parse(contentJsonEl.value || '{}');
-      ta.value = parsed?.content?.[0]?.content?.[0]?.text || '';
-    } catch(e) { ta.value = ''; }
-    editorDiv.appendChild(ta);
-    document.getElementById('page-form').addEventListener('submit', () => {
-      contentJsonEl.value = JSON.stringify({
-        type: 'doc', content: [{ type: 'paragraph',
-          content: [{ type: 'text', text: ta.value }] }]
+  /* ── Converte Tiptap JSON legado → HTML ── */
+  function tiptapToHtml(node) {
+    if (!node) return '';
+    if (node.type === 'doc') return (node.content || []).map(tiptapToHtml).join('');
+    if (node.type === 'paragraph') {
+      const inner = (node.content || []).map(tiptapToHtml).join('');
+      return `<p>${inner || '<br>'}</p>`;
+    }
+    if (node.type === 'text') {
+      let t = node.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      (node.marks || []).forEach(m => {
+        if (m.type === 'bold')   t = `<strong>${t}</strong>`;
+        if (m.type === 'italic') t = `<em>${t}</em>`;
+        if (m.type === 'strike') t = `<s>${t}</s>`;
+        if (m.type === 'code')   t = `<code>${t}</code>`;
       });
-    });
-    return;
+      return t;
+    }
+    if (node.type === 'heading') {
+      const l = node.attrs?.level || 2;
+      return `<h${l}>${(node.content||[]).map(tiptapToHtml).join('')}</h${l}>`;
+    }
+    if (node.type === 'bulletList')  return `<ul>${(node.content||[]).map(tiptapToHtml).join('')}</ul>`;
+    if (node.type === 'orderedList') return `<ol>${(node.content||[]).map(tiptapToHtml).join('')}</ol>`;
+    if (node.type === 'listItem')    return `<li>${(node.content||[]).map(tiptapToHtml).join('')}</li>`;
+    if (node.type === 'blockquote')  return `<blockquote>${(node.content||[]).map(tiptapToHtml).join('')}</blockquote>`;
+    if (node.type === 'codeBlock')   return `<pre><code>${(node.content||[]).map(tiptapToHtml).join('')}</code></pre>`;
+    if (node.type === 'horizontalRule') return '<hr>';
+    if (node.type === 'hardBreak')   return '<br>';
+    return (node.content || []).map(tiptapToHtml).join('');
   }
 
-  let initialContent = { type: 'doc', content: [{ type: 'paragraph' }] };
-  try {
-    if (contentJsonEl.value) initialContent = JSON.parse(contentJsonEl.value);
-  } catch(e) {}
-
-  const editor = new Editor({
-    element: document.getElementById('editor'),
-    extensions: [StarterKit],
-    content: initialContent,
+  /* ── Inicializa Quill SEM módulo toolbar (evita injeção de SVGs) ── */
+  const quill = new Quill('#quill-editor', {
+    theme: 'snow',
+    placeholder: 'Escreva o conteúdo aqui...',
+    modules: { toolbar: false }
   });
 
+  /* ── Carrega conteúdo salvo ── */
+  const stored = document.getElementById('content-json').value || '';
+  if (stored) {
+    let html = stored;
+    try {
+      const parsed = JSON.parse(stored);
+      if (parsed && parsed.type === 'doc') html = tiptapToHtml(parsed);
+    } catch(e) { /* já é HTML */ }
+    quill.clipboard.dangerouslyPasteHTML(html);
+  }
+
+  /* ── Sincroniza estado ativo dos botões com a seleção atual ── */
+  function syncToolbar() {
+    const fmts = quill.getFormat();
+    document.querySelectorAll('#editor-toolbar [data-fmt]').forEach(btn => {
+      const fmt = btn.dataset.fmt;
+      const val = btn.dataset.val;
+      if (val !== undefined) {
+        const cur = fmts[fmt];
+        btn.classList.toggle('is-active',
+          cur === val || cur === Number(val) || String(cur) === val);
+      } else {
+        btn.classList.toggle('is-active', !!fmts[fmt]);
+      }
+    });
+  }
+
+  /* ── Conecta os botões da toolbar ── */
+  document.querySelectorAll('#editor-toolbar [data-fmt]').forEach(btn => {
+    btn.addEventListener('mousedown', e => {
+      e.preventDefault(); // mantém foco no editor — essencial
+      const fmt = btn.dataset.fmt;
+      const val = btn.dataset.val;
+      const cur = quill.getFormat();
+      if (val !== undefined) {
+        const numVal = isNaN(val) ? val : Number(val);
+        const active = cur[fmt] === numVal || cur[fmt] === val || String(cur[fmt]) === val;
+        quill.format(fmt, active ? false : numVal);
+      } else {
+        quill.format(fmt, !cur[fmt]);
+      }
+      syncToolbar();
+    });
+  });
+
+  /* ── Botão "Limpar formatação" ── */
+  document.getElementById('tbtn-clean').addEventListener('mousedown', e => {
+    e.preventDefault();
+    const range = quill.getSelection(true);
+    if (range && range.length > 0) quill.removeFormat(range.index, range.length);
+    syncToolbar();
+  });
+
+  quill.on('selection-change', syncToolbar);
+  quill.on('text-change', syncToolbar);
+
+  /* ── Ao submeter, envia HTML semântico ── */
   document.getElementById('page-form').addEventListener('submit', () => {
-    contentJsonEl.value = JSON.stringify(editor.getJSON());
-  });
-
-  document.getElementById('toolbar').addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-cmd]');
-    if (!btn) return;
-    const cmd = btn.dataset.cmd;
-    const chain = editor.chain().focus();
-    if (cmd === 'bold')            chain.toggleBold().run();
-    else if (cmd === 'italic')     chain.toggleItalic().run();
-    else if (cmd === 'strike')     chain.toggleStrike().run();
-    else if (cmd === 'heading-1')  chain.toggleHeading({ level: 1 }).run();
-    else if (cmd === 'heading-2')  chain.toggleHeading({ level: 2 }).run();
-    else if (cmd === 'heading-3')  chain.toggleHeading({ level: 3 }).run();
-    else if (cmd === 'bulletList')    chain.toggleBulletList().run();
-    else if (cmd === 'orderedList')   chain.toggleOrderedList().run();
-    else if (cmd === 'blockquote')    chain.toggleBlockquote().run();
-    else if (cmd === 'codeBlock')     chain.toggleCodeBlock().run();
-    else if (cmd === 'horizontalRule') chain.setHorizontalRule().run();
+    document.getElementById('content-json').value = quill.getSemanticHTML();
   });
 })();
 </script>
 {% endblock %}
+

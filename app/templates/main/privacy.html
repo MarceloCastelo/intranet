@@ -1,6 +1,30 @@
 {% extends "base_auth.html" %}
 {% block title %}Política de Privacidade{% endblock %}
 
+{% block head %}
+<style>
+  .rich-content h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.2; margin: .75rem 0 .5rem; }
+  .rich-content h2 { font-size: 1.375rem; font-weight: 700; line-height: 1.3; margin: .75rem 0 .5rem; }
+  .rich-content h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.4; margin: .6rem 0 .4rem; }
+  .rich-content p  { margin-bottom: .75rem; }
+  .rich-content ul { list-style-type: disc;    padding-left: 1.5rem; margin: .5rem 0; }
+  .rich-content ol { list-style-type: decimal; padding-left: 1.5rem; margin: .5rem 0; }
+  .rich-content li { list-style: inherit; margin-bottom: .25rem; }
+  .rich-content strong { font-weight: 700; }
+  .rich-content em    { font-style: italic; }
+  .rich-content s     { text-decoration: line-through; }
+  .rich-content blockquote {
+    border-left: 4px solid #d1d5db; padding: .5rem 1rem;
+    margin: .75rem 0; color: #6b7280; font-style: italic;
+  }
+  .rich-content pre {
+    background: #f3f4f6; padding: .75rem 1rem; border-radius: .375rem;
+    font-family: monospace; font-size: .85em; overflow-x: auto; margin: .75rem 0;
+  }
+  .rich-content hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.25rem 0; }
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="min-h-full bg-gray-50 flex flex-col">
 
@@ -26,7 +50,7 @@
 
     {% if content_json %}
     <div id="page-content"
-         class="prose prose-sm max-w-none text-gray-700 leading-relaxed">
+         class="rich-content text-gray-700 leading-relaxed">
     </div>
     {% else %}
     <p class="text-gray-400 italic">Nenhum conteúdo publicado ainda.</p>
@@ -47,7 +71,7 @@
   if (!container || !raw) return;
 
   let parsed;
-  try { parsed = JSON.parse(raw); } catch(e) { container.innerText = raw; return; }
+  try { parsed = JSON.parse(raw); } catch(e) { container.innerHTML = raw; return; }
 
   function renderNode(node) {
     if (!node) return '';

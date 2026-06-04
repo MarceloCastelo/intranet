@@ -113,7 +113,8 @@ def powerbi_update_url():
 @main_bp.route('/termos-de-uso')
 def terms():
     content_json = SiteConfig.get('terms_content', '')
-    return render_template('main/terms.html', content_json=content_json)
+    page_title   = SiteConfig.get('terms_title', 'Termos de Uso')
+    return render_template('main/terms.html', content_json=content_json, page_title=page_title)
 
 
 @main_bp.route('/politica-de-privacidade')
@@ -131,13 +132,18 @@ def admin_terms():
         abort(403)
     if request.method == 'POST':
         SiteConfig.set('terms_content', request.form.get('content_json', ''))
+        new_title = request.form.get('page_title', '').strip()
+        if new_title:
+            SiteConfig.set('terms_title', new_title)
         db.session.commit()
         flash('Termos de Uso atualizados com sucesso.', 'success')
         return redirect(url_for('main.admin_terms'))
     content_json = SiteConfig.get('terms_content', '')
+    page_title   = SiteConfig.get('terms_title', 'Termos de Uso')
     return render_template('main/admin/static_page_edit.html',
                            title='Termos de Uso',
                            page_key='terms',
+                           page_title=page_title,
                            content_json=content_json)
 
 
