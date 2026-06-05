@@ -59,15 +59,44 @@
   .ql-editor h1 { font-size: 2em;    font-weight: 700; line-height: 1.2; margin: .5em 0; }
   .ql-editor h2 { font-size: 1.5em;  font-weight: 700; line-height: 1.3; margin: .5em 0; }
   .ql-editor h3 { font-size: 1.17em; font-weight: 600; line-height: 1.4; margin: .4em 0; }
-  /* ── Listas: usa marcadores CSS nativos (list-style-type) em vez do
-     sistema .ql-ui::before do Quill v2, que usa position:absolute +
-     margin-left negativo — frágil com o reset do Tailwind Preflight. ── */
-  .ql-editor ol  { padding-left: 1.5em; margin: .4em 0; }
-  .ql-editor li  { list-style: none; padding-left: 0; }
-  .ql-editor li[data-list="bullet"]  { list-style-type: disc; }
-  .ql-editor li[data-list="ordered"] { list-style-type: decimal; }
-  /* Oculta o ::before do .ql-ui para evitar marcador duplo */
-  .ql-editor li > .ql-ui::before { display: none !important; }
+  /* ── Listas ── */
+  .ql-editor ul { padding-left: 1.5em; margin: .4em 0; }
+  .ql-editor ol { padding-left: 0; margin: .4em 0; counter-reset: ql-l1 ql-l2 ql-l3; }
+  .ql-editor li { display: list-item; }
+  /* Bullet: marcador CSS nativo */
+  .ql-editor li[data-list="bullet"] { list-style-type: disc; padding-left: 0; }
+  /* Ordenado: CSS counters (Quill não suporta sub-numeração nativa) */
+  .ql-editor li[data-list="ordered"] { list-style: none; }
+  /* Oculta o span .ql-ui do Quill — usamos ::before com counter */
+  .ql-editor li[data-list="ordered"] > .ql-ui { display: none !important; }
+  .ql-editor li[data-list="bullet"] > .ql-ui::before { display: none !important; }
+  /* Nível 0 */
+  .ql-editor li[data-list="ordered"]:not([class*="ql-indent"]) {
+    counter-increment: ql-l1; counter-reset: ql-l2;
+    padding-left: 2em;
+  }
+  .ql-editor li[data-list="ordered"]:not([class*="ql-indent"])::before {
+    content: counter(ql-l1) ".";
+    display: inline-block; width: 2em; margin-left: -2em;
+  }
+  /* Nível 1 (Tab) → 1.1, 1.2 */
+  .ql-editor li[data-list="ordered"].ql-indent-1 {
+    counter-increment: ql-l2; counter-reset: ql-l3;
+    padding-left: 4.5em;
+  }
+  .ql-editor li[data-list="ordered"].ql-indent-1::before {
+    content: counter(ql-l1) "." counter(ql-l2);
+    display: inline-block; width: 2.5em; margin-left: -2.5em;
+  }
+  /* Nível 2 (Tab Tab) → 1.1.1 */
+  .ql-editor li[data-list="ordered"].ql-indent-2 {
+    counter-increment: ql-l3;
+    padding-left: 7em;
+  }
+  .ql-editor li[data-list="ordered"].ql-indent-2::before {
+    content: counter(ql-l1) "." counter(ql-l2) "." counter(ql-l3);
+    display: inline-block; width: 3em; margin-left: -3em;
+  }
   .ql-editor p  { margin-bottom: .5em; }
   .ql-editor blockquote {
     border-left: 4px solid #d1d5db; padding-left: 1em;
@@ -142,6 +171,8 @@
         <div class="tsep"></div>
         <button type="button" class="tbtn" data-fmt="list" data-val="bullet"  title="Lista com marcadores">• Lista</button>
         <button type="button" class="tbtn" data-fmt="list" data-val="ordered" title="Lista numerada">1. Lista</button>
+        <button type="button" class="tbtn" id="tbtn-indent-out" title="Diminuir recuo (Shift+Tab)">⇤</button>
+        <button type="button" class="tbtn" id="tbtn-indent-in"  title="Aumentar recuo (Tab)">⇥</button>
         <div class="tsep"></div>
         <button type="button" class="tbtn" data-fmt="blockquote"          title="Citação">❝ Citação</button>
         <button type="button" class="tbtn" data-fmt="code-block"          title="Bloco de código">&lt;/&gt; Código</button>
@@ -257,6 +288,22 @@
       }
       syncToolbar();
     });
+  });
+
+  /* ── Botões de recuo ── */
+  document.getElementById('tbtn-indent-in').addEventListener('mousedown', e => {
+    e.preventDefault();
+    const cur = quill.getFormat();
+    const level = (cur.indent || 0) + 1;
+    quill.format('indent', level);
+    syncToolbar();
+  });
+  document.getElementById('tbtn-indent-out').addEventListener('mousedown', e => {
+    e.preventDefault();
+    const cur = quill.getFormat();
+    const level = Math.max(0, (cur.indent || 0) - 1);
+    quill.format('indent', level || false);
+    syncToolbar();
   });
 
   /* ── Botão "Limpar formatação" ── */

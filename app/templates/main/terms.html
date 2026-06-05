@@ -3,14 +3,49 @@
 
 {% block head %}
 <style>
-  .rich-content { overflow-wrap: break-word; word-break: break-word; max-width: 100%; }
+  .rich-content { overflow-wrap: break-word; word-break: normal; max-width: 100%; }
   .rich-content h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.2; margin: .75rem 0 .5rem; }
   .rich-content h2 { font-size: 1.375rem; font-weight: 700; line-height: 1.3; margin: .75rem 0 .5rem; }
   .rich-content h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.4; margin: .6rem 0 .4rem; }
   .rich-content p  { margin-bottom: .75rem; }
-  .rich-content ul { list-style-type: disc;    padding-left: 1.5rem; margin: .5rem 0; }
-  .rich-content ol { list-style-type: decimal; padding-left: 1.5rem; margin: .5rem 0; }
-  .rich-content li { list-style: inherit; margin-bottom: .25rem; }
+  /* ── Bullet list ── */
+  .rich-content ul { list-style-type: disc; padding-left: 1.5rem; margin: .5rem 0; }
+  .rich-content ul > li { display: list-item; list-style-type: disc; margin-bottom: .25rem; }
+  /* ── Numbered list com sub-numeração automática ── */
+  .rich-content ol { list-style: none; counter-reset: rc-l1; padding-left: 2rem; margin: .5rem 0; }
+  .rich-content ol > li {
+    display: list-item; list-style: none;
+    counter-increment: rc-l1; counter-reset: rc-l2;
+    margin-bottom: .25rem; position: relative;
+  }
+  .rich-content ol > li::before {
+    content: counter(rc-l1) ".";
+    position: absolute; left: -2rem; width: 1.75rem;
+  }
+  /* Nível 2 (sub-lista aninhada) */
+  .rich-content ol ol { counter-reset: rc-l2; padding-left: 2.5rem; margin: .15rem 0; }
+  .rich-content ol ol > li { counter-increment: rc-l2; counter-reset: rc-l3; }
+  .rich-content ol ol > li::before {
+    content: counter(rc-l1) "." counter(rc-l2);
+    left: -2.5rem; width: 2.25rem;
+  }
+  /* Nível 3 */
+  .rich-content ol ol ol { counter-reset: rc-l3; padding-left: 3rem; }
+  .rich-content ol ol ol > li { counter-increment: rc-l3; }
+  .rich-content ol ol ol > li::before {
+    content: counter(rc-l1) "." counter(rc-l2) "." counter(rc-l3);
+    left: -3rem; width: 2.75rem;
+  }
+  /* Fallback: ql-indent-N em lista plana (caso getSemanticHTML não aninhe) */
+  .rich-content ol > li.ql-indent-1 {
+    counter-increment: rc-l2; padding-left: 2.5rem;
+  }
+  .rich-content ol > li.ql-indent-1::before {
+    content: counter(rc-l1) "." counter(rc-l2);
+    left: -2.5rem; width: 2.25rem;
+  }
+  .rich-content li > p { margin-bottom: .15rem; }
+  .rich-content li > p:last-child { margin-bottom: 0; }
   .rich-content strong { font-weight: 700; }
   .rich-content em    { font-style: italic; }
   .rich-content s     { text-decoration: line-through; }
@@ -98,7 +133,13 @@
         if (node.type==='heading') { const l=node.attrs?.level||2; return `<h${l}>${(node.content||[]).map(renderNode).join('')}</h${l}>`; }
         if (node.type==='bulletList')  return `<ul>${(node.content||[]).map(renderNode).join('')}</ul>`;
         if (node.type==='orderedList') return `<ol>${(node.content||[]).map(renderNode).join('')}</ol>`;
-        if (node.type==='listItem')    return `<li>${(node.content||[]).map(renderNode).join('')}</li>`;
+        if (node.type==='listItem') {
+          const ch = node.content || [];
+          if (ch.length === 1 && ch[0].type === 'paragraph') {
+            return `<li>${(ch[0].content||[]).map(renderNode).join('')}</li>`;
+          }
+          return `<li>${ch.map(renderNode).join('')}</li>`;
+        }
         if (node.type==='blockquote')  return `<blockquote>${(node.content||[]).map(renderNode).join('')}</blockquote>`;
         if (node.type==='codeBlock')   return `<pre><code>${(node.content||[]).map(renderNode).join('')}</code></pre>`;
         if (node.type==='horizontalRule') return '<hr>';
