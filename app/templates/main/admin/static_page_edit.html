@@ -225,7 +225,9 @@
 
   /* ── Sincroniza estado ativo dos botões com a seleção atual ── */
   function syncToolbar() {
-    const fmts = quill.getFormat();
+    // Usa getSelection() (não rouba foco) antes de chamar getFormat()
+    const range = quill.getSelection();
+    const fmts  = range != null ? quill.getFormat(range) : {};
     document.querySelectorAll('#editor-toolbar [data-fmt]').forEach(btn => {
       const fmt = btn.dataset.fmt;
       const val = btn.dataset.val;

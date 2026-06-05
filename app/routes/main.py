@@ -120,7 +120,8 @@ def terms():
 @main_bp.route('/politica-de-privacidade')
 def privacy():
     content_json = SiteConfig.get('privacy_content', '')
-    return render_template('main/privacy.html', content_json=content_json)
+    page_title   = SiteConfig.get('privacy_title', 'Política de Privacidade')
+    return render_template('main/privacy.html', content_json=content_json, page_title=page_title)
 
 
 # ─── Administração — Página Inicial ──────────────────────────────────────────
@@ -154,11 +155,16 @@ def admin_privacy():
         abort(403)
     if request.method == 'POST':
         SiteConfig.set('privacy_content', request.form.get('content_json', ''))
+        new_title = request.form.get('page_title', '').strip()
+        if new_title:
+            SiteConfig.set('privacy_title', new_title)
         db.session.commit()
         flash('Política de Privacidade atualizada com sucesso.', 'success')
         return redirect(url_for('main.admin_privacy'))
     content_json = SiteConfig.get('privacy_content', '')
+    page_title   = SiteConfig.get('privacy_title', 'Política de Privacidade')
     return render_template('main/admin/static_page_edit.html',
                            title='Política de Privacidade',
                            page_key='privacy',
+                           page_title=page_title,
                            content_json=content_json)
