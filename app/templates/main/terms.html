@@ -1,6 +1,35 @@
 {% extends "base_auth.html" %}
 {% block title %}{{ page_title or 'Termos de Uso' }}{% endblock %}
 
+{% block head %}
+<style>
+  .rich-content { overflow-wrap: break-word; word-break: break-word; max-width: 100%; }
+  .rich-content h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.2; margin: .75rem 0 .5rem; }
+  .rich-content h2 { font-size: 1.375rem; font-weight: 700; line-height: 1.3; margin: .75rem 0 .5rem; }
+  .rich-content h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.4; margin: .6rem 0 .4rem; }
+  .rich-content p  { margin-bottom: .75rem; }
+  .rich-content ul { list-style-type: disc;    padding-left: 1.5rem; margin: .5rem 0; }
+  .rich-content ol { list-style-type: decimal; padding-left: 1.5rem; margin: .5rem 0; }
+  .rich-content li { list-style: inherit; margin-bottom: .25rem; }
+  .rich-content strong { font-weight: 700; }
+  .rich-content em    { font-style: italic; }
+  .rich-content s     { text-decoration: line-through; }
+  .rich-content blockquote {
+    border-left: 4px solid #d1d5db;
+    padding-left: 1rem; margin: .75rem 0;
+    color: #6b7280; font-style: italic;
+  }
+  .rich-content pre {
+    background: #f3f4f6; padding: .75rem 1rem;
+    border-radius: .375rem;
+    font-family: ui-monospace, monospace;
+    font-size: .875rem; white-space: pre-wrap;
+    margin: .75rem 0;
+  }
+  .rich-content hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.25rem 0; }
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="min-h-full bg-gray-50 flex flex-col">
 
@@ -38,33 +67,6 @@
     &copy; {{ now.year if now is defined else 2026 }} {{ config.APP_NAME }}. Todos os direitos reservados.
   </footer>
 </div>
-
-{# Corrige o reset do Tailwind Preflight para o conteúdo rico #}
-<style>
-  .rich-content h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.2; margin: .75rem 0 .5rem; }
-  .rich-content h2 { font-size: 1.375rem; font-weight: 700; line-height: 1.3; margin: .75rem 0 .5rem; }
-  .rich-content h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.4; margin: .6rem 0 .4rem; }
-  .rich-content p  { margin-bottom: .75rem; }
-  .rich-content ul { list-style-type: disc;    padding-left: 1.5rem; margin: .5rem 0; }
-  .rich-content ol { list-style-type: decimal; padding-left: 1.5rem; margin: .5rem 0; }
-  .rich-content li { list-style: inherit; margin-bottom: .25rem; }
-  .rich-content strong { font-weight: 700; }
-  .rich-content em    { font-style: italic; }
-  .rich-content s     { text-decoration: line-through; }
-  .rich-content blockquote {
-    border-left: 4px solid #d1d5db;
-    padding-left: 1rem; margin: .75rem 0;
-    color: #6b7280; font-style: italic;
-  }
-  .rich-content pre {
-    background: #f3f4f6; padding: .75rem 1rem;
-    border-radius: .375rem;
-    font-family: ui-monospace, monospace;
-    font-size: .875rem; white-space: pre-wrap;
-    margin: .75rem 0;
-  }
-  .rich-content hr { border: none; border-top: 1px solid #e5e7eb; margin: 1.25rem 0; }
-</style>
 
 {% if content_json %}
 <script>
