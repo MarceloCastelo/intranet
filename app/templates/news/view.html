@@ -1,13 +1,90 @@
 {% extends "layouts/app.html" %}
 {% block title %}{{ news.title }}{% endblock %}
 
+{% block head %}
+<style>
+  /* ── Conteúdo do artigo ──────────────────────────────────────── */
+  #article-content {
+    line-height: 1.8;
+    color: #1f2937;
+    font-size: 1rem;
+    /* Impede scroll lateral por palavras longas, URLs ou código */
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+  /* Garante que nenhum elemento filho vaze para fora */
+  #article-content * { max-width: 100%; box-sizing: border-box; }
+  #article-content img { height: auto; cursor: zoom-in; }
+
+  #article-content h1 { font-size: 1.875rem; font-weight: 700; line-height: 1.2; margin: 1.25em 0 .5em; }
+  #article-content h2 { font-size: 1.5rem;   font-weight: 700; line-height: 1.3; margin: 1em 0 .5em; }
+  #article-content h3 { font-size: 1.25rem;  font-weight: 600; line-height: 1.4; margin: .875em 0 .4em; }
+  #article-content p  { margin-bottom: .875em; }
+  #article-content ul { list-style-type: disc;    padding-left: 1.75em; margin: .25em 0 .875em; }
+  #article-content ol { list-style-type: decimal; padding-left: 1.75em; margin: .25em 0 .875em; }
+  #article-content li { margin-bottom: .3em; }
+  #article-content strong, #article-content b { font-weight: 700; }
+  #article-content em,     #article-content i { font-style: italic; }
+  #article-content s { text-decoration: line-through; }
+  #article-content a { color: #2563eb; text-decoration: underline; }
+  #article-content a:hover { color: #1d4ed8; }
+  #article-content blockquote {
+    border-left: 4px solid #e5e7eb; padding-left: 1em;
+    color: #6b7280; font-style: italic; margin: .875em 0;
+  }
+  #article-content pre {
+    background: #f3f4f6; padding: .875em 1.25em; border-radius: .375rem;
+    font-family: ui-monospace, monospace; font-size: .875em;
+    white-space: pre-wrap; word-break: break-all;
+    overflow-x: auto; margin: .875em 0;
+  }
+  #article-content code:not(pre code) {
+    background: #f3f4f6; padding: .15em .4em; border-radius: .25rem;
+    font-family: ui-monospace, monospace; font-size: .875em;
+  }
+  #article-content hr { border: 0; border-top: 1px solid #e5e7eb; margin: 1.5em 0; }
+
+  /* ── Imagem de destaque clicável ─────────────────────────────── */
+  .feat-img { cursor: zoom-in; transition: opacity .18s; display: block; }
+  .feat-img:hover { opacity: .88; }
+
+  /* ── Lightbox ────────────────────────────────────────────────── */
+  #lightbox {
+    display: none;
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,.9);
+    align-items: center; justify-content: center;
+    cursor: zoom-out;
+    padding: 12px;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox-img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+    cursor: default;
+    box-shadow: 0 30px 60px rgba(0,0,0,.6);
+  }
+  #lightbox-close {
+    position: fixed; top: 14px; right: 18px;
+    font-size: 2rem; line-height: 1; color: #fff;
+    background: none; border: none; cursor: pointer;
+    opacity: .7; transition: opacity .15s;
+  }
+  #lightbox-close:hover { opacity: 1; }
+</style>
+{% endblock %}
+
 {% block content %}
-<article class="max-w-3xl mx-auto">
+<article class="max-w-3xl mx-auto" style="overflow-x:hidden;">
 
   {# Imagem de destaque #}
   {% if news.featured_image %}
     <img src="{{ news.featured_image }}" alt="{{ news.title }}"
-         class="w-full rounded-lg object-cover max-h-80 mb-6">
+         class="feat-img mx-auto rounded-lg mb-6"
+         style="max-width:100%; max-height:480px; width:auto; height:auto;">
   {% endif %}
 
   {# Categorias #}
@@ -49,7 +126,7 @@
   </div>
 
   {# Conteúdo #}
-  <div class="prose prose-lg max-w-none text-gray-800" id="article-content"></div>
+  <div id="article-content"></div>
 
   {# Tags #}
   {% if news.tags %}
@@ -75,47 +152,89 @@
   {% endwith %}
 
 </article>
+
+{# Lightbox #}
+<div id="lightbox">
+  <button id="lightbox-close" type="button" aria-label="Fechar">&times;</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function () {
-  const raw = {{ news.content_json | tojson }};
+  // ── Renderiza conteúdo ────────────────────────────────────────────
+  const raw       = {{ news.content_json | tojson }};
   const container = document.getElementById('article-content');
   if (!container || !raw) return;
 
-  function renderNode(node) {
-    if (!node) return '';
-    if (node.type === 'doc') return (node.content || []).map(renderNode).join('');
-    if (node.type === 'paragraph') {
-      const inner = (node.content || []).map(renderNode).join('') || '<br>';
-      return `<p>${inner}</p>`;
+  if (raw.type === 'html') {
+    container.innerHTML = raw.content || '';
+  } else {
+    function renderNode(node) {
+      if (!node) return '';
+      if (node.type === 'doc') return (node.content || []).map(renderNode).join('');
+      if (node.type === 'paragraph') {
+        const inner = (node.content || []).map(renderNode).join('') || '<br>';
+        return `<p>${inner}</p>`;
+      }
+      if (node.type === 'text') {
+        let t = node.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        (node.marks || []).forEach(m => {
+          if (m.type === 'bold')   t = `<strong>${t}</strong>`;
+          if (m.type === 'italic') t = `<em>${t}</em>`;
+          if (m.type === 'strike') t = `<s>${t}</s>`;
+          if (m.type === 'code')   t = `<code>${t}</code>`;
+        });
+        return t;
+      }
+      if (node.type === 'heading') {
+        const l = node.attrs?.level || 2;
+        return `<h${l}>${(node.content||[]).map(renderNode).join('')}</h${l}>`;
+      }
+      if (node.type === 'bulletList')  return `<ul>${(node.content||[]).map(renderNode).join('')}</ul>`;
+      if (node.type === 'orderedList') return `<ol>${(node.content||[]).map(renderNode).join('')}</ol>`;
+      if (node.type === 'listItem')    return `<li>${(node.content||[]).map(renderNode).join('')}</li>`;
+      if (node.type === 'blockquote')  return `<blockquote>${(node.content||[]).map(renderNode).join('')}</blockquote>`;
+      if (node.type === 'codeBlock')   return `<pre><code>${(node.content||[]).map(renderNode).join('')}</code></pre>`;
+      if (node.type === 'horizontalRule') return '<hr>';
+      if (node.type === 'hardBreak')   return '<br>';
+      return (node.content || []).map(renderNode).join('');
     }
-    if (node.type === 'text') {
-      let t = node.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      (node.marks || []).forEach(m => {
-        if (m.type === 'bold')   t = `<strong>${t}</strong>`;
-        if (m.type === 'italic') t = `<em>${t}</em>`;
-        if (m.type === 'strike') t = `<s>${t}</s>`;
-        if (m.type === 'code')   t = `<code>${t}</code>`;
-      });
-      return t;
-    }
-    if (node.type === 'heading') {
-      const l = node.attrs?.level || 2;
-      return `<h${l}>${(node.content||[]).map(renderNode).join('')}</h${l}>`;
-    }
-    if (node.type === 'bulletList')  return `<ul>${(node.content||[]).map(renderNode).join('')}</ul>`;
-    if (node.type === 'orderedList') return `<ol>${(node.content||[]).map(renderNode).join('')}</ol>`;
-    if (node.type === 'listItem')    return `<li>${(node.content||[]).map(renderNode).join('')}</li>`;
-    if (node.type === 'blockquote')  return `<blockquote>${(node.content||[]).map(renderNode).join('')}</blockquote>`;
-    if (node.type === 'codeBlock')   return `<pre><code>${(node.content||[]).map(renderNode).join('')}</code></pre>`;
-    if (node.type === 'horizontalRule') return '<hr>';
-    if (node.type === 'hardBreak')   return '<br>';
-    return (node.content || []).map(renderNode).join('');
+    container.innerHTML = renderNode(raw);
   }
 
-  container.innerHTML = renderNode(raw);
+  // ── Lightbox ──────────────────────────────────────────────────────
+  const lb     = document.getElementById('lightbox');
+  const lbImg  = document.getElementById('lightbox-img');
+
+  function openLightbox(src, alt) {
+    lbImg.src = src;
+    lbImg.alt = alt || '';
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+
+  // Imagem de destaque
+  document.querySelectorAll('.feat-img').forEach(img => {
+    img.addEventListener('click', () => openLightbox(img.src, img.alt));
+  });
+
+  // Imagens dentro do conteúdo (innerHTML já foi definido acima)
+  container.querySelectorAll('img').forEach(img => {
+    img.addEventListener('click', () => openLightbox(img.src, img.alt));
+  });
+
+  // Fechar
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+  lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 })();
 </script>
 {% endblock %}

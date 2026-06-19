@@ -30,7 +30,8 @@
 
       {% if news.featured_image %}
         <img src="{{ news.featured_image }}" alt="{{ news.title }}"
-             class="w-full rounded-lg object-cover max-h-64">
+             class="block mx-auto rounded-lg"
+             style="max-width:100%; max-height:360px; width:auto; height:auto;">
       {% endif %}
 
       <div class="bg-white rounded-lg border border-gray-200 p-5">
@@ -132,11 +133,15 @@
 
 {% block scripts %}
 <script>
-// Renderiza o JSON do Tiptap como HTML simples para preview
 (function () {
   const raw = {{ news.content_json | tojson }};
   const container = document.getElementById('content-preview');
   if (!container || !raw) return;
+
+  if (raw.type === 'html') {
+    container.innerHTML = raw.content || '';
+    return;
+  }
 
   function renderNode(node) {
     if (!node) return '';

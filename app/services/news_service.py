@@ -101,18 +101,18 @@ def create_news(form, author_id: int, force_draft: bool = False) -> News:
         else form.title.data
     slug = _unique_slug(slug)
 
-    # content_json pode vir como string JSON do editor
+    content_raw = form.content_json.data or ''
     try:
-        content = json.loads(form.content_json.data)
+        content = json.loads(content_raw)
     except (json.JSONDecodeError, TypeError):
-        content = {"type": "doc", "content": [{"type": "paragraph",
-                    "content": [{"type": "text", "text": form.content_json.data or ''}]}]}
+        content = {"type": "html", "content": content_raw}
 
     news = News(
         title=form.title.data.strip(),
         slug=slug,
         summary=form.summary.data.strip() if form.summary.data else None,
         content_json=content,
+        featured_image_size=form.featured_image_size.data or 'banner',
         author_id=author_id,
     )
 
@@ -153,11 +153,13 @@ def update_news(news: News, form, actor_id: int) -> News:
 
     news.summary = form.summary.data.strip() if form.summary.data else None
 
+    content_raw = form.content_json.data or ''
     try:
-        news.content_json = json.loads(form.content_json.data)
+        news.content_json = json.loads(content_raw)
     except (json.JSONDecodeError, TypeError):
-        news.content_json = {"type": "doc", "content": [{"type": "paragraph",
-                              "content": [{"type": "text", "text": form.content_json.data or ''}]}]}
+        news.content_json = {"type": "html", "content": content_raw}
+
+    news.featured_image_size = form.featured_image_size.data or 'banner'
 
     image = _save_featured_image(form.featured_image.data)
     if image:

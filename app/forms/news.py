@@ -2,7 +2,7 @@ import re
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField
-from wtforms import (BooleanField, SelectMultipleField, StringField,
+from wtforms import (BooleanField, HiddenField, SelectMultipleField, StringField,
                      SubmitField, TextAreaField, widgets)
 from wtforms.validators import DataRequired, Length, Optional
 
@@ -48,6 +48,7 @@ class NewsForm(FlaskForm):
         'Imagem de destaque',
         validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'webp'], 'Imagens apenas.')],
     )
+    featured_image_size = HiddenField('Tamanho da imagem', default='banner')
     categories = MultiCheckboxField('Categorias', coerce=int)
     tags_input = StringField(
         'Tags',
