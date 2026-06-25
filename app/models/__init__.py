@@ -4,7 +4,7 @@ from app.models.user import (
 )
 from app.models.news import (
     News, Category, Tag, news_categories, news_tags,
-    NewsView, Comment, Reaction,
+    NewsView, NewsPdf, Comment, Reaction,
 )
 from app.models.content import (
     Banner, FaqCategory, Faq,
@@ -31,7 +31,7 @@ __all__ = [
     'UserToken', 'TwoFactorLog', 'Session',
     # news
     'News', 'Category', 'Tag', 'news_categories', 'news_tags',
-    'NewsView', 'Comment', 'Reaction',
+    'NewsView', 'NewsPdf', 'Comment', 'Reaction',
     # content
     'Banner', 'FaqCategory', 'Faq',
     'Poll', 'PollOption', 'PollVote',

@@ -59,6 +59,15 @@ class NewsForm(FlaskForm):
     submit = SubmitField('Salvar')
 
 
+class NewsPdfForm(FlaskForm):
+    title = StringField(
+        'Título',
+        validators=[DataRequired(), Length(max=255)],
+    )
+    is_published = BooleanField('Publicar imediatamente')
+    submit = SubmitField('Publicar')
+
+
 class CategoryForm(FlaskForm):
     name = StringField('Nome', validators=[DataRequired(), Length(max=100)])
     slug = StringField('Slug', validators=[Optional(), Length(max=100)])

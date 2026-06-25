@@ -1,12 +1,13 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from app.forms.news import CategoryForm, NewsForm
+from app.forms.news import CategoryForm, NewsForm, NewsPdfForm
 from app.services.news_service import (all_categories, create_category,
-                                        create_news, delete_news,
-                                        get_news_or_404, list_news,
-                                        record_view, toggle_publish,
-                                        update_news)
+                                        create_news, create_pdf_news,
+                                        delete_news, get_news_or_404,
+                                        list_news, record_view,
+                                        toggle_publish, update_news,
+                                        update_pdf_news)
 from app.utils.decorators import editor_or_admin_required
 
 news_bp = Blueprint('news', __name__, url_prefix='/noticias')
@@ -55,6 +56,24 @@ def create():
                            categories=cats, news=None)
 
 
+# ── Criar (PDF) ───────────────────────────────────────────────────────────────
+
+@news_bp.route('/admin/criar-pdf', methods=['GET', 'POST'])
+@login_required
+@editor_or_admin_required
+def create_pdf():
+    form = NewsPdfForm()
+    if form.validate_on_submit():
+        pdf_files = request.files.getlist('pdfs')
+        if not any(f.filename for f in pdf_files):
+            flash('Adicione pelo menos um arquivo PDF.', 'warning')
+        else:
+            news = create_pdf_news(form, pdf_files, author_id=current_user.id)
+            flash('Notícia PDF criada com sucesso.', 'success')
+            return redirect(url_for('news.detail_admin', news_id=news.id))
+    return render_template('news/pdf_form.html', form=form, title='Nova notícia PDF')
+
+
 # ── Editar ────────────────────────────────────────────────────────────────────
 
 @news_bp.route('/admin/<int:news_id>/editar', methods=['GET', 'POST'])
@@ -78,6 +97,36 @@ def edit(news_id):
 
     return render_template('news/form.html', form=form, title='Editar notícia',
                            categories=cats, news=news)
+
+
+# ── Editar (PDF) ──────────────────────────────────────────────────────────────
+
+@news_bp.route('/admin/<int:news_id>/editar-pdf', methods=['GET', 'POST'])
+@login_required
+@editor_or_admin_required
+def edit_pdf(news_id):
+    news = get_news_or_404(news_id)
+    if news.news_type != 'pdf':
+        return redirect(url_for('news.edit', news_id=news_id))
+
+    form = NewsPdfForm(obj=news)
+    if request.method == 'GET':
+        form.is_published.data = news.is_published
+
+    if form.validate_on_submit():
+        new_pdf_files = request.files.getlist('pdfs')
+        remove_ids = request.form.getlist('remove_pdf_ids', type=int)
+        remaining = len(news.pdfs) - len(remove_ids)
+        has_new = any(f.filename for f in new_pdf_files)
+        if remaining <= 0 and not has_new:
+            flash('A notícia precisa ter pelo menos um PDF.', 'warning')
+        else:
+            update_pdf_news(news, form, new_pdf_files, remove_ids, actor_id=current_user.id)
+            flash('Notícia PDF atualizada.', 'success')
+            return redirect(url_for('news.detail_admin', news_id=news.id))
+
+    return render_template('news/pdf_edit_form.html', form=form,
+                           title='Editar notícia PDF', news=news)
 
 
 # ── Detalhe (painel) ──────────────────────────────────────────────────────────

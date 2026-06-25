@@ -14,6 +14,7 @@ from app.models.audit import AuditLog
 from app.models.news import Category, News, Tag
 
 _ALLOWED_IMAGE_EXTS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+_ALLOWED_PDF_EXTS  = {'pdf'}
 
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
@@ -55,6 +56,60 @@ def _save_featured_image(file_storage) -> str | None:
     img.thumbnail((1200, 800))
     img.save(path, optimize=True, quality=85)
     return f'/uploads/news/{filename}'
+
+
+def _save_pdf(file_storage) -> tuple:
+    """Salva PDF em disco e retorna (filename, original_name, thumbnail_path)."""
+    if not file_storage or not file_storage.filename:
+        return None, None, None
+    ext = os.path.splitext(file_storage.filename)[1].lstrip('.').lower()
+    if ext not in _ALLOWED_PDF_EXTS:
+        raise BadRequest(f'Tipo de arquivo não permitido: .{ext}')
+    original_name = file_storage.filename
+    upload_dir = os.path.join(current_app.root_path, '..', 'uploads', 'news', 'pdfs')
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f"{uuid.uuid4().hex}.pdf"
+    pdf_path = os.path.join(upload_dir, filename)
+    file_storage.save(pdf_path)
+
+    thumbnail_url = _generate_pdf_thumbnail(pdf_path)
+    return filename, original_name, thumbnail_url
+
+
+def _generate_pdf_thumbnail(pdf_path: str) -> str | None:
+    """Renderiza a primeira página do PDF como JPEG e retorna a URL pública."""
+    try:
+        import fitz  # PyMuPDF
+        doc = fitz.open(pdf_path)
+        page = doc.load_page(0)
+        mat = fitz.Matrix(1.5, 1.5)  # 108 DPI (72 × 1.5)
+        pix = page.get_pixmap(matrix=mat, alpha=False)
+        doc.close()
+
+        img_dir = os.path.join(current_app.root_path, '..', 'uploads', 'news')
+        os.makedirs(img_dir, exist_ok=True)
+        img_filename = f"{uuid.uuid4().hex}.jpg"
+        img_path = os.path.join(img_dir, img_filename)
+
+        from PIL import Image as PILImage
+        import io
+        img = PILImage.open(io.BytesIO(pix.tobytes("jpeg")))
+        img.thumbnail((800, 1000))
+        img.save(img_path, format='JPEG', optimize=True, quality=82)
+        return f'/uploads/news/{img_filename}'
+    except Exception:
+        return None
+
+
+def _delete_pdf_file(filename: str) -> None:
+    if not filename:
+        return
+    path = os.path.join(current_app.root_path, '..', 'uploads', 'news', 'pdfs', filename)
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+    except OSError:
+        pass
 
 
 def _sync_tags(raw: str) -> list:
@@ -189,7 +244,112 @@ def update_news(news: News, form, actor_id: int) -> News:
     return news
 
 
+def create_pdf_news(form, pdf_files: list, author_id: int) -> News:
+    from app.models.news import NewsPdf
+    slug = _unique_slug(form.title.data)
+
+    news = News(
+        title=form.title.data.strip(),
+        slug=slug,
+        content_json={'type': 'pdf_news'},
+        news_type='pdf',
+        author_id=author_id,
+    )
+
+    if form.is_published.data:
+        news.is_published = True
+        news.published_at = datetime.utcnow()
+
+    db.session.add(news)
+    db.session.flush()
+
+    first_thumbnail = None
+    for fs in pdf_files:
+        filename, original_name, thumbnail_url = _save_pdf(fs)
+        if filename:
+            if first_thumbnail is None and thumbnail_url:
+                first_thumbnail = thumbnail_url
+            db.session.add(NewsPdf(
+                news_id=news.id,
+                filename=filename,
+                original_name=original_name,
+                file_path=f'/uploads/news/pdfs/{filename}',
+            ))
+
+    if first_thumbnail:
+        news.featured_image = first_thumbnail
+
+    db.session.add(AuditLog(
+        user_id=author_id,
+        action='create',
+        entity='news',
+        entity_id=news.id,
+        new_values={'title': news.title, 'news_type': 'pdf'},
+    ))
+    db.session.commit()
+    return news
+
+
+def update_pdf_news(news: News, form, new_pdf_files: list,
+                    remove_pdf_ids: list, actor_id: int) -> News:
+    from app.models.news import NewsPdf
+
+    news.title = form.title.data.strip()
+    news.slug  = _unique_slug(form.title.data, exclude_id=news.id)
+
+    was_published = news.is_published
+    news.is_published = form.is_published.data
+    if news.is_published and not was_published:
+        news.published_at = datetime.utcnow()
+    elif not news.is_published:
+        news.published_at = None
+
+    # Remove PDFs marcados para exclusão
+    deleted_filenames = []
+    if remove_pdf_ids:
+        to_remove = NewsPdf.query.filter(
+            NewsPdf.id.in_(remove_pdf_ids),
+            NewsPdf.news_id == news.id,
+        ).all()
+        for pdf in to_remove:
+            deleted_filenames.append(pdf.filename)
+            db.session.delete(pdf)
+
+    # Adiciona novos PDFs
+    new_thumbnail = None
+    for fs in new_pdf_files:
+        filename, original_name, thumbnail_url = _save_pdf(fs)
+        if filename:
+            if new_thumbnail is None and thumbnail_url:
+                new_thumbnail = thumbnail_url
+            db.session.add(NewsPdf(
+                news_id=news.id,
+                filename=filename,
+                original_name=original_name,
+                file_path=f'/uploads/news/pdfs/{filename}',
+            ))
+
+    # Atualiza thumbnail: usa o novo se houver, senão mantém o existente
+    if new_thumbnail:
+        news.featured_image = new_thumbnail
+
+    db.session.add(AuditLog(
+        user_id=actor_id,
+        action='update',
+        entity='news',
+        entity_id=news.id,
+        new_values={'title': news.title, 'news_type': 'pdf'},
+    ))
+    db.session.commit()
+
+    for fn in deleted_filenames:
+        _delete_pdf_file(fn)
+
+    return news
+
+
 def delete_news(news: News, actor_id: int) -> None:
+    pdf_filenames = [p.filename for p in news.pdfs] if news.news_type == 'pdf' else []
     db.session.add(AuditLog(
         user_id=actor_id,
         action='delete',
@@ -199,6 +359,8 @@ def delete_news(news: News, actor_id: int) -> None:
     ))
     db.session.delete(news)
     db.session.commit()
+    for fn in pdf_filenames:
+        _delete_pdf_file(fn)
 
 
 def toggle_publish(news: News, actor_id: int) -> News:

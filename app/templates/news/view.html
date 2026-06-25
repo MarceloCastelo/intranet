@@ -80,8 +80,8 @@
 {% block content %}
 <article class="max-w-3xl mx-auto" style="overflow-x:hidden;">
 
-  {# Imagem de destaque #}
-  {% if news.featured_image %}
+  {# Imagem de destaque — não exibe para notícias PDF (o PDF é embutido abaixo) #}
+  {% if news.featured_image and news.news_type != 'pdf' %}
     <img src="{{ news.featured_image }}" alt="{{ news.title }}"
          class="feat-img mx-auto rounded-lg mb-6"
          style="max-width:100%; max-height:480px; width:auto; height:auto;">
@@ -125,8 +125,73 @@
     <span>{{ news.views_count }} visualização{{ 'ões' if news.views_count != 1 else '' }}</span>
   </div>
 
-  {# Conteúdo #}
+  {# Conteúdo — artigo ou PDFs #}
+  {% if news.news_type == 'pdf' %}
+  <div id="pdf-section">
+    {% if news.pdfs %}
+      {% if news.pdfs|length == 1 %}
+      {# PDF único — visualizador embutido #}
+      <div class="mb-4">
+        <iframe src="{{ news.pdfs[0].file_path }}"
+                class="w-full rounded-lg border border-gray-200"
+                style="height:85vh;"
+                title="{{ news.pdfs[0].original_name or news.title }}">
+        </iframe>
+        <div class="mt-2 flex justify-end">
+          <a href="{{ news.pdfs[0].file_path }}" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-800">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25
+                       2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+            </svg>
+            Abrir em nova aba
+          </a>
+        </div>
+      </div>
+      {% else %}
+      {# Múltiplos PDFs — abas #}
+      <div>
+        <div class="flex gap-1 mb-4 overflow-x-auto pb-1" id="pdf-tabs">
+          {% for pdf in news.pdfs %}
+          <button type="button"
+                  onclick="showPdf({{ loop.index0 }})"
+                  id="pdf-tab-{{ loop.index0 }}"
+                  class="pdf-tab shrink-0 px-3 py-1.5 text-sm rounded-md border transition-colors
+                         {{ 'bg-primary-600 text-white border-primary-600' if loop.first
+                            else 'border-gray-300 text-gray-600 hover:bg-gray-50' }}">
+            {{ pdf.original_name or ('Arquivo ' ~ loop.index) }}
+          </button>
+          {% endfor %}
+        </div>
+        {% for pdf in news.pdfs %}
+        <div id="pdf-panel-{{ loop.index0 }}"
+             class="{{ '' if loop.first else 'hidden' }}">
+          <iframe src="{{ pdf.file_path }}"
+                  class="w-full rounded-lg border border-gray-200"
+                  style="height:85vh;"
+                  title="{{ pdf.original_name or news.title }}">
+          </iframe>
+          <div class="mt-2 flex justify-end">
+            <a href="{{ pdf.file_path }}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-800">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25
+                         2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+              </svg>
+              Abrir em nova aba
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% else %}
   <div id="article-content"></div>
+  {% endif %}
 
   {# Tags #}
   {% if news.tags %}
@@ -162,6 +227,22 @@
 
 {% block scripts %}
 <script>
+// ── Abas de PDF (múltiplos arquivos) ──────────────────────────────
+function showPdf(index) {
+  document.querySelectorAll('[id^="pdf-panel-"]').forEach((el, i) => {
+    el.classList.toggle('hidden', i !== index);
+  });
+  document.querySelectorAll('.pdf-tab').forEach((btn, i) => {
+    if (i === index) {
+      btn.classList.add('bg-primary-600', 'text-white', 'border-primary-600');
+      btn.classList.remove('border-gray-300', 'text-gray-600', 'hover:bg-gray-50');
+    } else {
+      btn.classList.remove('bg-primary-600', 'text-white', 'border-primary-600');
+      btn.classList.add('border-gray-300', 'text-gray-600', 'hover:bg-gray-50');
+    }
+  });
+}
+
 (function () {
   // ── Renderiza conteúdo ────────────────────────────────────────────
   const raw       = {{ news.content_json | tojson }};

@@ -57,6 +57,7 @@ class News(db.Model):
     content_json   = db.Column(db.JSON, nullable=False)
     featured_image      = db.Column(db.String(500))
     featured_image_size = db.Column(db.String(20), default='banner')
+    news_type      = db.Column(db.String(20), nullable=False, default='article')
     author_id      = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
     is_published   = db.Column(db.Boolean, default=False)
     published_at   = db.Column(db.DateTime)
@@ -68,6 +69,7 @@ class News(db.Model):
     categories = db.relationship('Category', secondary=news_categories, back_populates='news')
     tags       = db.relationship('Tag',      secondary=news_tags,       back_populates='news')
     views      = db.relationship('NewsView',  back_populates='news', cascade='all, delete-orphan')
+    pdfs       = db.relationship('NewsPdf',   back_populates='news', cascade='all, delete-orphan')
 
     __table_args__ = (
         db.Index('idx_news_published', 'is_published', 'published_at'),
@@ -77,6 +79,26 @@ class News(db.Model):
 
     def __repr__(self):
         return f'<News {self.slug}>'
+
+
+class NewsPdf(db.Model):
+    __tablename__ = 'news_pdfs'
+
+    id            = db.Column(db.Integer, primary_key=True)
+    news_id       = db.Column(db.Integer, db.ForeignKey('news.id', ondelete='CASCADE'), nullable=False)
+    filename      = db.Column(db.String(500), nullable=False)
+    original_name = db.Column(db.String(500))
+    file_path     = db.Column(db.String(500), nullable=False)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+    news = db.relationship('News', back_populates='pdfs')
+
+    __table_args__ = (
+        db.Index('idx_news_pdfs_news_id', 'news_id'),
+    )
+
+    def __repr__(self):
+        return f'<NewsPdf {self.filename}>'
 
 
 class NewsView(db.Model):
