@@ -119,7 +119,7 @@
       <span>&middot;</span>
     {% endif %}
     <span>
-      {{ news.published_at.strftime('%d de %B de %Y') if news.published_at else '' }}
+      {{ (news.published_at | local_dt).strftime('%d de %B de %Y') if news.published_at else '' }}
     </span>
     <span>&middot;</span>
     <span>{{ news.views_count }} visualização{{ 'ões' if news.views_count != 1 else '' }}</span>

@@ -152,7 +152,7 @@
           <div>
             <dt class="text-gray-400">Último acesso</dt>
             <dd class="font-medium text-gray-900">
-              {{ user.last_login_at.strftime('%d/%m/%Y %H:%M') if user.last_login_at else 'Nunca' }}
+              {{ (user.last_login_at | local_dt).strftime('%d/%m/%Y %H:%M') if user.last_login_at else 'Nunca' }}
             </dd>
           </div>
           <div>
@@ -166,12 +166,12 @@
           <div>
             <dt class="text-gray-400">Travado até</dt>
             <dd class="font-medium text-gray-900">
-              {{ user.locked_until.strftime('%d/%m/%Y %H:%M') if user.locked_until else '—' }}
+              {{ (user.locked_until | local_dt).strftime('%d/%m/%Y %H:%M') if user.locked_until else '—' }}
             </dd>
           </div>
           <div>
             <dt class="text-gray-400">Membro desde</dt>
-            <dd class="font-medium text-gray-900">{{ user.created_at.strftime('%d/%m/%Y') }}</dd>
+            <dd class="font-medium text-gray-900">{{ (user.created_at | local_dt).strftime('%d/%m/%Y') }}</dd>
           </div>
         </dl>
       </div>

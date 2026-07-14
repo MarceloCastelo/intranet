@@ -19,6 +19,7 @@ ALTER TABLE users
   ADD UNIQUE INDEX idx_users_cpf (cpf);
 
 -- 4. Remove colunas de 2FA que não são mais utilizadas
+--    (MySQL 8 não suporta "DROP COLUMN IF EXISTS"; remover apenas se existirem)
 ALTER TABLE users
-  DROP COLUMN IF EXISTS two_factor_enabled,
-  DROP COLUMN IF EXISTS two_factor_mandatory;
+  DROP COLUMN two_factor_enabled,
+  DROP COLUMN two_factor_mandatory;

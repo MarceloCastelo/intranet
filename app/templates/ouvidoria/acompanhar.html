@@ -77,7 +77,7 @@
                 </span>
               </div>
               <p class="font-semibold text-gray-900 text-sm">{{ m.assunto }}</p>
-              <p class="text-xs text-gray-400 mt-0.5">Enviado em {{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">Enviado em {{ (m.created_at | local_dt).strftime('%d/%m/%Y %H:%M') }}</p>
             </div>
             <code class="text-xs font-mono text-gray-400 break-all max-w-[14rem]">{{ m.public_id }}</code>
           </div>
@@ -93,7 +93,7 @@
                 {{ m.descricao }}
               </div>
               <p class="text-xs text-gray-400 text-right mt-1">
-                {{ m.created_at.strftime('%d/%m/%Y %H:%M') }} · Você
+                {{ (m.created_at | local_dt).strftime('%d/%m/%Y %H:%M') }} · Você
               </p>
             </div>
           </div>
@@ -108,7 +108,7 @@
                   {{ resp.conteudo }}
                 </div>
                 <p class="text-xs text-gray-400 text-right mt-1">
-                  {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }} · Você
+                  {{ (resp.created_at | local_dt).strftime('%d/%m/%Y %H:%M') }} · Você
                 </p>
               </div>
             </div>
@@ -122,7 +122,7 @@
                 </div>
                 <div class="flex items-center gap-2 mt-1">
                   <p class="text-xs text-gray-400">
-                    {{ resp.created_at.strftime('%d/%m/%Y %H:%M') }} · Equipe responsável
+                    {{ (resp.created_at | local_dt).strftime('%d/%m/%Y %H:%M') }} · Equipe responsável
                   </p>
                   {% if resp.status_anterior != resp.status_novo %}
                   <span class="text-xs text-gray-400">

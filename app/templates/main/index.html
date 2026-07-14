@@ -182,7 +182,7 @@
                 <p class="mt-1 text-xs text-gray-400">
                   {{ item.author.name if item.author else 'Redação' }}
                   &middot;
-                  {{ item.published_at.strftime('%d/%m/%Y') if item.published_at else '' }}
+                  {{ (item.published_at | local_dt).strftime('%d/%m/%Y') if item.published_at else '' }}
                 </p>
               </div>
             </a>

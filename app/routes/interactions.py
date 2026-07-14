@@ -5,6 +5,7 @@ from app.services.interaction_service import (
     add_comment, delete_comment, get_reactions,
     get_user_reaction, toggle_reaction,
 )
+from app.utils.timezone import to_local
 
 interactions_bp = Blueprint('interactions', __name__, url_prefix='/interacoes')
 
@@ -27,7 +28,7 @@ def comment():
         author=current_user.name,
         avatar=current_user.profile_picture or '',
         initial=current_user.name[0].upper(),
-        created_at=c.created_at.strftime('%d/%m/%Y %H:%M'),
+        created_at=to_local(c.created_at).strftime('%d/%m/%Y %H:%M'),
         can_delete=True,
     )
 

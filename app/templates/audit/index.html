@@ -93,8 +93,8 @@
         <tr class="hover:bg-gray-50 transition-colors">
 
           <td class="px-4 py-3 whitespace-nowrap text-gray-600">
-            {{ log.created_at.strftime('%d/%m/%Y') }}<br>
-            <span class="text-xs text-gray-400">{{ log.created_at.strftime('%H:%M:%S') }}</span>
+            {{ (log.created_at | local_dt).strftime('%d/%m/%Y') }}<br>
+            <span class="text-xs text-gray-400">{{ (log.created_at | local_dt).strftime('%H:%M:%S') }}</span>
           </td>
 
           <td class="px-4 py-3">

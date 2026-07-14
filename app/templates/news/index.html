@@ -114,7 +114,7 @@
         </td>
         <td class="px-5 py-3 text-gray-500 text-xs">{{ item.views_count }}</td>
         <td class="px-5 py-3 text-gray-400 text-xs">
-          {{ item.published_at.strftime('%d/%m/%Y') if item.published_at else item.created_at.strftime('%d/%m/%Y') }}
+          {{ (item.published_at | local_dt).strftime('%d/%m/%Y') if item.published_at else (item.created_at | local_dt).strftime('%d/%m/%Y') }}
         </td>
         <td class="px-5 py-3 text-right">
           <a href="{{ url_for('news.detail_admin', news_id=item.id) }}"

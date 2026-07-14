@@ -114,12 +114,12 @@
           </div>
           <div class="flex justify-between">
             <dt class="text-gray-400">Criado em</dt>
-            <dd class="font-medium">{{ news.created_at.strftime('%d/%m/%Y') }}</dd>
+            <dd class="font-medium">{{ (news.created_at | local_dt).strftime('%d/%m/%Y') }}</dd>
           </div>
           <div class="flex justify-between">
             <dt class="text-gray-400">Publicado em</dt>
             <dd class="font-medium">
-              {{ news.published_at.strftime('%d/%m/%Y %H:%M') if news.published_at else '—' }}
+              {{ (news.published_at | local_dt).strftime('%d/%m/%Y %H:%M') if news.published_at else '—' }}
             </dd>
           </div>
           <div class="flex justify-between">

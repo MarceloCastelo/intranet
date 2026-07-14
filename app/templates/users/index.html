@@ -126,7 +126,7 @@
           {% endif %}
         </td>
         <td class="px-6 py-3 text-gray-400 text-xs">
-          {{ user.last_login_at.strftime('%d/%m/%Y %H:%M') if user.last_login_at else 'Nunca' }}
+          {{ (user.last_login_at | local_dt).strftime('%d/%m/%Y %H:%M') if user.last_login_at else 'Nunca' }}
         </td>
         <td class="px-6 py-3 text-right">
           <a href="{{ url_for('users.detail', user_id=user.id) }}"

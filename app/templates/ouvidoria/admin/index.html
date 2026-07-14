@@ -134,8 +134,8 @@
           </td>
 
           <td class="px-4 py-3 whitespace-nowrap text-gray-500 text-xs">
-            {{ m.created_at.strftime('%d/%m/%Y') }}<br>
-            {{ m.created_at.strftime('%H:%M') }}
+            {{ (m.created_at | local_dt).strftime('%d/%m/%Y') }}<br>
+            {{ (m.created_at | local_dt).strftime('%H:%M') }}
           </td>
 
           <td class="px-4 py-3 text-center text-gray-500">

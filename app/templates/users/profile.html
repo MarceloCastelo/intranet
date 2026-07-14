@@ -100,7 +100,7 @@
         <span class="text-gray-600">Último acesso</span>
         <span class="text-xs text-gray-400">
           {% if current_user.last_login_at %}
-            {{ current_user.last_login_at.strftime('%d/%m/%Y às %H:%M') }}
+            {{ (current_user.last_login_at | local_dt).strftime('%d/%m/%Y às %H:%M') }}
             {% if current_user.last_login_ip %} · {{ current_user.last_login_ip }}{% endif %}
           {% else %}Nunca{% endif %}
         </span>

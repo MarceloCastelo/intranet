@@ -16,6 +16,15 @@ CREATE TABLE departments (
 );
 
 -- ========================================
+-- UNIT STATES (estados/unidades da empresa)
+-- ========================================
+CREATE TABLE unit_states (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================
 -- USERS (COM 2FA OBRIGATÓRIO NO PRIMEIRO LOGIN)
 -- ========================================
 -- USERS
@@ -31,8 +40,10 @@ CREATE TABLE users (
     status                  ENUM('active', 'inactive', 'blocked') DEFAULT 'active',
     profile_picture         VARCHAR(500),
     department_id           INT,
+    state_id                INT,
     birth_date              DATE,
     power_bi_access         TINYINT(1) NOT NULL DEFAULT 0,
+    ouvidoria_all_states    TINYINT(1) NOT NULL DEFAULT 0,
 
     -- Primeiro acesso
     first_login             BOOLEAN DEFAULT TRUE,
@@ -48,6 +59,10 @@ CREATE TABLE users (
 
     FOREIGN KEY (department_id)
         REFERENCES departments(id)
+        ON DELETE SET NULL,
+
+    FOREIGN KEY (state_id)
+        REFERENCES unit_states(id)
         ON DELETE SET NULL
 );
 
@@ -168,13 +183,33 @@ CREATE TABLE news (
     views_count  INT DEFAULT 0,
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    featured_image_size VARCHAR(20) DEFAULT 'banner',
+    news_type    VARCHAR(20) NOT NULL DEFAULT 'article',
 
     FOREIGN KEY (author_id)
         REFERENCES users(id)
         ON DELETE SET NULL,
-    
+
     INDEX idx_news_published (is_published, published_at),
     INDEX idx_news_slug (slug)
+);
+
+-- ========================================
+-- NEWS_PDFS (arquivos PDF vinculados a notícias)
+-- ========================================
+CREATE TABLE news_pdfs (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    news_id       INT NOT NULL,
+    filename      VARCHAR(500) NOT NULL,
+    original_name VARCHAR(500),
+    file_path     VARCHAR(500) NOT NULL,
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (news_id)
+        REFERENCES news(id)
+        ON DELETE CASCADE,
+
+    INDEX idx_news_pdfs_news_id (news_id)
 );
 
 -- ========================================
@@ -674,6 +709,14 @@ CREATE TABLE site_modules (
 );
 
 -- ========================================
+-- SITE CONFIG (configurações globais chave/valor)
+-- ========================================
+CREATE TABLE site_config (
+    `key`   VARCHAR(100) PRIMARY KEY,
+    `value` TEXT
+);
+
+-- ========================================
 -- OUVIDORIA
 -- ========================================
 CREATE TABLE manifestacoes (
@@ -682,12 +725,18 @@ CREATE TABLE manifestacoes (
     tipo       ENUM('denuncia', 'reclamacao', 'sugestao') NOT NULL,
     assunto    VARCHAR(200) NOT NULL,
     descricao  TEXT NOT NULL,
+    state_id   INT NULL,
     status     ENUM('pendente', 'em_andamento', 'concluida', 'arquivada') NOT NULL DEFAULT 'pendente',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    FOREIGN KEY (state_id)
+        REFERENCES unit_states(id)
+        ON DELETE SET NULL,
+
     UNIQUE KEY uq_manifestacoes_public_id (public_id),
-    INDEX idx_manifestacoes_public_id (public_id)
+    INDEX idx_manifestacoes_public_id (public_id),
+    INDEX idx_manifestacoes_state (state_id)
 );
 
 CREATE TABLE manifestacao_respostas (
@@ -811,6 +860,7 @@ CREATE TABLE email_logs (
 -- ========================================
 CREATE INDEX idx_users_status ON users(status, role);
 CREATE INDEX idx_users_department ON users(department_id, status);
+CREATE INDEX idx_users_state ON users(state_id);
 CREATE INDEX idx_users_cpf ON users(cpf);
 CREATE INDEX idx_news_author ON news(author_id, created_at);
 CREATE INDEX idx_comments_approved ON comments(entity_type, entity_id, is_approved, created_at);

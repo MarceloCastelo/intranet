@@ -131,10 +131,10 @@
         {% if page %}
         <div class="bg-white rounded-lg border border-gray-200 p-5 text-xs text-gray-400 space-y-1">
           <div>Criado por: {{ page.creator.name if page.creator else '—' }}</div>
-          <div>Em: {{ page.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+          <div>Em: {{ (page.created_at | local_dt).strftime('%d/%m/%Y %H:%M') }}</div>
           {% if page.updater %}
           <div>Atualizado por: {{ page.updater.name }}</div>
-          <div>Em: {{ page.updated_at.strftime('%d/%m/%Y %H:%M') }}</div>
+          <div>Em: {{ (page.updated_at | local_dt).strftime('%d/%m/%Y %H:%M') }}</div>
           {% endif %}
         </div>
         {% endif %}

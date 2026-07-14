@@ -88,7 +88,7 @@
       <p class="mt-1 text-xs text-gray-500 line-clamp-2">{{ n.summary }}</p>
       {% endif %}
       <p class="mt-2 text-xs text-gray-400">
-        {{ n.published_at.strftime('%d/%m/%Y') if n.published_at else '' }}
+        {{ (n.published_at | local_dt).strftime('%d/%m/%Y') if n.published_at else '' }}
         {% if n.author %} · {{ n.author.name }}{% endif %}
       </p>
     </div>

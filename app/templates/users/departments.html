@@ -65,7 +65,7 @@
             </form>
           </td>
           <td class="px-5 py-3 text-center text-gray-500">{{ dept.users.count() }}</td>
-          <td class="px-5 py-3 text-center text-gray-400">{{ dept.created_at.strftime('%d/%m/%Y') }}</td>
+          <td class="px-5 py-3 text-center text-gray-400">{{ (dept.created_at | local_dt).strftime('%d/%m/%Y') }}</td>
           <td class="px-5 py-3 text-right">
             <div class="flex items-center justify-end gap-2">
               <button @click="editing = !editing"

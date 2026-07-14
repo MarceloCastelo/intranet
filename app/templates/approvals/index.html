@@ -80,7 +80,7 @@
 
           {# Data #}
           <td class="px-4 py-3 text-gray-500 whitespace-nowrap">
-            {{ ap.requested_at.strftime('%d/%m/%Y %H:%M') }}
+            {{ (ap.requested_at | local_dt).strftime('%d/%m/%Y %H:%M') }}
           </td>
 
           {# Status #}

@@ -31,6 +31,10 @@ def create_app():
     cache.init_app(app)
     compress.init_app(app)
 
+    # Filtro Jinja: converte datetimes armazenados em UTC para o horário local
+    from app.utils.timezone import to_local
+    app.jinja_env.filters['local_dt'] = to_local
+
     # Login manager
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Faça login para acessar esta página."

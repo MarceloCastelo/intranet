@@ -9,6 +9,7 @@ from flask_mail import Message
 
 from app import db, mail
 from app.models.communication import EmailLog
+from app.utils.timezone import to_local
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,7 @@ def notify_ouvidoria_nova_manifestacao(manifestacao, admin_url: str) -> None:
     app_name    = current_app.config['APP_NAME']
     tipo_label  = _TIPO_LABELS.get(manifestacao.tipo, manifestacao.tipo)
     state_name  = manifestacao.unit_state.name if manifestacao.unit_state else ''
-    data        = manifestacao.created_at.strftime('%d/%m/%Y %H:%M')
+    data        = to_local(manifestacao.created_at).strftime('%d/%m/%Y %H:%M')
     subject     = f'[{app_name}] Nova {tipo_label} recebida — {state_name}'
 
     for admin in admins:
@@ -111,7 +112,7 @@ def notify_ouvidoria_nova_resposta(manifestacao, admin_url: str) -> None:
     app_name    = current_app.config['APP_NAME']
     tipo_label  = _TIPO_LABELS.get(manifestacao.tipo, manifestacao.tipo)
     state_name  = manifestacao.unit_state.name if manifestacao.unit_state else ''
-    data        = datetime.utcnow().strftime('%d/%m/%Y %H:%M')
+    data        = to_local(datetime.utcnow()).strftime('%d/%m/%Y %H:%M')
     subject     = f'[{app_name}] Nova mensagem do denunciante — {state_name}'
 
     for admin in admins:
